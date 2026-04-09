@@ -56,28 +56,7 @@ export default function Dashboard() {
     r: executedTrades.slice(0, i + 1).reduce((s, tr) => s + Number(tr.earned_r), 0),
   }));
 
-  // Condition performance
-  const conditionMap = new Map<string, { wins: number; total: number; totalR: number; name: string }>();
-  const dateTradeIds = new Set(dateTrades.map(t => t.id));
-  tradeConditions.forEach((tc: any) => {
-    const name = tc.conditions?.name ?? '';
-    if (!name) return;
-    if (!dateTradeIds.has(tc.trade_id)) return;
-    if (!conditionMap.has(name)) conditionMap.set(name, { wins: 0, total: 0, totalR: 0, name });
-    const entry = conditionMap.get(name)!;
-    const trade = dateTrades.find(t => t.id === tc.trade_id);
-    if (trade) {
-      entry.total++;
-      if (trade.result === 'Win') entry.wins++;
-      entry.totalR += Number(trade.earned_r);
-    }
-  });
-  const conditionPerf = Array.from(conditionMap.values()).map(c => ({
-    name: c.name,
-    winRate: c.total > 0 ? Math.round((c.wins / c.total) * 100) : 0,
-    avgR: c.total > 0 ? +(c.totalR / c.total).toFixed(2) : 0,
-    trades: c.total,
-  }));
+
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
