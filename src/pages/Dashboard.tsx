@@ -9,7 +9,7 @@ import SetupAnalyzer from '@/components/SetupAnalyzer';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  
   const [dateRange, setDateRange] = useState<DateRangeValue>(null);
 
   const { data: trades = [] } = useQuery({
