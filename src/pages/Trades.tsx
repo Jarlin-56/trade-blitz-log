@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,13 +6,52 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 
 export default function Trades() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const filterResult = searchParams.get('result') || 'all';
-  const filterCondition = searchParams.get('condition') || '';
+
+  // Parse multi-value params from URL
+  const selectedConditions = useMemo(() => {
+    const raw = searchParams.get('conditions');
+    return raw ? raw.split(',').filter(Boolean) : [];
+  }, [searchParams]);
+
+  const selectedTags = useMemo(() => {
+    const raw = searchParams.get('tags');
+    return raw ? raw.split(',').filter(Boolean) : [];
+  }, [searchParams]);
+
+  // Also support legacy single "condition" param from dashboard drill-down
+  const legacyCondition = searchParams.get('condition') || '';
+
+  const [conditionsOpen, setConditionsOpen] = useState(false);
+  const [tagsOpen, setTagsOpen] = useState(false);
+
+  // Fetch master lists
+  const { data: allConditions = [] } = useQuery({
+    queryKey: ['conditions', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('conditions').select('id, name').order('name');
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: allTags = [] } = useQuery({
+    queryKey: ['tags', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('tags').select('id, name').order('name');
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
 
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id],
@@ -40,13 +80,67 @@ export default function Trades() {
     enabled: !!user,
   });
 
+  // Combine legacy + multi conditions for filtering
+  const activeConditionNames = useMemo(() => {
+    const set = new Set(selectedConditions);
+    if (legacyCondition) set.add(legacyCondition);
+    return Array.from(set);
+  }, [selectedConditions, legacyCondition]);
+
+  const updateParam = (key: string, values: string[]) => {
+    const p = new URLSearchParams(searchParams);
+    if (values.length === 0) {
+      p.delete(key);
+    } else {
+      p.set(key, values.join(','));
+    }
+    // Clear legacy param when using new multi-select
+    if (key === 'conditions') p.delete('condition');
+    setSearchParams(p);
+  };
+
+  const toggleCondition = (name: string) => {
+    const next = activeConditionNames.includes(name)
+      ? activeConditionNames.filter(c => c !== name)
+      : [...activeConditionNames, name];
+    updateParam('conditions', next);
+  };
+
+  const toggleTag = (name: string) => {
+    const next = selectedTags.includes(name)
+      ? selectedTags.filter(t => t !== name)
+      : [...selectedTags, name];
+    updateParam('tags', next);
+  };
+
+  const removeCondition = (name: string) => {
+    const next = activeConditionNames.filter(c => c !== name);
+    updateParam('conditions', next);
+  };
+
+  const removeTag = (name: string) => {
+    const next = selectedTags.filter(t => t !== name);
+    updateParam('tags', next);
+  };
+
+  // Filter trades
   const filtered = trades.filter(t => {
     if (filterResult !== 'all' && t.result !== filterResult) return false;
-    if (filterCondition) {
-      const hasCondition = tradeConditions.some(
-        (tc: any) => tc.trade_id === t.id && tc.conditions?.name === filterCondition
-      );
-      if (!hasCondition) return false;
+    if (activeConditionNames.length > 0) {
+      const tradeCondNames = tradeConditions
+        .filter((tc: any) => tc.trade_id === t.id)
+        .map((tc: any) => tc.conditions?.name)
+        .filter(Boolean);
+      const hasAll = activeConditionNames.every(c => tradeCondNames.includes(c));
+      if (!hasAll) return false;
+    }
+    if (selectedTags.length > 0) {
+      const tradeTagNames = tradeTags
+        .filter((tt: any) => tt.trade_id === t.id)
+        .map((tt: any) => tt.tags?.name)
+        .filter(Boolean);
+      const hasAll = selectedTags.every(t => tradeTagNames.includes(t));
+      if (!hasAll) return false;
     }
     return true;
   });
@@ -70,9 +164,12 @@ export default function Trades() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
+        {/* Result filter */}
         <Select value={filterResult} onValueChange={v => { const p = new URLSearchParams(searchParams); p.set('result', v); setSearchParams(p); }}>
-          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[130px] h-9 text-xs">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Results</SelectItem>
             <SelectItem value="Win">Win</SelectItem>
@@ -80,12 +177,75 @@ export default function Trades() {
             <SelectItem value="Break-even">Break-even</SelectItem>
           </SelectContent>
         </Select>
-        {filterCondition && (
-          <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => { const p = new URLSearchParams(searchParams); p.delete('condition'); setSearchParams(p); }}>
-            {filterCondition} ✕
-          </Badge>
-        )}
+
+        {/* Conditions multi-select */}
+        <Popover open={conditionsOpen} onOpenChange={setConditionsOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9 text-xs gap-1 font-normal">
+              Conditions
+              <ChevronsUpDown className="h-3 w-3 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search conditions..." className="h-8 text-xs" />
+              <CommandList>
+                <CommandEmpty className="text-xs py-3 text-center">No conditions found</CommandEmpty>
+                <CommandGroup>
+                  {allConditions.map((c: any) => (
+                    <CommandItem key={c.id} value={c.name} onSelect={() => toggleCondition(c.name)} className="text-xs">
+                      <Check className={cn('mr-2 h-3 w-3', activeConditionNames.includes(c.name) ? 'opacity-100' : 'opacity-0')} />
+                      {c.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Tags multi-select */}
+        <Popover open={tagsOpen} onOpenChange={setTagsOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9 text-xs gap-1 font-normal">
+              Tags
+              <ChevronsUpDown className="h-3 w-3 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search tags..." className="h-8 text-xs" />
+              <CommandList>
+                <CommandEmpty className="text-xs py-3 text-center">No tags found</CommandEmpty>
+                <CommandGroup>
+                  {allTags.map((t: any) => (
+                    <CommandItem key={t.id} value={t.name} onSelect={() => toggleTag(t.name)} className="text-xs">
+                      <Check className={cn('mr-2 h-3 w-3', selectedTags.includes(t.name) ? 'opacity-100' : 'opacity-0')} />
+                      #{t.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
+
+      {/* Active filter chips */}
+      {(activeConditionNames.length > 0 || selectedTags.length > 0) && (
+        <div className="flex gap-1.5 flex-wrap">
+          {activeConditionNames.map(c => (
+            <Badge key={c} variant="outline" className="gap-1 text-xs cursor-pointer" onClick={() => removeCondition(c)}>
+              {c} <X className="h-3 w-3" />
+            </Badge>
+          ))}
+          {selectedTags.map(t => (
+            <Badge key={t} variant="secondary" className="gap-1 text-xs cursor-pointer" onClick={() => removeTag(t)}>
+              #{t} <X className="h-3 w-3" />
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* Trade list */}
       {filtered.length === 0 ? (
