@@ -1,0 +1,135 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from 'recharts';
+import { useNavigate } from 'react-router-dom';
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: trades = [] } = useQuery({
+    queryKey: ['trades', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('trades')
+        .select('*')
+        .order('entry_date', { ascending: true });
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: tradeConditions = [] } = useQuery({
+    queryKey: ['trade-conditions-all', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('trade_conditions')
+        .select('trade_id, condition_id, conditions(name)');
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const totalR = trades.reduce((sum, t) => sum + Number(t.earned_r), 0);
+  const winCount = trades.filter(t => t.result === 'Win').length;
+  const winRate = trades.length > 0 ? ((winCount / trades.length) * 100).toFixed(1) : '0';
+
+  // Cumulative R data
+  const cumulativeData = trades.map((t, i) => ({
+    date: new Date(t.entry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    r: trades.slice(0, i + 1).reduce((s, tr) => s + Number(tr.earned_r), 0),
+  }));
+
+  // Condition performance
+  const conditionMap = new Map<string, { wins: number; total: number; totalR: number; name: string }>();
+  tradeConditions.forEach((tc: any) => {
+    const name = tc.conditions?.name ?? '';
+    if (!name) return;
+    if (!conditionMap.has(name)) conditionMap.set(name, { wins: 0, total: 0, totalR: 0, name });
+    const entry = conditionMap.get(name)!;
+    const trade = trades.find(t => t.id === tc.trade_id);
+    if (trade) {
+      entry.total++;
+      if (trade.result === 'Win') entry.wins++;
+      entry.totalR += Number(trade.earned_r);
+    }
+  });
+  const conditionPerf = Array.from(conditionMap.values()).map(c => ({
+    name: c.name,
+    winRate: c.total > 0 ? Math.round((c.wins / c.total) * 100) : 0,
+    avgR: c.total > 0 ? +(c.totalR / c.total).toFixed(2) : 0,
+    trades: c.total,
+  }));
+
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total R</CardTitle></CardHeader>
+          <CardContent>
+            <span className={`text-3xl font-bold font-mono ${totalR >= 0 ? 'text-win' : 'text-loss'}`}>
+              {totalR >= 0 ? '+' : ''}{totalR.toFixed(2)}R
+            </span>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Win Rate</CardTitle></CardHeader>
+          <CardContent><span className="text-3xl font-bold font-mono">{winRate}%</span></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total Trades</CardTitle></CardHeader>
+          <CardContent><span className="text-3xl font-bold font-mono">{trades.length}</span></CardContent>
+        </Card>
+      </div>
+
+      {/* Cumulative R Chart */}
+      <Card>
+        <CardHeader><CardTitle>Cumulative R</CardTitle></CardHeader>
+        <CardContent>
+          {cumulativeData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={cumulativeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }} />
+                <Line type="monotone" dataKey="r" stroke="hsl(142 70% 45%)" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No trades yet. Log your first trade!</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Condition Performance */}
+      {conditionPerf.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>Condition Performance</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={conditionPerf}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }} />
+                <Bar
+                  dataKey="winRate"
+                  fill="hsl(142 70% 45%)"
+                  radius={[4, 4, 0, 0]}
+                  cursor="pointer"
+                  onClick={(data: any) => navigate(`/trades?condition=${data.name}`)}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
