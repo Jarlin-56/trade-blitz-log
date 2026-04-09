@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
+import SetupAnalyzer from '@/components/SetupAnalyzer';
 
 export default function Dashboard() {
   const { user } = useAuth();
