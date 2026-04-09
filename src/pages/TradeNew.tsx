@@ -234,7 +234,7 @@ export default function TradeNew() {
                 required
               />
             </div>
-          )
+          )}
         </CardContent>
       </Card>
 
