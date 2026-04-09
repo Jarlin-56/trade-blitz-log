@@ -14,7 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conditions: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trade_conditions: {
+        Row: {
+          condition_id: string
+          id: string
+          trade_id: string
+        }
+        Insert: {
+          condition_id: string
+          id?: string
+          trade_id: string
+        }
+        Update: {
+          condition_id?: string
+          id?: string
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_conditions_condition_id_fkey"
+            columns: ["condition_id"]
+            isOneToOne: false
+            referencedRelation: "conditions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_conditions_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_tags: {
+        Row: {
+          id: string
+          tag_id: string
+          trade_id: string
+        }
+        Insert: {
+          id?: string
+          tag_id: string
+          trade_id: string
+        }
+        Update: {
+          id?: string
+          tag_id?: string
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_tags_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trades: {
+        Row: {
+          asset: string
+          created_at: string
+          direction: Database["public"]["Enums"]["trade_direction"]
+          earned_r: number
+          entry_date: string
+          id: string
+          image_url: string | null
+          recap_text: string | null
+          result: Database["public"]["Enums"]["trade_result"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset: string
+          created_at?: string
+          direction: Database["public"]["Enums"]["trade_direction"]
+          earned_r?: number
+          entry_date?: string
+          id?: string
+          image_url?: string | null
+          recap_text?: string | null
+          result: Database["public"]["Enums"]["trade_result"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset?: string
+          created_at?: string
+          direction?: Database["public"]["Enums"]["trade_direction"]
+          earned_r?: number
+          entry_date?: string
+          id?: string
+          image_url?: string | null
+          recap_text?: string | null
+          result?: Database["public"]["Enums"]["trade_result"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +172,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      trade_direction: "Long" | "Short"
+      trade_result: "Win" | "Loss" | "Break-even"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +300,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      trade_direction: ["Long", "Short"],
+      trade_result: ["Win", "Loss", "Break-even"],
+    },
   },
 } as const
