@@ -11,11 +11,13 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
+import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
 
 export default function Trades() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const filterResult = searchParams.get('result') || 'all';
+  const [dateRange, setDateRange] = useState<DateRangeValue>(null);
 
   // Parse multi-value params from URL
   const selectedConditions = useMemo(() => {
@@ -94,7 +96,6 @@ export default function Trades() {
     } else {
       p.set(key, values.join(','));
     }
-    // Clear legacy param when using new multi-select
     if (key === 'conditions') p.delete('condition');
     setSearchParams(p);
   };
@@ -114,33 +115,34 @@ export default function Trades() {
   };
 
   const removeCondition = (name: string) => {
-    const next = activeConditionNames.filter(c => c !== name);
-    updateParam('conditions', next);
+    updateParam('conditions', activeConditionNames.filter(c => c !== name));
   };
 
   const removeTag = (name: string) => {
-    const next = selectedTags.filter(t => t !== name);
-    updateParam('tags', next);
+    updateParam('tags', selectedTags.filter(t => t !== name));
   };
 
   // Filter trades
   const filtered = trades.filter(t => {
+    // Date range filter
+    if (dateRange) {
+      const d = new Date(t.entry_date);
+      if (d < dateRange.from || d > dateRange.to) return false;
+    }
     if (filterResult !== 'all' && t.result !== filterResult) return false;
     if (activeConditionNames.length > 0) {
       const tradeCondNames = tradeConditions
         .filter((tc: any) => tc.trade_id === t.id)
         .map((tc: any) => tc.conditions?.name)
         .filter(Boolean);
-      const hasAll = activeConditionNames.every(c => tradeCondNames.includes(c));
-      if (!hasAll) return false;
+      if (!activeConditionNames.every(c => tradeCondNames.includes(c))) return false;
     }
     if (selectedTags.length > 0) {
       const tradeTagNames = tradeTags
         .filter((tt: any) => tt.trade_id === t.id)
         .map((tt: any) => tt.tags?.name)
         .filter(Boolean);
-      const hasAll = selectedTags.every(t => tradeTagNames.includes(t));
-      if (!hasAll) return false;
+      if (!selectedTags.every(tag => tradeTagNames.includes(tag))) return false;
     }
     return true;
   });
@@ -161,8 +163,9 @@ export default function Trades() {
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold">Trade History</h1>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Filters */}

@@ -1,13 +1,16 @@
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [dateRange, setDateRange] = useState<DateRangeValue>(null);
 
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id],
@@ -32,8 +35,17 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  // Apply date filter
+  const dateTrades = useMemo(() => {
+    if (!dateRange) return trades;
+    return trades.filter(t => {
+      const d = new Date(t.entry_date);
+      return d >= dateRange.from && d <= dateRange.to;
+    });
+  }, [trades, dateRange]);
+
   // Exclude Missed & Canceled from PnL calculations
-  const executedTrades = trades.filter(t => !['Missed', 'Canceled'].includes(t.result));
+  const executedTrades = dateTrades.filter(t => !['Missed', 'Canceled'].includes(t.result));
   const totalR = executedTrades.reduce((sum, t) => sum + Number(t.earned_r), 0);
   const winCount = executedTrades.filter(t => t.result === 'Win').length;
   const winRate = executedTrades.length > 0 ? ((winCount / executedTrades.length) * 100).toFixed(1) : '0';
@@ -46,12 +58,14 @@ export default function Dashboard() {
 
   // Condition performance
   const conditionMap = new Map<string, { wins: number; total: number; totalR: number; name: string }>();
+  const dateTradeIds = new Set(dateTrades.map(t => t.id));
   tradeConditions.forEach((tc: any) => {
     const name = tc.conditions?.name ?? '';
     if (!name) return;
+    if (!dateTradeIds.has(tc.trade_id)) return;
     if (!conditionMap.has(name)) conditionMap.set(name, { wins: 0, total: 0, totalR: 0, name });
     const entry = conditionMap.get(name)!;
-    const trade = trades.find(t => t.id === tc.trade_id);
+    const trade = dateTrades.find(t => t.id === tc.trade_id);
     if (trade) {
       entry.total++;
       if (trade.result === 'Win') entry.wins++;
@@ -67,7 +81,10 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -85,7 +102,7 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total Trades</CardTitle></CardHeader>
-          <CardContent><span className="text-3xl font-bold font-mono">{trades.length}</span></CardContent>
+          <CardContent><span className="text-3xl font-bold font-mono">{dateTrades.length}</span></CardContent>
         </Card>
       </div>
 
