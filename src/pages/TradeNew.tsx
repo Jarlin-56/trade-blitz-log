@@ -25,6 +25,7 @@ export default function TradeNew() {
   const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 16));
   const [result, setResult] = useState<TradeResult | null>(null);
   const [earnedR, setEarnedR] = useState('');
+  const [missedR, setMissedR] = useState('');
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [recap, setRecap] = useState('');
@@ -51,8 +52,13 @@ export default function TradeNew() {
 
   const getEarnedRValue = (): number => {
     if (result === 'Loss') return -1;
-    if (result === 'Break-even') return 0;
+    if (result === 'Break-even' || result === 'Missed' || result === 'Canceled') return 0;
     return parseFloat(earnedR) || 0;
+  };
+
+  const getMissedRValue = (): number => {
+    if (result === 'Missed') return parseFloat(missedR) || 0;
+    return 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +66,10 @@ export default function TradeNew() {
     if (!user || !result || !asset) return;
     if (result === 'Win' && (!earnedR || parseFloat(earnedR) <= 0)) {
       toast.error('Please enter a positive R value for wins');
+      return;
+    }
+    if (result === 'Missed' && (!missedR || parseFloat(missedR) <= 0)) {
+      toast.error('Please enter a positive Missed R value');
       return;
     }
 
@@ -84,6 +94,7 @@ export default function TradeNew() {
           entry_date: new Date(entryDate).toISOString(),
           result,
           earned_r: getEarnedRValue(),
+          missed_r: getMissedRValue(),
           recap_text: recap || null,
           image_url: imageUrl,
         })
@@ -164,43 +175,66 @@ export default function TradeNew() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Result</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {([
                 { v: 'Win' as TradeResult, color: 'bg-win hover:bg-win/90 text-primary-foreground' },
                 { v: 'Loss' as TradeResult, color: 'bg-loss hover:bg-loss/90 text-white' },
                 { v: 'Break-even' as TradeResult, color: 'bg-breakeven hover:bg-breakeven/90 text-primary-foreground' },
+                { v: 'Missed' as TradeResult, color: 'bg-orange-500 hover:bg-orange-500/90 text-white' },
+                { v: 'Canceled' as TradeResult, color: 'bg-muted hover:bg-muted/90 text-muted-foreground' },
               ]).map(({ v, color }) => (
                 <Button
                   key={v}
                   type="button"
                   variant={result === v ? 'default' : 'outline'}
                   className={cn('text-sm', result === v && color)}
-                  onClick={() => { setResult(v); if (v !== 'Win') setEarnedR(''); }}
+                  onClick={() => { setResult(v); if (v !== 'Win') setEarnedR(''); if (v !== 'Missed') setMissedR(''); }}
                 >
                   {v}
                 </Button>
               ))}
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Earned R</Label>
-            {result === 'Loss' ? (
-              <Input value="-1" disabled className="font-mono text-loss" />
-            ) : result === 'Break-even' ? (
-              <Input value="0" disabled className="font-mono text-breakeven" />
-            ) : (
+
+          {/* Earned R - shown for Win, Loss, Break-even */}
+          {result && !['Missed', 'Canceled'].includes(result) && (
+            <div className="space-y-2">
+              <Label>Earned R</Label>
+              {result === 'Loss' ? (
+                <Input value="-1" disabled className="font-mono text-loss" />
+              ) : result === 'Break-even' ? (
+                <Input value="0" disabled className="font-mono text-breakeven" />
+              ) : (
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  placeholder="e.g. 2.5"
+                  value={earnedR}
+                  onChange={e => setEarnedR(e.target.value)}
+                  className="font-mono"
+                  required={result === 'Win'}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Missed R - shown only for Missed */}
+          {result === 'Missed' && (
+            <div className="space-y-2">
+              <Label>Missed R (Potential R)</Label>
               <Input
                 type="number"
                 step="0.1"
                 min="0.1"
-                placeholder="e.g. 2.5"
-                value={earnedR}
-                onChange={e => setEarnedR(e.target.value)}
-                className="font-mono"
-                disabled={!result}
-                required={result === 'Win'}
+                placeholder="e.g. 3.0"
+                value={missedR}
+                onChange={e => setMissedR(e.target.value)}
+                className="font-mono text-orange-400"
+                required
               />
-            )}
+            </div>
+          )}
           </div>
         </CardContent>
       </Card>
