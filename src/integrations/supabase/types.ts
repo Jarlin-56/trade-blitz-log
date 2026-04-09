@@ -131,6 +131,7 @@ export type Database = {
           entry_date: string
           id: string
           image_url: string | null
+          missed_r: number
           recap_text: string | null
           result: Database["public"]["Enums"]["trade_result"]
           updated_at: string
@@ -144,6 +145,7 @@ export type Database = {
           entry_date?: string
           id?: string
           image_url?: string | null
+          missed_r?: number
           recap_text?: string | null
           result: Database["public"]["Enums"]["trade_result"]
           updated_at?: string
@@ -157,6 +159,7 @@ export type Database = {
           entry_date?: string
           id?: string
           image_url?: string | null
+          missed_r?: number
           recap_text?: string | null
           result?: Database["public"]["Enums"]["trade_result"]
           updated_at?: string
@@ -173,7 +176,7 @@ export type Database = {
     }
     Enums: {
       trade_direction: "Long" | "Short"
-      trade_result: "Win" | "Loss" | "Break-even"
+      trade_result: "Win" | "Loss" | "Break-even" | "Missed" | "Canceled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -302,7 +305,7 @@ export const Constants = {
   public: {
     Enums: {
       trade_direction: ["Long", "Short"],
-      trade_result: ["Win", "Loss", "Break-even"],
+      trade_result: ["Win", "Loss", "Break-even", "Missed", "Canceled"],
     },
   },
 } as const

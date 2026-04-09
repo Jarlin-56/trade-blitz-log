@@ -32,14 +32,16 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const totalR = trades.reduce((sum, t) => sum + Number(t.earned_r), 0);
-  const winCount = trades.filter(t => t.result === 'Win').length;
-  const winRate = trades.length > 0 ? ((winCount / trades.length) * 100).toFixed(1) : '0';
+  // Exclude Missed & Canceled from PnL calculations
+  const executedTrades = trades.filter(t => !['Missed', 'Canceled'].includes(t.result));
+  const totalR = executedTrades.reduce((sum, t) => sum + Number(t.earned_r), 0);
+  const winCount = executedTrades.filter(t => t.result === 'Win').length;
+  const winRate = executedTrades.length > 0 ? ((winCount / executedTrades.length) * 100).toFixed(1) : '0';
 
-  // Cumulative R data
-  const cumulativeData = trades.map((t, i) => ({
+  // Cumulative R data (only executed trades)
+  const cumulativeData = executedTrades.map((t, i) => ({
     date: new Date(t.entry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    r: trades.slice(0, i + 1).reduce((s, tr) => s + Number(tr.earned_r), 0),
+    r: executedTrades.slice(0, i + 1).reduce((s, tr) => s + Number(tr.earned_r), 0),
   }));
 
   // Condition performance

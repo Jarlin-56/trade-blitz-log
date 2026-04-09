@@ -154,6 +154,8 @@ export default function Trades() {
   const resultColor = (r: string) => {
     if (r === 'Win') return 'text-win';
     if (r === 'Loss') return 'text-loss';
+    if (r === 'Missed') return 'text-orange-400';
+    if (r === 'Canceled') return 'text-muted-foreground';
     return 'text-breakeven';
   };
 
@@ -175,6 +177,8 @@ export default function Trades() {
             <SelectItem value="Win">Win</SelectItem>
             <SelectItem value="Loss">Loss</SelectItem>
             <SelectItem value="Break-even">Break-even</SelectItem>
+            <SelectItem value="Missed">Missed</SelectItem>
+            <SelectItem value="Canceled">Canceled</SelectItem>
           </SelectContent>
         </Select>
 
