@@ -127,29 +127,8 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Condition Performance */}
-      {conditionPerf.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle>Condition Performance</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={conditionPerf}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
-                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
-                <Tooltip contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }} />
-                <Bar
-                  dataKey="winRate"
-                  fill="hsl(142 70% 45%)"
-                  radius={[4, 4, 0, 0]}
-                  cursor="pointer"
-                  onClick={(data: any) => navigate(`/trades?condition=${data.name}`)}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+      {/* Setup Analyzer */}
+      <SetupAnalyzer trades={dateTrades} tradeConditions={tradeConditions} />
     </div>
   );
 }
