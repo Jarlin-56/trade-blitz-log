@@ -3,13 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from 'recharts';
-import { useNavigate } from 'react-router-dom';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
+import SetupAnalyzer from '@/components/SetupAnalyzer';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  
   const [dateRange, setDateRange] = useState<DateRangeValue>(null);
 
   const { data: trades = [] } = useQuery({
@@ -56,28 +56,7 @@ export default function Dashboard() {
     r: executedTrades.slice(0, i + 1).reduce((s, tr) => s + Number(tr.earned_r), 0),
   }));
 
-  // Condition performance
-  const conditionMap = new Map<string, { wins: number; total: number; totalR: number; name: string }>();
-  const dateTradeIds = new Set(dateTrades.map(t => t.id));
-  tradeConditions.forEach((tc: any) => {
-    const name = tc.conditions?.name ?? '';
-    if (!name) return;
-    if (!dateTradeIds.has(tc.trade_id)) return;
-    if (!conditionMap.has(name)) conditionMap.set(name, { wins: 0, total: 0, totalR: 0, name });
-    const entry = conditionMap.get(name)!;
-    const trade = dateTrades.find(t => t.id === tc.trade_id);
-    if (trade) {
-      entry.total++;
-      if (trade.result === 'Win') entry.wins++;
-      entry.totalR += Number(trade.earned_r);
-    }
-  });
-  const conditionPerf = Array.from(conditionMap.values()).map(c => ({
-    name: c.name,
-    winRate: c.total > 0 ? Math.round((c.wins / c.total) * 100) : 0,
-    avgR: c.total > 0 ? +(c.totalR / c.total).toFixed(2) : 0,
-    trades: c.total,
-  }));
+
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -126,29 +105,8 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Condition Performance */}
-      {conditionPerf.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle>Condition Performance</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={conditionPerf}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
-                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
-                <Tooltip contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }} />
-                <Bar
-                  dataKey="winRate"
-                  fill="hsl(142 70% 45%)"
-                  radius={[4, 4, 0, 0]}
-                  cursor="pointer"
-                  onClick={(data: any) => navigate(`/trades?condition=${data.name}`)}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+      {/* Setup Analyzer */}
+      <SetupAnalyzer trades={dateTrades} tradeConditions={tradeConditions} />
     </div>
   );
 }
