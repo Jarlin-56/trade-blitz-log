@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
 
 
@@ -24,6 +24,16 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const { data: tradeConditions = [] } = useQuery({
+    queryKey: ['trade_conditions_dashboard', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('trade_conditions')
+        .select('trade_id, condition_id, conditions(name)');
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
 
   // Apply date filter
   const dateTrades = useMemo(() => {
@@ -46,7 +56,32 @@ export default function Dashboard() {
     r: executedTrades.slice(0, i + 1).reduce((s, tr) => s + Number(tr.earned_r), 0),
   }));
 
+  // Condition Performance data
+  const conditionPerfData = useMemo(() => {
+    const dateTradeIds = new Set(dateTrades.map(t => t.id));
+    const executedIds = new Set(executedTrades.map(t => t.id));
+    const winIds = new Set(executedTrades.filter(t => t.result === 'Win').map(t => t.id));
 
+    const condMap = new Map<string, { total: number; wins: number }>();
+
+    for (const tc of tradeConditions) {
+      if (!dateTradeIds.has(tc.trade_id) || !executedIds.has(tc.trade_id)) continue;
+      const name = (tc.conditions as any)?.name;
+      if (!name) continue;
+      const entry = condMap.get(name) ?? { total: 0, wins: 0 };
+      entry.total++;
+      if (winIds.has(tc.trade_id)) entry.wins++;
+      condMap.set(name, entry);
+    }
+
+    return Array.from(condMap.entries())
+      .map(([name, { total, wins }]) => ({
+        name,
+        winRate: Math.round((wins / total) * 100),
+        trades: total,
+      }))
+      .sort((a, b) => b.winRate - a.winRate);
+  }, [dateTrades, executedTrades, tradeConditions]);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -91,6 +126,29 @@ export default function Dashboard() {
             </ResponsiveContainer>
           ) : (
             <p className="text-muted-foreground text-sm py-8 text-center">No trades yet. Log your first trade!</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Condition Performance Bar Chart */}
+      <Card>
+        <CardHeader><CardTitle>Condition Performance</CardTitle></CardHeader>
+        <CardContent>
+          {conditionPerfData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={conditionPerfData} layout="vertical" margin={{ left: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" horizontal={false} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} tickFormatter={(v) => `${v}%`} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} width={55} />
+                <Tooltip
+                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
+                  formatter={(value: number, _name: string, props: any) => [`${value}% (${props.payload.trades} trades)`, 'Win Rate']}
+                />
+                <Bar dataKey="winRate" fill="hsl(142 70% 45%)" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No condition data available.</p>
           )}
         </CardContent>
       </Card>
