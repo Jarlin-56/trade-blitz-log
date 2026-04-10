@@ -83,6 +83,37 @@ export default function Dashboard() {
       .sort((a, b) => b.winRate - a.winRate);
   }, [dateTrades, executedTrades, tradeConditions]);
 
+  // Session Performance data (local timezone)
+  const sessionData = useMemo(() => {
+    const sessions: Record<string, number> = { 'Asian': 0, 'London': 0, 'New York': 0 };
+    for (const t of executedTrades) {
+      const hour = new Date(t.entry_date).getHours();
+      let session: string;
+      if (hour >= 6 && hour <= 13) session = 'Asian';
+      else if (hour >= 14 && hour <= 18) session = 'London';
+      else session = 'New York';
+      sessions[session] += Number(t.earned_r);
+    }
+    return [
+      { name: 'Asian', r: parseFloat(sessions['Asian'].toFixed(2)) },
+      { name: 'London', r: parseFloat(sessions['London'].toFixed(2)) },
+      { name: 'New York', r: parseFloat(sessions['New York'].toFixed(2)) },
+    ];
+  }, [executedTrades]);
+
+  // Day of Week Performance data (local timezone)
+  const dayData = useMemo(() => {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const dayMap: Record<string, number> = {};
+    days.forEach(d => dayMap[d] = 0);
+    for (const t of executedTrades) {
+      const jsDay = new Date(t.entry_date).getDay(); // 0=Sun
+      const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][jsDay];
+      if (dayMap[dayName] !== undefined) dayMap[dayName] += Number(t.earned_r);
+    }
+    return days.map(d => ({ name: d, r: parseFloat(dayMap[d].toFixed(2)) }));
+  }, [executedTrades]);
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-3">
