@@ -180,21 +180,25 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Session Performance Chart */}
+      {/* Hourly Performance Chart */}
       <Card>
-        <CardHeader><CardTitle>Performance by Session</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Performance by Hour</CardTitle></CardHeader>
         <CardContent>
           {executedTrades.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={sessionData}>
+              <BarChart data={hourlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(215 15% 55%)' }} interval={1} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <Tooltip
                   contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
                   formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
                 />
-                <Bar dataKey="r" fill="hsl(142 70% 45%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="r" radius={[4, 4, 0, 0]}>
+                  {hourlyData.map((entry, i) => (
+                    <Cell key={i} fill={entry.r < 0 ? '#ef4444' : '#22c55e'} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
