@@ -83,6 +83,37 @@ export default function Dashboard() {
       .sort((a, b) => b.winRate - a.winRate);
   }, [dateTrades, executedTrades, tradeConditions]);
 
+  // Session Performance data (local timezone)
+  const sessionData = useMemo(() => {
+    const sessions: Record<string, number> = { 'Asian': 0, 'London': 0, 'New York': 0 };
+    for (const t of executedTrades) {
+      const hour = new Date(t.entry_date).getHours();
+      let session: string;
+      if (hour >= 6 && hour <= 13) session = 'Asian';
+      else if (hour >= 14 && hour <= 18) session = 'London';
+      else session = 'New York';
+      sessions[session] += Number(t.earned_r);
+    }
+    return [
+      { name: 'Asian', r: parseFloat(sessions['Asian'].toFixed(2)) },
+      { name: 'London', r: parseFloat(sessions['London'].toFixed(2)) },
+      { name: 'New York', r: parseFloat(sessions['New York'].toFixed(2)) },
+    ];
+  }, [executedTrades]);
+
+  // Day of Week Performance data (local timezone)
+  const dayData = useMemo(() => {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const dayMap: Record<string, number> = {};
+    days.forEach(d => dayMap[d] = 0);
+    for (const t of executedTrades) {
+      const jsDay = new Date(t.entry_date).getDay(); // 0=Sun
+      const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][jsDay];
+      if (dayMap[dayName] !== undefined) dayMap[dayName] += Number(t.earned_r);
+    }
+    return days.map(d => ({ name: d, r: parseFloat(dayMap[d].toFixed(2)) }));
+  }, [executedTrades]);
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -149,6 +180,52 @@ export default function Dashboard() {
             </ResponsiveContainer>
           ) : (
             <p className="text-muted-foreground text-sm py-8 text-center">No condition data available.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Session Performance Chart */}
+      <Card>
+        <CardHeader><CardTitle>Performance by Session</CardTitle></CardHeader>
+        <CardContent>
+          {executedTrades.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={sessionData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip
+                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
+                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                />
+                <Bar dataKey="r" fill="hsl(142 70% 45%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Day of Week Performance Chart */}
+      <Card>
+        <CardHeader><CardTitle>Performance by Day</CardTitle></CardHeader>
+        <CardContent>
+          {executedTrades.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={dayData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip
+                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
+                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                />
+                <Bar dataKey="r" fill="hsl(217 91% 60%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
           )}
         </CardContent>
       </Card>
