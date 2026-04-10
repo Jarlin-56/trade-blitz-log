@@ -221,7 +221,11 @@ export default function Dashboard() {
                   contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
                   formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
                 />
-                <Bar dataKey="r" fill="hsl(217 91% 60%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="r" radius={[4, 4, 0, 0]}>
+                  {dayData.map((entry, i) => (
+                    <Cell key={i} fill={entry.r < 0 ? '#ef4444' : '#22c55e'} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
