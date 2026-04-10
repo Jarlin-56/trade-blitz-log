@@ -184,6 +184,52 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Session Performance Chart */}
+      <Card>
+        <CardHeader><CardTitle>Performance by Session</CardTitle></CardHeader>
+        <CardContent>
+          {executedTrades.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={sessionData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip
+                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
+                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                />
+                <Bar dataKey="r" fill="hsl(142 70% 45%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Day of Week Performance Chart */}
+      <Card>
+        <CardHeader><CardTitle>Performance by Day</CardTitle></CardHeader>
+        <CardContent>
+          {executedTrades.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={dayData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip
+                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
+                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                />
+                <Bar dataKey="r" fill="hsl(217 91% 60%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
+          )}
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
