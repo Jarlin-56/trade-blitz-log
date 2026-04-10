@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
-import SetupAnalyzer from '@/components/SetupAnalyzer';
+
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -24,16 +24,6 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const { data: tradeConditions = [] } = useQuery({
-    queryKey: ['trade-conditions-all', user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('trade_conditions')
-        .select('trade_id, condition_id, conditions(name)');
-      return data ?? [];
-    },
-    enabled: !!user,
-  });
 
   // Apply date filter
   const dateTrades = useMemo(() => {
@@ -105,8 +95,6 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Setup Analyzer */}
-      <SetupAnalyzer trades={dateTrades} tradeConditions={tradeConditions} />
     </div>
   );
 }

@@ -254,6 +254,38 @@ export default function Trades() {
         </div>
       )}
 
+      {/* Summary Stats */}
+      {(() => {
+        const executed = filtered.filter(t => !['Missed', 'Canceled'].includes(t.result));
+        const totalR = executed.reduce((s, t) => s + Number(t.earned_r), 0);
+        const wins = executed.filter(t => t.result === 'Win').length;
+        const wr = executed.length > 0 ? ((wins / executed.length) * 100).toFixed(1) : '0';
+        return (
+          <div className="grid grid-cols-3 gap-3">
+            <Card>
+              <CardContent className="py-3 px-4 text-center">
+                <p className="text-xs text-muted-foreground">Trades</p>
+                <p className="text-xl font-bold font-mono">{filtered.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-3 px-4 text-center">
+                <p className="text-xs text-muted-foreground">Win Rate</p>
+                <p className="text-xl font-bold font-mono">{wr}%</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-3 px-4 text-center">
+                <p className="text-xs text-muted-foreground">Total R</p>
+                <p className={cn('text-xl font-bold font-mono', totalR >= 0 ? 'text-win' : 'text-loss')}>
+                  {totalR >= 0 ? '+' : ''}{totalR.toFixed(2)}R
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
+
       {/* Trade list */}
       {filtered.length === 0 ? (
         <p className="text-muted-foreground text-center py-12">No trades found</p>
