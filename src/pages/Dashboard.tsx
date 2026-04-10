@@ -83,22 +83,18 @@ export default function Dashboard() {
       .sort((a, b) => b.winRate - a.winRate);
   }, [dateTrades, executedTrades, tradeConditions]);
 
-  // Session Performance data (local timezone)
-  const sessionData = useMemo(() => {
-    const sessions: Record<string, number> = { 'Asian': 0, 'London': 0, 'New York': 0 };
+  // Hourly Performance data (local timezone, all 24 hours)
+  const hourlyData = useMemo(() => {
+    const hourMap: Record<number, number> = {};
+    for (let h = 0; h < 24; h++) hourMap[h] = 0;
     for (const t of executedTrades) {
       const hour = new Date(t.entry_date).getHours();
-      let session: string;
-      if (hour >= 6 && hour <= 13) session = 'Asian';
-      else if (hour >= 14 && hour <= 18) session = 'London';
-      else session = 'New York';
-      sessions[session] += Number(t.earned_r);
+      hourMap[hour] += Number(t.earned_r);
     }
-    return [
-      { name: 'Asian', r: parseFloat(sessions['Asian'].toFixed(2)) },
-      { name: 'London', r: parseFloat(sessions['London'].toFixed(2)) },
-      { name: 'New York', r: parseFloat(sessions['New York'].toFixed(2)) },
-    ];
+    return Array.from({ length: 24 }, (_, h) => ({
+      name: `${String(h).padStart(2, '0')}:00`,
+      r: parseFloat(hourMap[h].toFixed(2)),
+    }));
   }, [executedTrades]);
 
   // Day of Week Performance data (local timezone)
