@@ -137,7 +137,7 @@ export default function Dashboard() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total R</CardTitle></CardHeader>
           <CardContent>
@@ -161,6 +161,14 @@ export default function Dashboard() {
               </div>
             )}
           </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Profit Factor</CardTitle></CardHeader>
+          <CardContent><span className="text-2xl font-bold font-mono">{profitFactor}</span></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Avg R:R</CardTitle></CardHeader>
+          <CardContent><span className="text-lg font-bold font-mono">{avgRR}</span></CardContent>
         </Card>
       </div>
 
