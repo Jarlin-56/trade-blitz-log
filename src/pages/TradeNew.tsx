@@ -20,7 +20,7 @@ export default function TradeNew() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [asset, setAsset] = useState('');
+  const [asset, setAsset] = useState(() => localStorage.getItem('lastTradingPair') || 'XAUUSD');
   const [direction, setDirection] = useState<TradeDirection>('Long');
   const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 16));
   const [result, setResult] = useState<TradeResult | null>(null);
@@ -117,6 +117,7 @@ export default function TradeNew() {
         );
       }
 
+      localStorage.setItem('lastTradingPair', asset.toUpperCase());
       toast.success('Trade logged!');
       navigate('/trades');
     } catch (err: any) {
