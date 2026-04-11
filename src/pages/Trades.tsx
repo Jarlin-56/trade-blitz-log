@@ -257,6 +257,8 @@ export default function Trades() {
       {/* Summary Stats */}
       {(() => {
         const executed = filtered.filter(t => !['Missed', 'Canceled'].includes(t.result));
+        const canceledCount = filtered.filter(t => t.result === 'Canceled').length;
+        const missedCount = filtered.filter(t => t.result === 'Missed').length;
         const totalR = executed.reduce((s, t) => s + Number(t.earned_r), 0);
         const wins = executed.filter(t => t.result === 'Win').length;
         const wr = executed.length > 0 ? ((wins / executed.length) * 100).toFixed(1) : '0';
@@ -265,7 +267,13 @@ export default function Trades() {
             <Card>
               <CardContent className="py-3 px-4 text-center">
                 <p className="text-xs text-muted-foreground">Trades</p>
-                <p className="text-xl font-bold font-mono">{filtered.length}</p>
+                <p className="text-xl font-bold font-mono">{executed.length}</p>
+                {(canceledCount > 0 || missedCount > 0) && (
+                  <div className="flex gap-2 mt-1 justify-center">
+                    {missedCount > 0 && <span className="text-[10px] text-orange-400">Missed: {missedCount}</span>}
+                    {canceledCount > 0 && <span className="text-[10px] text-muted-foreground">Canceled: {canceledCount}</span>}
+                  </div>
+                )}
               </CardContent>
             </Card>
             <Card>
