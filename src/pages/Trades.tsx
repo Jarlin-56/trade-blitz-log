@@ -4,9 +4,6 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFilters } from '@/contexts/FilterContext';
-import { useSearchParams, Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,13 +12,13 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
-import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
+import DateRangeFilter from '@/components/DateRangeFilter';
 
 export default function Trades() {
   const { user } = useAuth();
+  const { dateRange, setDateRange } = useFilters();
   const [searchParams, setSearchParams] = useSearchParams();
   const filterResult = searchParams.get('result') || 'all';
-  const [dateRange, setDateRange] = useState<DateRangeValue>(null);
 
   // Parse multi-value params from URL
   const selectedConditions = useMemo(() => {
