@@ -46,6 +46,8 @@ export default function Dashboard() {
 
   // Exclude Missed & Canceled from PnL calculations
   const executedTrades = dateTrades.filter(t => !['Missed', 'Canceled'].includes(t.result));
+  const canceledCount = dateTrades.filter(t => t.result === 'Canceled').length;
+  const missedCount = dateTrades.filter(t => t.result === 'Missed').length;
   const totalR = executedTrades.reduce((sum, t) => sum + Number(t.earned_r), 0);
   const winCount = executedTrades.filter(t => t.result === 'Win').length;
   const winRate = executedTrades.length > 0 ? ((winCount / executedTrades.length) * 100).toFixed(1) : '0';
@@ -133,7 +135,15 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total Trades</CardTitle></CardHeader>
-          <CardContent><span className="text-3xl font-bold font-mono">{dateTrades.length}</span></CardContent>
+          <CardContent>
+            <span className="text-3xl font-bold font-mono">{executedTrades.length}</span>
+            {(canceledCount > 0 || missedCount > 0) && (
+              <div className="flex gap-2 mt-1.5">
+                {missedCount > 0 && <span className="text-[11px] text-orange-400">Missed: {missedCount}</span>}
+                {canceledCount > 0 && <span className="text-[11px] text-muted-foreground">Canceled: {canceledCount}</span>}
+              </div>
+            )}
+          </CardContent>
         </Card>
       </div>
 
