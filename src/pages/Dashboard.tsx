@@ -1,16 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFilters } from '@/contexts/FilterContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
-import DateRangeFilter, { type DateRangeValue } from '@/components/DateRangeFilter';
+import DateRangeFilter from '@/components/DateRangeFilter';
 
 
 export default function Dashboard() {
   const { user } = useAuth();
-  
-  const [dateRange, setDateRange] = useState<DateRangeValue>(null);
+  const { dateRange, setDateRange } = useFilters();
 
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id],
@@ -51,6 +51,23 @@ export default function Dashboard() {
   const totalR = executedTrades.reduce((sum, t) => sum + Number(t.earned_r), 0);
   const winCount = executedTrades.filter(t => t.result === 'Win').length;
   const winRate = executedTrades.length > 0 ? ((winCount / executedTrades.length) * 100).toFixed(1) : '0';
+
+  // Professional Metrics
+  const profitFactor = useMemo(() => {
+    const grossWin = executedTrades.filter(t => t.result === 'Win').reduce((s, t) => s + Math.abs(Number(t.earned_r)), 0);
+    const grossLoss = executedTrades.filter(t => t.result === 'Loss').reduce((s, t) => s + Math.abs(Number(t.earned_r)), 0);
+    if (grossLoss === 0) return grossWin > 0 ? '∞' : 'N/A';
+    return (grossWin / grossLoss).toFixed(2);
+  }, [executedTrades]);
+
+  const avgRR = useMemo(() => {
+    const wins = executedTrades.filter(t => t.result === 'Win');
+    const losses = executedTrades.filter(t => t.result === 'Loss');
+    const avgWin = wins.length > 0 ? (wins.reduce((s, t) => s + Number(t.earned_r), 0) / wins.length) : 0;
+    const avgLoss = losses.length > 0 ? (losses.reduce((s, t) => s + Number(t.earned_r), 0) / losses.length) : 0;
+    if (wins.length === 0 && losses.length === 0) return 'N/A';
+    return `${avgWin >= 0 ? '+' : ''}${avgWin.toFixed(1)}R : ${avgLoss.toFixed(1)}R`;
+  }, [executedTrades]);
 
   // Cumulative R data (only executed trades)
   const cumulativeData = executedTrades.map((t, i) => ({
@@ -120,7 +137,7 @@ export default function Dashboard() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total R</CardTitle></CardHeader>
           <CardContent>
@@ -144,6 +161,14 @@ export default function Dashboard() {
               </div>
             )}
           </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Profit Factor</CardTitle></CardHeader>
+          <CardContent><span className="text-2xl font-bold font-mono">{profitFactor}</span></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Avg R:R</CardTitle></CardHeader>
+          <CardContent><span className="text-lg font-bold font-mono">{avgRR}</span></CardContent>
         </Card>
       </div>
 
