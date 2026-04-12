@@ -17,6 +17,7 @@ import TradeDetail from "./pages/TradeDetail";
 import Settings from "./pages/Settings";
 import SettingsConditions from "./pages/SettingsConditions";
 import SettingsTags from "./pages/SettingsTags";
+import CalendarPage from "./pages/CalendarPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,10 @@ const App = () => (
             <Route
               path="/dashboard"
               element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/calendar"
+              element={<ProtectedRoute><AppLayout><CalendarPage /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/trades"
