@@ -162,6 +162,14 @@ export default function Trades() {
     return 'text-breakeven';
   };
 
+  const formatDuration = (mins: number | null) => {
+    if (mins == null) return null;
+    if (mins < 60) return `${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -320,7 +328,10 @@ export default function Trades() {
                       ))}
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-3 text-sm">
+                    {trade.duration_minutes != null && (
+                      <span className="text-muted-foreground text-xs">⏱️ {formatDuration(trade.duration_minutes)}</span>
+                    )}
                     <span className="text-muted-foreground text-xs">
                       {new Date(trade.entry_date).toLocaleDateString()}
                     </span>

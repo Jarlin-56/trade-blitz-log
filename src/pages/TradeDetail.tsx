@@ -86,6 +86,12 @@ export default function TradeDetail() {
               <span className="text-muted-foreground">Date</span>
               <p>{new Date(trade.entry_date).toLocaleString()}</p>
             </div>
+            {trade.duration_minutes != null && (
+              <div>
+                <span className="text-muted-foreground">Duration</span>
+                <p>⏱️ {trade.duration_minutes < 60 ? `${trade.duration_minutes}m` : `${Math.floor(trade.duration_minutes / 60)}h ${trade.duration_minutes % 60 > 0 ? `${trade.duration_minutes % 60}m` : ''}`}</p>
+              </div>
+            )}
           </div>
 
           {conditions.length > 0 && (

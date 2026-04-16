@@ -28,7 +28,8 @@ export default function TradeNew() {
   const [missedR, setMissedR] = useState('');
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [durationMinutes, setDurationMinutes] = useState('');
+  const [durationHours, setDurationHours] = useState('');
+  const [durationMins, setDurationMins] = useState('');
   const [recap, setRecap] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -96,7 +97,7 @@ export default function TradeNew() {
           result,
           earned_r: getEarnedRValue(),
           missed_r: getMissedRValue(),
-          duration_minutes: (result && ['Win', 'Loss', 'Break-even'].includes(result) && durationMinutes) ? parseInt(durationMinutes) : null,
+          duration_minutes: (result && ['Win', 'Loss', 'Break-even'].includes(result) && (durationHours || durationMins)) ? (parseInt(durationHours || '0') * 60 + parseInt(durationMins || '0')) || null : null,
           recap_text: recap || null,
           image_url: imageUrl,
         })
@@ -191,7 +192,7 @@ export default function TradeNew() {
                   type="button"
                   variant={result === v ? 'default' : 'outline'}
                   className={cn('text-sm', result === v && color)}
-                  onClick={() => { setResult(v); if (v !== 'Win') setEarnedR(''); if (v !== 'Missed') setMissedR(''); if (['Canceled', 'Missed'].includes(v)) setDurationMinutes(''); }}
+                  onClick={() => { setResult(v); if (v !== 'Win') setEarnedR(''); if (v !== 'Missed') setMissedR(''); if (['Canceled', 'Missed'].includes(v)) { setDurationHours(''); setDurationMins(''); } }}
                 >
                   {v}
                 </Button>
@@ -225,15 +226,32 @@ export default function TradeNew() {
           {/* Duration - shown only for executed trades */}
           {result && ['Win', 'Loss', 'Break-even'].includes(result) && (
             <div className="space-y-2">
-              <Label>Duration (Minutes)</Label>
-              <Input
-                type="number"
-                min="1"
-                placeholder="e.g. 45"
-                value={durationMinutes}
-                onChange={e => setDurationMinutes(e.target.value)}
-                className="font-mono"
-              />
+              <Label>Duration</Label>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={durationHours}
+                    onChange={e => setDurationHours(e.target.value)}
+                    className="font-mono w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">h</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="59"
+                    placeholder="0"
+                    value={durationMins}
+                    onChange={e => setDurationMins(e.target.value)}
+                    className="font-mono w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">m</span>
+                </div>
+              </div>
             </div>
           )}
 
