@@ -96,7 +96,7 @@ export default function TradeNew() {
           result,
           earned_r: getEarnedRValue(),
           missed_r: getMissedRValue(),
-          duration_minutes: isExecuted ? (durationMinutes ? parseInt(durationMinutes) : null) : null,
+          duration_minutes: (result && ['Win', 'Loss', 'Break-even'].includes(result) && durationMinutes) ? parseInt(durationMinutes) : null,
           recap_text: recap || null,
           image_url: imageUrl,
         })
