@@ -28,6 +28,7 @@ export default function TradeNew() {
   const [missedR, setMissedR] = useState('');
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [durationMinutes, setDurationMinutes] = useState('');
   const [recap, setRecap] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -95,6 +96,7 @@ export default function TradeNew() {
           result,
           earned_r: getEarnedRValue(),
           missed_r: getMissedRValue(),
+          duration_minutes: isExecuted ? (durationMinutes ? parseInt(durationMinutes) : null) : null,
           recap_text: recap || null,
           image_url: imageUrl,
         })
@@ -189,7 +191,7 @@ export default function TradeNew() {
                   type="button"
                   variant={result === v ? 'default' : 'outline'}
                   className={cn('text-sm', result === v && color)}
-                  onClick={() => { setResult(v); if (v !== 'Win') setEarnedR(''); if (v !== 'Missed') setMissedR(''); }}
+                  onClick={() => { setResult(v); if (v !== 'Win') setEarnedR(''); if (v !== 'Missed') setMissedR(''); if (['Canceled', 'Missed'].includes(v)) setDurationMinutes(''); }}
                 >
                   {v}
                 </Button>
@@ -217,6 +219,21 @@ export default function TradeNew() {
                   required={result === 'Win'}
                 />
               )}
+            </div>
+          )}
+
+          {/* Duration - shown only for executed trades */}
+          {result && ['Win', 'Loss', 'Break-even'].includes(result) && (
+            <div className="space-y-2">
+              <Label>Duration (Minutes)</Label>
+              <Input
+                type="number"
+                min="1"
+                placeholder="e.g. 45"
+                value={durationMinutes}
+                onChange={e => setDurationMinutes(e.target.value)}
+                className="font-mono"
+              />
             </div>
           )}
 
