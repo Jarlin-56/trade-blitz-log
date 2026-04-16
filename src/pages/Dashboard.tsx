@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFilters } from '@/contexts/FilterContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
+import { Clock } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 
 
@@ -67,6 +68,28 @@ export default function Dashboard() {
     const avgLoss = losses.length > 0 ? (losses.reduce((s, t) => s + Number(t.earned_r), 0) / losses.length) : 0;
     if (wins.length === 0 && losses.length === 0) return 'N/A';
     return `${avgWin >= 0 ? '+' : ''}${avgWin.toFixed(1)}R : ${avgLoss.toFixed(1)}R`;
+  }, [executedTrades]);
+
+  // Holding Time Analysis
+  const holdingTime = useMemo(() => {
+    const fmt = (mins: number) => {
+      if (mins < 60) return `${Math.round(mins)}m`;
+      const h = Math.floor(mins / 60);
+      const m = Math.round(mins % 60);
+      return m > 0 ? `${h}h ${m}m` : `${h}h`;
+    };
+    const withDuration = executedTrades.filter(t => (t as any).duration_minutes != null);
+    const wins = withDuration.filter(t => t.result === 'Win');
+    const losses = withDuration.filter(t => t.result === 'Loss');
+    const avg = (arr: typeof withDuration) => arr.length > 0 ? arr.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / arr.length : null;
+    const overall = avg(withDuration);
+    const avgWin = avg(wins);
+    const avgLoss = avg(losses);
+    return {
+      overall: overall != null ? fmt(overall) : 'N/A',
+      win: avgWin != null ? fmt(avgWin) : 'N/A',
+      loss: avgLoss != null ? fmt(avgLoss) : 'N/A',
+    };
   }, [executedTrades]);
 
   // Cumulative R data (only executed trades)
@@ -171,6 +194,29 @@ export default function Dashboard() {
           <CardContent><span className="text-lg font-bold font-mono">{avgRR}</span></CardContent>
         </Card>
       </div>
+
+      {/* Holding Time Analysis */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2"><Clock className="h-4 w-4" /> Holding Time Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Overall Avg</p>
+              <span className="text-xl font-bold font-mono">{holdingTime.overall}</span>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Win Avg</p>
+              <span className="text-xl font-bold font-mono text-win">{holdingTime.win}</span>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Loss Avg</p>
+              <span className="text-xl font-bold font-mono text-loss">{holdingTime.loss}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Cumulative R Chart */}
       <Card>
