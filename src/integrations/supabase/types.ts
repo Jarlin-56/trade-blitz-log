@@ -127,6 +127,7 @@ export type Database = {
           asset: string
           created_at: string
           direction: Database["public"]["Enums"]["trade_direction"]
+          duration_minutes: number | null
           earned_r: number
           entry_date: string
           id: string
@@ -141,6 +142,7 @@ export type Database = {
           asset: string
           created_at?: string
           direction: Database["public"]["Enums"]["trade_direction"]
+          duration_minutes?: number | null
           earned_r?: number
           entry_date?: string
           id?: string
@@ -155,6 +157,7 @@ export type Database = {
           asset?: string
           created_at?: string
           direction?: Database["public"]["Enums"]["trade_direction"]
+          duration_minutes?: number | null
           earned_r?: number
           entry_date?: string
           id?: string
