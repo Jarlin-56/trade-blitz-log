@@ -64,15 +64,29 @@ export default function CalendarPage() {
     weeks.push(allDays.slice(i, i + 7));
   }
 
-  // Weekly summary
-  const weeklyR = (week: Date[]) => {
+  // Weekly summary (R + trade count)
+  const weeklyStats = (week: Date[]) => {
     let total = 0;
+    let count = 0;
     for (const d of week) {
       const s = dayMap.get(format(d, 'yyyy-MM-dd'));
-      if (s) total += s.totalR;
+      if (s) {
+        total += s.totalR;
+        count += s.count;
+      }
+    }
+    return { total, count };
+  };
+
+  // Monthly total (only current month days)
+  const monthlyTotal = useMemo(() => {
+    let total = 0;
+    for (const [key, s] of dayMap.entries()) {
+      const d = new Date(key);
+      if (isSameMonth(d, currentMonth)) total += s.totalR;
     }
     return total;
-  };
+  }, [dayMap, currentMonth]);
 
   // Trades for selected day
   const selectedDayTrades = useMemo(() => {
