@@ -254,7 +254,9 @@ export default function Dashboard() {
                 <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} tickFormatter={(v) => `${v}%`} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} width={55} />
                 <Tooltip
-                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
+                  contentStyle={{ background: '#27272a', border: '1px solid #3f3f46', borderRadius: 8, color: '#fafafa' }}
+                  labelStyle={{ color: '#fafafa' }}
+                  itemStyle={{ color: '#fafafa' }}
                   formatter={(value: number, _name: string, props: any) => [`${value}% (${props.payload.trades} trades)`, 'Win Rate']}
                 />
                 <Bar dataKey="winRate" fill="hsl(142 70% 45%)" radius={[0, 4, 4, 0]} />
@@ -277,8 +279,8 @@ export default function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(215 15% 55%)' }} interval={1} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <Tooltip
-                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
-                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  content={<RTooltipContent />}
                 />
                 <Bar dataKey="r" radius={[4, 4, 0, 0]}>
                   {hourlyData.map((entry, i) => (
@@ -304,8 +306,8 @@ export default function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <Tooltip
-                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
-                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  content={<RTooltipContent />}
                 />
                 <Bar dataKey="r" radius={[4, 4, 0, 0]}>
                   {dayData.map((entry, i) => (
