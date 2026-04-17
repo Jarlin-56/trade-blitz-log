@@ -64,15 +64,29 @@ export default function CalendarPage() {
     weeks.push(allDays.slice(i, i + 7));
   }
 
-  // Weekly summary
-  const weeklyR = (week: Date[]) => {
+  // Weekly summary (R + trade count)
+  const weeklyStats = (week: Date[]) => {
     let total = 0;
+    let count = 0;
     for (const d of week) {
       const s = dayMap.get(format(d, 'yyyy-MM-dd'));
-      if (s) total += s.totalR;
+      if (s) {
+        total += s.totalR;
+        count += s.count;
+      }
+    }
+    return { total, count };
+  };
+
+  // Monthly total (only current month days)
+  const monthlyTotal = useMemo(() => {
+    let total = 0;
+    for (const [key, s] of dayMap.entries()) {
+      const d = new Date(key);
+      if (isSameMonth(d, currentMonth)) total += s.totalR;
     }
     return total;
-  };
+  }, [dayMap, currentMonth]);
 
   // Trades for selected day
   const selectedDayTrades = useMemo(() => {
@@ -98,22 +112,32 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      {/* Monthly Total Header */}
+      <div className="flex justify-center">
+        <div className="text-sm font-medium text-muted-foreground">
+          Monthly Total R:{' '}
+          <span className={`font-mono font-bold text-base ${monthlyTotal > 0 ? 'text-green-500' : monthlyTotal < 0 ? 'text-red-500' : 'text-foreground'}`}>
+            {monthlyTotal >= 0 ? '+' : ''}{monthlyTotal.toFixed(1)}R
+          </span>
+        </div>
+      </div>
+
       {/* Calendar Grid */}
-      <Card className="overflow-hidden bg-card border-white/5">
+      <Card className="overflow-hidden bg-card border-slate-500/60">
         {/* Header row */}
-        <div className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-white/5 text-xs text-muted-foreground font-medium">
+        <div className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-slate-500/60 text-xs text-muted-foreground font-medium">
           {WEEKDAYS.map(d => (
-            <div key={d} className="p-2 text-center">{d}</div>
+            <div key={d} className="p-2 text-center border-r border-slate-500/60 last:border-r-0">{d}</div>
           ))}
-          <div className="p-2 text-center hidden sm:block">Sat</div>
-          <div className="p-2 text-center bg-white/[0.03]">Week R</div>
+          <div className="p-2 text-center hidden sm:block border-r border-slate-500/60">Sat</div>
+          <div className="p-2 text-center bg-white/[0.03]">Week</div>
         </div>
 
         {/* Weeks */}
         {weeks.map((week, wi) => {
-          const wr = weeklyR(week);
+          const { total: wr, count: wcount } = weeklyStats(week);
           return (
-            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-white/5 last:border-b-0">
+            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-slate-500/60 last:border-b-0">
               {week.map((day) => {
                 const key = format(day, 'yyyy-MM-dd');
                 const summary = dayMap.get(key);
@@ -137,7 +161,7 @@ export default function CalendarPage() {
                   <div
                     key={key}
                     onClick={() => summary && summary.count > 0 ? setSelectedDay(day) : null}
-                    className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border-r border-white/5 last:border-r-0 transition-colors ${bgClass} ${!isCurrentMonth ? 'opacity-30' : ''} ${isSelected ? 'ring-1 ring-primary' : ''} ${summary && summary.count > 0 ? 'cursor-pointer hover:brightness-125' : ''}`}
+                    className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border-r border-slate-500/60 last:border-r-0 transition-colors ${bgClass} ${!isCurrentMonth ? 'opacity-30' : ''} ${isSelected ? 'ring-1 ring-primary' : ''} ${summary && summary.count > 0 ? 'cursor-pointer hover:brightness-125' : ''}`}
                   >
                     <div className={`text-xs font-medium ${isToday ? 'text-primary font-bold' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {format(day, 'd')}
@@ -155,10 +179,14 @@ export default function CalendarPage() {
                   </div>
                 );
               })}
-              {/* Weekly summary */}
-              <div className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 bg-white/[0.03] flex items-center justify-center ${wr > 0 ? 'text-green-500' : wr < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                <span className="text-xs sm:text-sm font-mono font-bold">
-                  {wr !== 0 ? `${wr >= 0 ? '+' : ''}${wr.toFixed(1)}R` : '—'}
+              {/* Weekly summary - 3 line vertical */}
+              <div className="min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 bg-white/[0.03] flex flex-col items-center justify-center gap-0.5">
+                <span className="text-xs text-gray-400">Week {wi + 1}</span>
+                <span className={`text-sm sm:text-base font-mono font-bold ${wr > 0 ? 'text-green-500' : wr < 0 ? 'text-red-500' : 'text-foreground'}`}>
+                  {wr !== 0 ? `${wr >= 0 ? '+' : ''}${wr.toFixed(1)}R` : '0R'}
+                </span>
+                <span className="text-[10px] text-gray-400">
+                  {wcount} trade{wcount !== 1 ? 's' : ''}
                 </span>
               </div>
             </div>
