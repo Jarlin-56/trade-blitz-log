@@ -112,15 +112,25 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      {/* Monthly Total Header */}
+      <div className="flex justify-center">
+        <div className="text-sm font-medium text-muted-foreground">
+          Monthly Total R:{' '}
+          <span className={`font-mono font-bold text-base ${monthlyTotal > 0 ? 'text-green-500' : monthlyTotal < 0 ? 'text-red-500' : 'text-foreground'}`}>
+            {monthlyTotal >= 0 ? '+' : ''}{monthlyTotal.toFixed(1)}R
+          </span>
+        </div>
+      </div>
+
       {/* Calendar Grid */}
-      <Card className="overflow-hidden bg-card border-white/5">
+      <Card className="overflow-hidden bg-card border-slate-500/60">
         {/* Header row */}
-        <div className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-white/5 text-xs text-muted-foreground font-medium">
+        <div className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-slate-500/60 text-xs text-muted-foreground font-medium">
           {WEEKDAYS.map(d => (
-            <div key={d} className="p-2 text-center">{d}</div>
+            <div key={d} className="p-2 text-center border-r border-slate-500/60 last:border-r-0">{d}</div>
           ))}
-          <div className="p-2 text-center hidden sm:block">Sat</div>
-          <div className="p-2 text-center bg-white/[0.03]">Week R</div>
+          <div className="p-2 text-center hidden sm:block border-r border-slate-500/60">Sat</div>
+          <div className="p-2 text-center bg-white/[0.03]">Week</div>
         </div>
 
         {/* Weeks */}
