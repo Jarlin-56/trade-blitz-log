@@ -8,6 +8,20 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import { Clock } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 
+const RTooltipContent = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  const value = payload[0].value as number;
+  const color = value > 0 ? '#22c55e' : value < 0 ? '#ef4444' : '#fafafa';
+  return (
+    <div style={{ background: '#27272a', border: '1px solid #3f3f46', borderRadius: 8, padding: '8px 12px', color: '#fafafa' }}>
+      <div style={{ fontSize: 12, color: '#e4e4e7', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color }}>
+        Total R: {value >= 0 ? '+' : ''}{value}R
+      </div>
+    </div>
+  );
+};
+
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -228,7 +242,12 @@ export default function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
                 <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
-                <Tooltip contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }} />
+                <Tooltip
+                  contentStyle={{ background: '#27272a', border: '1px solid #3f3f46', borderRadius: 8, color: '#fafafa' }}
+                  labelStyle={{ color: '#fafafa' }}
+                  itemStyle={{ color: '#fafafa' }}
+                  content={<RTooltipContent />}
+                />
                 <Line type="monotone" dataKey="r" stroke="hsl(142 70% 45%)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -249,7 +268,9 @@ export default function Dashboard() {
                 <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} tickFormatter={(v) => `${v}%`} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} width={55} />
                 <Tooltip
-                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
+                  contentStyle={{ background: '#27272a', border: '1px solid #3f3f46', borderRadius: 8, color: '#fafafa' }}
+                  labelStyle={{ color: '#fafafa' }}
+                  itemStyle={{ color: '#fafafa' }}
                   formatter={(value: number, _name: string, props: any) => [`${value}% (${props.payload.trades} trades)`, 'Win Rate']}
                 />
                 <Bar dataKey="winRate" fill="hsl(142 70% 45%)" radius={[0, 4, 4, 0]} />
@@ -272,8 +293,8 @@ export default function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(215 15% 55%)' }} interval={1} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <Tooltip
-                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
-                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  content={<RTooltipContent />}
                 />
                 <Bar dataKey="r" radius={[4, 4, 0, 0]}>
                   {hourlyData.map((entry, i) => (
@@ -299,8 +320,8 @@ export default function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
                 <Tooltip
-                  contentStyle={{ background: 'hsl(220 18% 12%)', border: '1px solid hsl(220 13% 18%)', borderRadius: 8, color: 'hsl(210 20% 92%)' }}
-                  formatter={(value: number) => [`${value >= 0 ? '+' : ''}${value}R`, 'Total R']}
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  content={<RTooltipContent />}
                 />
                 <Bar dataKey="r" radius={[4, 4, 0, 0]}>
                   {dayData.map((entry, i) => (
