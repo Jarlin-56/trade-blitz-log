@@ -99,21 +99,21 @@ export default function CalendarPage() {
       </div>
 
       {/* Calendar Grid */}
-      <Card className="overflow-hidden bg-card border-border">
+      <Card className="overflow-hidden bg-card border-white/5">
         {/* Header row */}
-        <div className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-border text-xs text-muted-foreground font-medium">
+        <div className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-white/5 text-xs text-muted-foreground font-medium">
           {WEEKDAYS.map(d => (
             <div key={d} className="p-2 text-center">{d}</div>
           ))}
           <div className="p-2 text-center hidden sm:block">Sat</div>
-          <div className="p-2 text-center border-l border-border">Week R</div>
+          <div className="p-2 text-center bg-white/[0.03]">Week R</div>
         </div>
 
         {/* Weeks */}
         {weeks.map((week, wi) => {
           const wr = weeklyR(week);
           return (
-            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-border last:border-b-0">
+            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-white/5 last:border-b-0">
               {week.map((day) => {
                 const key = format(day, 'yyyy-MM-dd');
                 const summary = dayMap.get(key);
@@ -137,7 +137,7 @@ export default function CalendarPage() {
                   <div
                     key={key}
                     onClick={() => summary && summary.count > 0 ? setSelectedDay(day) : null}
-                    className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border-r border-border last:border-r-0 transition-colors ${bgClass} ${!isCurrentMonth ? 'opacity-30' : ''} ${isSelected ? 'ring-1 ring-primary' : ''} ${summary && summary.count > 0 ? 'cursor-pointer hover:brightness-125' : ''}`}
+                    className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border-r border-white/5 last:border-r-0 transition-colors ${bgClass} ${!isCurrentMonth ? 'opacity-30' : ''} ${isSelected ? 'ring-1 ring-primary' : ''} ${summary && summary.count > 0 ? 'cursor-pointer hover:brightness-125' : ''}`}
                   >
                     <div className={`text-xs font-medium ${isToday ? 'text-primary font-bold' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {format(day, 'd')}
@@ -156,7 +156,7 @@ export default function CalendarPage() {
                 );
               })}
               {/* Weekly summary */}
-              <div className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border-l border-border flex items-center justify-center ${wr > 0 ? 'text-green-500' : wr < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
+              <div className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 bg-white/[0.03] flex items-center justify-center ${wr > 0 ? 'text-green-500' : wr < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
                 <span className="text-xs sm:text-sm font-mono font-bold">
                   {wr !== 0 ? `${wr >= 0 ? '+' : ''}${wr.toFixed(1)}R` : '—'}
                 </span>
@@ -168,7 +168,7 @@ export default function CalendarPage() {
 
       {/* Selected day detail */}
       {selectedDay && selectedDayTrades.length > 0 && (
-        <Card className="p-4 bg-card border-border">
+        <Card className="p-4 bg-card border-white/5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-foreground">
               {format(selectedDay, 'd MMMM yyyy')}
@@ -177,19 +177,19 @@ export default function CalendarPage() {
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {selectedDayTrades.map(t => (
               <div
                 key={t.id}
                 onClick={() => navigate(`/trades/${t.id}`)}
-                className="flex items-center justify-between p-2 rounded-md bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors"
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/[0.03] cursor-pointer hover:bg-white/[0.06] transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-medium text-foreground">{t.asset}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${t.direction === 'Long' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                  <span className={`text-[9px] leading-none px-1.5 py-1 rounded-md font-medium ${t.direction === 'Long' ? 'bg-green-500/15 text-green-500' : 'bg-red-500/15 text-red-500'}`}>
                     {t.direction}
                   </span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${t.result === 'Win' ? 'bg-green-500/20 text-green-500' : t.result === 'Loss' ? 'bg-red-500/20 text-red-500' : 'bg-muted text-muted-foreground'}`}>
+                  <span className={`text-[9px] leading-none px-1.5 py-1 rounded-md font-medium ${t.result === 'Win' ? 'bg-green-500/15 text-green-500' : t.result === 'Loss' ? 'bg-red-500/15 text-red-500' : 'bg-muted/50 text-muted-foreground'}`}>
                     {t.result}
                   </span>
                 </div>
