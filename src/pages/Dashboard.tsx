@@ -8,6 +8,20 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import { Clock } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 
+const RTooltipContent = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  const value = payload[0].value as number;
+  const color = value > 0 ? '#22c55e' : value < 0 ? '#ef4444' : '#fafafa';
+  return (
+    <div style={{ background: '#27272a', border: '1px solid #3f3f46', borderRadius: 8, padding: '8px 12px', color: '#fafafa' }}>
+      <div style={{ fontSize: 12, color: '#e4e4e7', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color }}>
+        Total R: {value >= 0 ? '+' : ''}{value}R
+      </div>
+    </div>
+  );
+};
+
 
 export default function Dashboard() {
   const { user } = useAuth();
