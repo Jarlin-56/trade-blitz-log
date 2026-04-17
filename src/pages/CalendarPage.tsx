@@ -135,9 +135,9 @@ export default function CalendarPage() {
 
         {/* Weeks */}
         {weeks.map((week, wi) => {
-          const wr = weeklyR(week);
+          const { total: wr, count: wcount } = weeklyStats(week);
           return (
-            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-white/5 last:border-b-0">
+            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_80px] border-b border-slate-500/60 last:border-b-0">
               {week.map((day) => {
                 const key = format(day, 'yyyy-MM-dd');
                 const summary = dayMap.get(key);
@@ -161,7 +161,7 @@ export default function CalendarPage() {
                   <div
                     key={key}
                     onClick={() => summary && summary.count > 0 ? setSelectedDay(day) : null}
-                    className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border-r border-white/5 last:border-r-0 transition-colors ${bgClass} ${!isCurrentMonth ? 'opacity-30' : ''} ${isSelected ? 'ring-1 ring-primary' : ''} ${summary && summary.count > 0 ? 'cursor-pointer hover:brightness-125' : ''}`}
+                    className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border-r border-slate-500/60 last:border-r-0 transition-colors ${bgClass} ${!isCurrentMonth ? 'opacity-30' : ''} ${isSelected ? 'ring-1 ring-primary' : ''} ${summary && summary.count > 0 ? 'cursor-pointer hover:brightness-125' : ''}`}
                   >
                     <div className={`text-xs font-medium ${isToday ? 'text-primary font-bold' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {format(day, 'd')}
@@ -179,10 +179,14 @@ export default function CalendarPage() {
                   </div>
                 );
               })}
-              {/* Weekly summary */}
-              <div className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 bg-white/[0.03] flex items-center justify-center ${wr > 0 ? 'text-green-500' : wr < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                <span className="text-xs sm:text-sm font-mono font-bold">
-                  {wr !== 0 ? `${wr >= 0 ? '+' : ''}${wr.toFixed(1)}R` : '—'}
+              {/* Weekly summary - 3 line vertical */}
+              <div className="min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 bg-white/[0.03] flex flex-col items-center justify-center gap-0.5">
+                <span className="text-xs text-gray-400">Week {wi + 1}</span>
+                <span className={`text-sm sm:text-base font-mono font-bold ${wr > 0 ? 'text-green-500' : wr < 0 ? 'text-red-500' : 'text-foreground'}`}>
+                  {wr !== 0 ? `${wr >= 0 ? '+' : ''}${wr.toFixed(1)}R` : '0R'}
+                </span>
+                <span className="text-[10px] text-gray-400">
+                  {wcount} trade{wcount !== 1 ? 's' : ''}
                 </span>
               </div>
             </div>
