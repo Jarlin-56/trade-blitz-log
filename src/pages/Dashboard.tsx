@@ -50,6 +50,17 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const { data: tradeTags = [] } = useQuery({
+    queryKey: ['trade_tags_dashboard', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('trade_tags')
+        .select('trade_id, tag_id, tags(name)');
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   // Apply date filter
   const dateTrades = useMemo(() => {
     if (!dateRange) return trades;
@@ -138,6 +149,40 @@ export default function Dashboard() {
       }))
       .sort((a, b) => b.winRate - a.winRate);
   }, [dateTrades, executedTrades, tradeConditions]);
+
+  // Performance by Tag / Condition (Total R, Win Rate, Trade Count)
+  const buildPerf = (joins: Array<{ trade_id: string; name: string | undefined }>) => {
+    const executedMap = new Map(executedTrades.map(t => [t.id, t]));
+    const map = new Map<string, { total: number; wins: number; r: number }>();
+    for (const j of joins) {
+      if (!j.name) continue;
+      const trade = executedMap.get(j.trade_id);
+      if (!trade) continue;
+      const entry = map.get(j.name) ?? { total: 0, wins: 0, r: 0 };
+      entry.total++;
+      entry.r += Number(trade.earned_r);
+      if (trade.result === 'Win') entry.wins++;
+      map.set(j.name, entry);
+    }
+    return Array.from(map.entries())
+      .map(([name, { total, wins, r }]) => ({
+        name,
+        trades: total,
+        winRate: total > 0 ? Math.round((wins / total) * 100) : 0,
+        totalR: parseFloat(r.toFixed(2)),
+      }))
+      .sort((a, b) => b.totalR - a.totalR);
+  };
+
+  const tagPerfData = useMemo(
+    () => buildPerf(tradeTags.map(t => ({ trade_id: t.trade_id, name: (t.tags as any)?.name }))),
+    [tradeTags, executedTrades]
+  );
+
+  const conditionPerfTableData = useMemo(
+    () => buildPerf(tradeConditions.map(t => ({ trade_id: t.trade_id, name: (t.conditions as any)?.name }))),
+    [tradeConditions, executedTrades]
+  );
 
   // Hourly Performance data (local timezone, all 24 hours)
   const hourlyData = useMemo(() => {
@@ -336,6 +381,50 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Performance by Tag & Condition */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PerfTable title="Performance by Tag" rows={tagPerfData} emptyText="No tag data available." />
+        <PerfTable title="Performance by Condition" rows={conditionPerfTableData} emptyText="No condition data available." />
+      </div>
+
     </div>
+  );
+}
+
+function PerfTable({ title, rows, emptyText }: { title: string; rows: Array<{ name: string; trades: number; winRate: number; totalR: number }>; emptyText: string }) {
+  return (
+    <Card>
+      <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
+      <CardContent>
+        {rows.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-muted-foreground border-b border-border">
+                  <th className="text-left font-medium py-2 pr-2">Name</th>
+                  <th className="text-right font-medium py-2 px-2">Trades</th>
+                  <th className="text-right font-medium py-2 px-2">Win Rate</th>
+                  <th className="text-right font-medium py-2 pl-2">Total R</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => (
+                  <tr key={r.name} className="border-b border-border/40 last:border-0">
+                    <td className="py-2 pr-2 truncate max-w-[180px]">{r.name}</td>
+                    <td className="py-2 px-2 text-right font-mono">{r.trades}</td>
+                    <td className="py-2 px-2 text-right font-mono">{r.winRate}%</td>
+                    <td className={`py-2 pl-2 text-right font-mono font-semibold ${r.totalR > 0 ? 'text-win' : r.totalR < 0 ? 'text-loss' : 'text-muted-foreground'}`}>
+                      {r.totalR >= 0 ? '+' : ''}{r.totalR.toFixed(2)}R
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm py-8 text-center">{emptyText}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
