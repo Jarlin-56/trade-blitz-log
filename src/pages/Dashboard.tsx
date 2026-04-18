@@ -184,7 +184,26 @@ export default function Dashboard() {
     [tradeConditions, executedTrades]
   );
 
-  // Hourly Performance data (local timezone, all 24 hours)
+  // R-Distribution histogram buckets: -3R, -2R, -1R, 0R, +1R, +2R, +3R, +4R+
+  const rDistData = useMemo(() => {
+    const buckets = [
+      { name: '≤-3R', min: -Infinity, max: -2.5, count: 0 },
+      { name: '-2R', min: -2.5, max: -1.5, count: 0 },
+      { name: '-1R', min: -1.5, max: -0.5, count: 0 },
+      { name: '0R', min: -0.5, max: 0.5, count: 0 },
+      { name: '+1R', min: 0.5, max: 1.5, count: 0 },
+      { name: '+2R', min: 1.5, max: 2.5, count: 0 },
+      { name: '+3R', min: 2.5, max: 3.5, count: 0 },
+      { name: '+4R+', min: 3.5, max: Infinity, count: 0 },
+    ];
+    for (const t of executedTrades) {
+      const r = Number(t.earned_r);
+      const b = buckets.find(b => r > b.min && r <= b.max);
+      if (b) b.count++;
+    }
+    return buckets.map(({ name, count }) => ({ name, count }));
+  }, [executedTrades]);
+
   const hourlyData = useMemo(() => {
     const hourMap: Record<number, number> = {};
     for (let h = 0; h < 24; h++) hourMap[h] = 0;
