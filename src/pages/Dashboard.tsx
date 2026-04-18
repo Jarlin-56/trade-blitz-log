@@ -346,6 +346,38 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* R-Distribution Histogram */}
+      <Card>
+        <CardHeader><CardTitle>R-Distribution</CardTitle></CardHeader>
+        <CardContent>
+          {executedTrades.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={rDistData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  contentStyle={{ background: '#27272a', border: '1px solid #3f3f46', borderRadius: 8, color: '#fafafa' }}
+                  labelStyle={{ color: '#fafafa' }}
+                  itemStyle={{ color: '#fafafa' }}
+                  formatter={(value: number) => [`${value} trades`, 'Count']}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {rDistData.map((entry, i) => {
+                    const isNeg = entry.name.startsWith('-') || entry.name.startsWith('≤-');
+                    const isZero = entry.name === '0R';
+                    return <Cell key={i} fill={isNeg ? '#ef4444' : isZero ? '#a1a1aa' : '#22c55e'} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Hourly Performance Chart */}
       <Card>
         <CardHeader><CardTitle>Performance by Hour</CardTitle></CardHeader>
