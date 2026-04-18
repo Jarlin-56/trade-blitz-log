@@ -381,6 +381,50 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Performance by Tag & Condition */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PerfTable title="Performance by Tag" rows={tagPerfData} emptyText="No tag data available." />
+        <PerfTable title="Performance by Condition" rows={conditionPerfTableData} emptyText="No condition data available." />
+      </div>
+
     </div>
+  );
+}
+
+function PerfTable({ title, rows, emptyText }: { title: string; rows: Array<{ name: string; trades: number; winRate: number; totalR: number }>; emptyText: string }) {
+  return (
+    <Card>
+      <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
+      <CardContent>
+        {rows.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-muted-foreground border-b border-border">
+                  <th className="text-left font-medium py-2 pr-2">Name</th>
+                  <th className="text-right font-medium py-2 px-2">Trades</th>
+                  <th className="text-right font-medium py-2 px-2">Win Rate</th>
+                  <th className="text-right font-medium py-2 pl-2">Total R</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => (
+                  <tr key={r.name} className="border-b border-border/40 last:border-0">
+                    <td className="py-2 pr-2 truncate max-w-[180px]">{r.name}</td>
+                    <td className="py-2 px-2 text-right font-mono">{r.trades}</td>
+                    <td className="py-2 px-2 text-right font-mono">{r.winRate}%</td>
+                    <td className={`py-2 pl-2 text-right font-mono font-semibold ${r.totalR > 0 ? 'text-win' : r.totalR < 0 ? 'text-loss' : 'text-muted-foreground'}`}>
+                      {r.totalR >= 0 ? '+' : ''}{r.totalR.toFixed(2)}R
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm py-8 text-center">{emptyText}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
