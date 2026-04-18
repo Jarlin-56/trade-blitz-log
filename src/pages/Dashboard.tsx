@@ -184,7 +184,26 @@ export default function Dashboard() {
     [tradeConditions, executedTrades]
   );
 
-  // Hourly Performance data (local timezone, all 24 hours)
+  // R-Distribution histogram buckets: -3R, -2R, -1R, 0R, +1R, +2R, +3R, +4R+
+  const rDistData = useMemo(() => {
+    const buckets = [
+      { name: '≤-3R', min: -Infinity, max: -2.5, count: 0 },
+      { name: '-2R', min: -2.5, max: -1.5, count: 0 },
+      { name: '-1R', min: -1.5, max: -0.5, count: 0 },
+      { name: '0R', min: -0.5, max: 0.5, count: 0 },
+      { name: '+1R', min: 0.5, max: 1.5, count: 0 },
+      { name: '+2R', min: 1.5, max: 2.5, count: 0 },
+      { name: '+3R', min: 2.5, max: 3.5, count: 0 },
+      { name: '+4R+', min: 3.5, max: Infinity, count: 0 },
+    ];
+    for (const t of executedTrades) {
+      const r = Number(t.earned_r);
+      const b = buckets.find(b => r > b.min && r <= b.max);
+      if (b) b.count++;
+    }
+    return buckets.map(({ name, count }) => ({ name, count }));
+  }, [executedTrades]);
+
   const hourlyData = useMemo(() => {
     const hourMap: Record<number, number> = {};
     for (let h = 0; h < 24; h++) hourMap[h] = 0;
@@ -323,6 +342,38 @@ export default function Dashboard() {
             </ResponsiveContainer>
           ) : (
             <p className="text-muted-foreground text-sm py-8 text-center">No condition data available.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* R-Distribution Histogram */}
+      <Card>
+        <CardHeader><CardTitle>R-Distribution</CardTitle></CardHeader>
+        <CardContent>
+          {executedTrades.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={rDistData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: 'hsl(215 15% 55%)' }} />
+                <Tooltip
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  contentStyle={{ background: '#27272a', border: '1px solid #3f3f46', borderRadius: 8, color: '#fafafa' }}
+                  labelStyle={{ color: '#fafafa' }}
+                  itemStyle={{ color: '#fafafa' }}
+                  formatter={(value: number) => [`${value} trades`, 'Count']}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {rDistData.map((entry, i) => {
+                    const isNeg = entry.name.startsWith('-') || entry.name.startsWith('≤-');
+                    const isZero = entry.name === '0R';
+                    return <Cell key={i} fill={isNeg ? '#ef4444' : isZero ? '#a1a1aa' : '#22c55e'} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
           )}
         </CardContent>
       </Card>
