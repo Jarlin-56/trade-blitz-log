@@ -50,6 +50,17 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const { data: tradeTags = [] } = useQuery({
+    queryKey: ['trade_tags_dashboard', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('trade_tags')
+        .select('trade_id, tag_id, tags(name)');
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   // Apply date filter
   const dateTrades = useMemo(() => {
     if (!dateRange) return trades;
