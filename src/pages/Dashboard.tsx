@@ -150,6 +150,40 @@ export default function Dashboard() {
       .sort((a, b) => b.winRate - a.winRate);
   }, [dateTrades, executedTrades, tradeConditions]);
 
+  // Performance by Tag / Condition (Total R, Win Rate, Trade Count)
+  const buildPerf = (joins: Array<{ trade_id: string; name: string | undefined }>) => {
+    const executedMap = new Map(executedTrades.map(t => [t.id, t]));
+    const map = new Map<string, { total: number; wins: number; r: number }>();
+    for (const j of joins) {
+      if (!j.name) continue;
+      const trade = executedMap.get(j.trade_id);
+      if (!trade) continue;
+      const entry = map.get(j.name) ?? { total: 0, wins: 0, r: 0 };
+      entry.total++;
+      entry.r += Number(trade.earned_r);
+      if (trade.result === 'Win') entry.wins++;
+      map.set(j.name, entry);
+    }
+    return Array.from(map.entries())
+      .map(([name, { total, wins, r }]) => ({
+        name,
+        trades: total,
+        winRate: total > 0 ? Math.round((wins / total) * 100) : 0,
+        totalR: parseFloat(r.toFixed(2)),
+      }))
+      .sort((a, b) => b.totalR - a.totalR);
+  };
+
+  const tagPerfData = useMemo(
+    () => buildPerf(tradeTags.map(t => ({ trade_id: t.trade_id, name: (t.tags as any)?.name }))),
+    [tradeTags, executedTrades]
+  );
+
+  const conditionPerfTableData = useMemo(
+    () => buildPerf(tradeConditions.map(t => ({ trade_id: t.trade_id, name: (t.conditions as any)?.name }))),
+    [tradeConditions, executedTrades]
+  );
+
   // Hourly Performance data (local timezone, all 24 hours)
   const hourlyData = useMemo(() => {
     const hourMap: Record<number, number> = {};
