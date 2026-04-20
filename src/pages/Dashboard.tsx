@@ -184,9 +184,12 @@ export default function Dashboard() {
     [tradeConditions, executedTrades]
   );
 
-  // R-Distribution histogram: only break-even and winning trades (earned_r >= 0)
+  // R-Distribution histogram buckets: -3R, -2R, -1R, 0R, +1R, +2R, +3R, +4R+
   const rDistData = useMemo(() => {
     const buckets = [
+      { name: '≤-3R', min: -Infinity, max: -2.5, count: 0 },
+      { name: '-2R', min: -2.5, max: -1.5, count: 0 },
+      { name: '-1R', min: -1.5, max: -0.5, count: 0 },
       { name: '0R', min: -0.5, max: 0.5, count: 0 },
       { name: '+1R', min: 0.5, max: 1.5, count: 0 },
       { name: '+2R', min: 1.5, max: 2.5, count: 0 },
@@ -195,7 +198,6 @@ export default function Dashboard() {
     ];
     for (const t of executedTrades) {
       const r = Number(t.earned_r);
-      if (r < 0) continue;
       const b = buckets.find(b => r > b.min && r <= b.max);
       if (b) b.count++;
     }
