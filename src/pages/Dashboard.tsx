@@ -135,7 +135,7 @@ export default function Dashboard() {
       const idx = Math.min(Math.round(r), maxR);
       buckets[idx].count++;
     }
-    return buckets;
+    return buckets.filter(b => b.count > 0);
   }, [executedTrades]);
 
   // Cumulative R data (only executed trades)
