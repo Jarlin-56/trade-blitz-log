@@ -346,11 +346,11 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* R-Distribution Histogram */}
+      {/* R-Distribution (Wins & Break-even) */}
       <Card>
-        <CardHeader><CardTitle>R-Distribution</CardTitle></CardHeader>
+        <CardHeader><CardTitle>R-Distribution (Wins & Break-even)</CardTitle></CardHeader>
         <CardContent>
-          {executedTrades.length > 0 ? (
+          {rDistData.some(b => b.count > 0) ? (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={rDistData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
@@ -364,16 +364,14 @@ export default function Dashboard() {
                   formatter={(value: number) => [`${value} trades`, 'Count']}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {rDistData.map((entry, i) => {
-                    const isNeg = entry.name.startsWith('-') || entry.name.startsWith('≤-');
-                    const isZero = entry.name === '0R';
-                    return <Cell key={i} fill={isNeg ? '#ef4444' : isZero ? '#a1a1aa' : '#22c55e'} />;
-                  })}
+                  {rDistData.map((entry, i) => (
+                    <Cell key={i} fill={entry.name === '0R' ? '#a1a1aa' : '#22c55e'} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
+            <p className="text-muted-foreground text-sm py-8 text-center">No winning/break-even trade data.</p>
           )}
         </CardContent>
       </Card>
