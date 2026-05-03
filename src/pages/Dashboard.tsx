@@ -119,18 +119,21 @@ export default function Dashboard() {
 
   // R-Distribution data (wins & break-even only)
   const rDistData = useMemo(() => {
-    const buckets = [
-      { name: '0R', min: -0.5, max: 0.5, count: 0 },
-      { name: '+1R', min: 0.5, max: 1.5, count: 0 },
-      { name: '+2R', min: 1.5, max: 2.5, count: 0 },
-      { name: '+3R', min: 2.5, max: 3.5, count: 0 },
-      { name: '+4R+', min: 3.5, max: Infinity, count: 0 },
-    ];
+    // Find max R among non-negative trades to build dynamic buckets
+    let maxR = 3;
+    for (const t of executedTrades) {
+      const r = Number(t.earned_r);
+      if (r >= 0) maxR = Math.max(maxR, Math.floor(r));
+    }
+    const buckets: { name: string; count: number }[] = [];
+    for (let i = 0; i <= maxR; i++) {
+      buckets.push({ name: i === 0 ? '0R' : `+${i}R`, count: 0 });
+    }
     for (const t of executedTrades) {
       const r = Number(t.earned_r);
       if (r < 0) continue;
-      const b = buckets.find(b => r >= b.min && r < b.max) ?? buckets[buckets.length - 1];
-      b.count++;
+      const idx = Math.min(Math.round(r), maxR);
+      buckets[idx].count++;
     }
     return buckets;
   }, [executedTrades]);
