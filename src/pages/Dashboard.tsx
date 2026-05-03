@@ -117,6 +117,24 @@ export default function Dashboard() {
     };
   }, [executedTrades]);
 
+  // R-Distribution data (wins & break-even only)
+  const rDistData = useMemo(() => {
+    const buckets = [
+      { name: '0R', min: -0.5, max: 0.5, count: 0 },
+      { name: '+1R', min: 0.5, max: 1.5, count: 0 },
+      { name: '+2R', min: 1.5, max: 2.5, count: 0 },
+      { name: '+3R', min: 2.5, max: 3.5, count: 0 },
+      { name: '+4R+', min: 3.5, max: Infinity, count: 0 },
+    ];
+    for (const t of executedTrades) {
+      const r = Number(t.earned_r);
+      if (r < 0) continue;
+      const b = buckets.find(b => r >= b.min && r < b.max) ?? buckets[buckets.length - 1];
+      b.count++;
+    }
+    return buckets;
+  }, [executedTrades]);
+
   // Cumulative R data (only executed trades)
   const cumulativeData = executedTrades.map((t, i) => ({
     date: new Date(t.entry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -185,24 +203,6 @@ export default function Dashboard() {
   );
 
   // R-Distribution histogram buckets: -3R, -2R, -1R, 0R, +1R, +2R, +3R, +4R+
-  const rDistData = useMemo(() => {
-    const buckets = [
-      { name: '≤-3R', min: -Infinity, max: -2.5, count: 0 },
-      { name: '-2R', min: -2.5, max: -1.5, count: 0 },
-      { name: '-1R', min: -1.5, max: -0.5, count: 0 },
-      { name: '0R', min: -0.5, max: 0.5, count: 0 },
-      { name: '+1R', min: 0.5, max: 1.5, count: 0 },
-      { name: '+2R', min: 1.5, max: 2.5, count: 0 },
-      { name: '+3R', min: 2.5, max: 3.5, count: 0 },
-      { name: '+4R+', min: 3.5, max: Infinity, count: 0 },
-    ];
-    for (const t of executedTrades) {
-      const r = Number(t.earned_r);
-      const b = buckets.find(b => r > b.min && r <= b.max);
-      if (b) b.count++;
-    }
-    return buckets.map(({ name, count }) => ({ name, count }));
-  }, [executedTrades]);
 
   const hourlyData = useMemo(() => {
     const hourMap: Record<number, number> = {};
@@ -346,11 +346,11 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* R-Distribution Histogram */}
+      {/* R-Distribution (Wins & Break-even) */}
       <Card>
-        <CardHeader><CardTitle>R-Distribution</CardTitle></CardHeader>
+        <CardHeader><CardTitle>R-Distribution (Wins & Break-even)</CardTitle></CardHeader>
         <CardContent>
-          {executedTrades.length > 0 ? (
+          {rDistData.some(b => b.count > 0) ? (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={rDistData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 18%)" />
@@ -364,16 +364,14 @@ export default function Dashboard() {
                   formatter={(value: number) => [`${value} trades`, 'Count']}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {rDistData.map((entry, i) => {
-                    const isNeg = entry.name.startsWith('-') || entry.name.startsWith('≤-');
-                    const isZero = entry.name === '0R';
-                    return <Cell key={i} fill={isNeg ? '#ef4444' : isZero ? '#a1a1aa' : '#22c55e'} />;
-                  })}
+                  {rDistData.map((entry, i) => (
+                    <Cell key={i} fill={entry.name === '0R' ? '#a1a1aa' : '#22c55e'} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-muted-foreground text-sm py-8 text-center">No trade data available.</p>
+            <p className="text-muted-foreground text-sm py-8 text-center">No winning/break-even trade data.</p>
           )}
         </CardContent>
       </Card>
