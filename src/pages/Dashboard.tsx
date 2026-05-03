@@ -22,6 +22,30 @@ const RTooltipContent = ({ active, payload, label }: any) => {
   );
 };
 
+      {/* R-Distribution (winning / break-even only) */}
+      <Card>
+        <CardHeader><CardTitle>R-Distribution (Wins & Break-even)</CardTitle></CardHeader>
+        <CardContent>
+          {rDistData.some(b => b.count > 0) ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={rDistData} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#27272a', border: 'none', borderRadius: 8 }} itemStyle={{ color: '#fff' }} labelStyle={{ color: '#fff' }} />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {rDistData.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.name === '0R' ? '#a1a1aa' : '#22c55e'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No winning/break-even trade data.</p>
+          )}
+        </CardContent>
+      </Card>
+
 
 export default function Dashboard() {
   const { user } = useAuth();
