@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,58 +8,62 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, User } from 'lucide-react';
+import { Loader2, Save, User, Trash2 } from 'lucide-react';
 
 const TRADING_STYLES = ['Scalper', 'Day Trader', 'Swing Trader', 'Position Trader', 'Other'];
 
 export default function Profile() {
   const { user } = useAuth();
+  const { activeProfile, profiles, refreshProfiles } = useProfile();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [tradingStyle, setTradingStyle] = useState('');
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('display_name, bio, trading_style')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (data) {
-        setDisplayName(data.display_name ?? '');
-        setBio(data.bio ?? '');
-        setTradingStyle(data.trading_style ?? '');
-      } else if (!error) {
-        // No profile yet — seed one
-        await supabase.from('profiles').insert({ user_id: user.id, display_name: user.email ?? '' });
-        setDisplayName(user.email ?? '');
-      }
-      setLoading(false);
-    })();
-  }, [user]);
+    if (!activeProfile) return;
+    setDisplayName(activeProfile.display_name ?? '');
+    setBio(activeProfile.bio ?? '');
+    setTradingStyle(activeProfile.trading_style ?? '');
+  }, [activeProfile]);
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!activeProfile) return;
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ display_name: displayName, bio, trading_style: tradingStyle || null })
-      .eq('user_id', user.id);
+      .update({ display_name: displayName, bio, trading_style: tradingStyle || null } as any)
+      .eq('id', activeProfile.id);
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Saved', description: 'Profile updated successfully.' });
+      await refreshProfiles();
     }
     setSaving(false);
   };
 
-  if (loading) {
+  const handleDelete = async () => {
+    if (!activeProfile || !user || profiles.length <= 1) return;
+    const confirmed = window.confirm(`ลบโปรไฟล์ "${activeProfile.display_name}" และ trade ทั้งหมดในโปรไฟล์นี้?`);
+    if (!confirmed) return;
+
+    // Delete trades belonging to this profile
+    await supabase.from('trades').delete().eq('profile_id', activeProfile.id);
+    // Delete profile
+    await supabase.from('profiles').delete().eq('id', activeProfile.id);
+    // Activate another profile
+    const remaining = profiles.filter(p => p.id !== activeProfile.id);
+    if (remaining.length > 0) {
+      await supabase.from('profiles').update({ is_active: true } as any).eq('id', remaining[0].id);
+    }
+    await refreshProfiles();
+    toast({ title: 'ลบโปรไฟล์แล้ว' });
+  };
+
+  if (!activeProfile) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -118,6 +123,13 @@ export default function Profile() {
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Profile
         </Button>
+
+        {profiles.length > 1 && (
+          <Button onClick={handleDelete} variant="destructive" className="w-full gap-2">
+            <Trash2 className="h-4 w-4" />
+            ลบโปรไฟล์นี้
+          </Button>
+        )}
       </div>
     </div>
   );

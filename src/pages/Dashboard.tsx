@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { useFilters } from '@/contexts/FilterContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
@@ -25,18 +26,21 @@ const RTooltipContent = ({ active, payload, label }: any) => {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const { dateRange, setDateRange } = useFilters();
 
   const { data: trades = [] } = useQuery({
-    queryKey: ['trades', user?.id],
+    queryKey: ['trades', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from('trades')
         .select('*')
         .order('entry_date', { ascending: true });
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: tradeConditions = [] } = useQuery({

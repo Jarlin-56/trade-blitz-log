@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,7 @@ type TradeDirection = Database['public']['Enums']['trade_direction'];
 
 export default function TradeNew() {
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const navigate = useNavigate();
 
   const [asset, setAsset] = useState(() => localStorage.getItem('lastTradingPair') || 'XAUUSD');
@@ -91,6 +93,7 @@ export default function TradeNew() {
         .from('trades')
         .insert({
           user_id: user.id,
+          profile_id: activeProfile?.id ?? null,
           asset: asset.toUpperCase(),
           direction,
           entry_date: new Date(entryDate).toISOString(),
@@ -100,7 +103,7 @@ export default function TradeNew() {
           duration_minutes: (result && ['Win', 'Loss', 'Break-even'].includes(result) && (durationHours || durationMins)) ? (parseInt(durationHours || '0') * 60 + parseInt(durationMins || '0')) || null : null,
           recap_text: recap || null,
           image_url: imageUrl,
-        })
+        } as any)
         .select()
         .single();
 

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -18,6 +19,7 @@ interface DaySummary {
 
 export default function CalendarPage() {
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -28,18 +30,18 @@ export default function CalendarPage() {
   const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
   const { data: trades = [] } = useQuery({
-    queryKey: ['calendar-trades', user?.id, format(monthStart, 'yyyy-MM')],
+    queryKey: ['calendar-trades', user?.id, activeProfile?.id, format(monthStart, 'yyyy-MM')],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || !activeProfile) return [];
       const { data } = await supabase
         .from('trades')
         .select('id, entry_date, earned_r, result, asset, direction')
-        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id)
         .gte('entry_date', calStart.toISOString())
         .lte('entry_date', calEnd.toISOString());
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   // Group trades by local day

@@ -41,6 +41,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_active: boolean
           trading_style: string | null
           updated_at: string
           user_id: string
@@ -50,6 +51,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_active?: boolean
           trading_style?: string | null
           updated_at?: string
           user_id: string
@@ -59,6 +61,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_active?: boolean
           trading_style?: string | null
           updated_at?: string
           user_id?: string
@@ -163,6 +166,7 @@ export type Database = {
           id: string
           image_url: string | null
           missed_r: number
+          profile_id: string | null
           recap_text: string | null
           result: Database["public"]["Enums"]["trade_result"]
           updated_at: string
@@ -178,6 +182,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           missed_r?: number
+          profile_id?: string | null
           recap_text?: string | null
           result: Database["public"]["Enums"]["trade_result"]
           updated_at?: string
@@ -193,12 +198,21 @@ export type Database = {
           id?: string
           image_url?: string | null
           missed_r?: number
+          profile_id?: string | null
           recap_text?: string | null
           result?: Database["public"]["Enums"]["trade_result"]
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trades_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
