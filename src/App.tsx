@@ -15,6 +15,7 @@ import Trades from "./pages/Trades";
 import TradeNew from "./pages/TradeNew";
 import TradeDetail from "./pages/TradeDetail";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import SettingsConditions from "./pages/SettingsConditions";
 import SettingsTags from "./pages/SettingsTags";
 import CalendarPage from "./pages/CalendarPage";
