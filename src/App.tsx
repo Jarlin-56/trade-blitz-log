@@ -56,6 +56,10 @@ const App = () => (
               element={<ProtectedRoute><AppLayout><TradeDetail /></AppLayout></ProtectedRoute>}
             />
             <Route
+              path="/profile"
+              element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>}
+            />
+            <Route
               path="/settings"
               element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>}
             >
