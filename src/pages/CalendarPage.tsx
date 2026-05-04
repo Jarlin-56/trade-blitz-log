@@ -19,6 +19,7 @@ interface DaySummary {
 
 export default function CalendarPage() {
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
