@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut } from 'lucide-react';
+import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
   { to: '/trades', icon: ClipboardList, label: 'Trades' },
   { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/profile', icon: User, label: 'Profile' },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
