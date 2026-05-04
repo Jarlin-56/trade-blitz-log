@@ -19,6 +19,7 @@ type TradeDirection = Database['public']['Enums']['trade_direction'];
 
 export default function TradeNew() {
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const navigate = useNavigate();
 
   const [asset, setAsset] = useState(() => localStorage.getItem('lastTradingPair') || 'XAUUSD');
@@ -92,6 +93,7 @@ export default function TradeNew() {
         .from('trades')
         .insert({
           user_id: user.id,
+          profile_id: activeProfile?.id ?? null,
           asset: asset.toUpperCase(),
           direction,
           entry_date: new Date(entryDate).toISOString(),
@@ -101,7 +103,7 @@ export default function TradeNew() {
           duration_minutes: (result && ['Win', 'Loss', 'Break-even'].includes(result) && (durationHours || durationMins)) ? (parseInt(durationHours || '0') * 60 + parseInt(durationMins || '0')) || null : null,
           recap_text: recap || null,
           image_url: imageUrl,
-        })
+        } as any)
         .select()
         .single();
 

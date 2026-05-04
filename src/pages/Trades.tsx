@@ -17,6 +17,7 @@ import DateRangeFilter from '@/components/DateRangeFilter';
 
 export default function Trades() {
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const { dateRange, setDateRange } = useFilters();
   const [searchParams, setSearchParams] = useSearchParams();
   const filterResult = searchParams.get('result') || 'all';
@@ -58,12 +59,14 @@ export default function Trades() {
   });
 
   const { data: trades = [] } = useQuery({
-    queryKey: ['trades', user?.id],
+    queryKey: ['trades', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trades').select('*').order('entry_date', { ascending: false });
+      let q = supabase.from('trades').select('*').order('entry_date', { ascending: false });
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: tradeConditions = [] } = useQuery({
