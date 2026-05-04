@@ -1,8 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut, User } from 'lucide-react';
+import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut, User, ChevronDown, UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const navItems = [
   { to: '/dashboard', icon: BarChart3, label: 'Dashboard' },
@@ -12,6 +16,57 @@ const navItems = [
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
+function ProfileSwitcher() {
+  const { profiles, activeProfile, switchProfile, refreshProfiles } = useProfile();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const createNewProfile = async () => {
+    if (!user) return;
+    const name = `Profile ${profiles.length + 1}`;
+    await supabase.from('profiles').update({ is_active: false } as any).eq('user_id', user.id);
+    await supabase.from('profiles').insert({ user_id: user.id, display_name: name, is_active: true } as any);
+    await refreshProfiles();
+    toast({ title: 'สร้างโปรไฟล์ใหม่แล้ว', description: name });
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent/50 transition-colors w-full text-left">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold shrink-0">
+            {(activeProfile?.display_name ?? '?')[0].toUpperCase()}
+          </div>
+          <span className="truncate font-medium text-foreground flex-1">
+            {activeProfile?.display_name ?? 'Profile'}
+          </span>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        {profiles.map(p => (
+          <DropdownMenuItem
+            key={p.id}
+            onClick={() => switchProfile(p.id)}
+            className={cn(p.id === activeProfile?.id && 'bg-accent')}
+          >
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold mr-2">
+              {(p.display_name ?? '?')[0].toUpperCase()}
+            </div>
+            <span className="truncate">{p.display_name ?? 'Unnamed'}</span>
+            {p.id === activeProfile?.id && <span className="ml-auto text-xs text-primary">✓</span>}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={createNewProfile}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          สร้างโปรไฟล์ใหม่
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -20,9 +75,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-background">
       {/* Sidebar - hidden on mobile */}
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card p-4">
-        <div className="mb-8">
+        <div className="mb-4">
           <h1 className="text-lg font-bold text-primary font-mono tracking-tight">TradeLog</h1>
           <p className="text-xs text-muted-foreground">R-Multiple Journal</p>
+        </div>
+
+        <div className="mb-4">
+          <ProfileSwitcher />
         </div>
 
         <Button onClick={() => navigate('/trades/new')} className="mb-6 w-full gap-2">
@@ -54,8 +113,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile top bar */}
       <div className="flex flex-1 flex-col">
         <header className="md:hidden flex items-center justify-between border-b border-border bg-card px-4 py-3">
-          <h1 className="text-lg font-bold text-primary font-mono">TradeLog</h1>
-          <Button size="sm" onClick={() => navigate('/trades/new')} className="gap-1">
+          <ProfileSwitcher />
+          <Button size="sm" onClick={() => navigate('/trades/new')} className="gap-1 shrink-0">
             <Plus className="h-4 w-4" /> Log
           </Button>
         </header>
