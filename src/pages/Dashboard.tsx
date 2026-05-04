@@ -26,18 +26,21 @@ const RTooltipContent = ({ active, payload, label }: any) => {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const { dateRange, setDateRange } = useFilters();
 
   const { data: trades = [] } = useQuery({
-    queryKey: ['trades', user?.id],
+    queryKey: ['trades', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from('trades')
         .select('*')
         .order('entry_date', { ascending: true });
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: tradeConditions = [] } = useQuery({
