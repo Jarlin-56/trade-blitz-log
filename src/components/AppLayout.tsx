@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut, User, ChevronDown, UserPlus } from 'lucide-react';
+import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut, User, ChevronDown, UserPlus, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { Button } from '@/components/ui/button';
@@ -33,33 +33,36 @@ function ProfileSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent/50 transition-colors w-full text-left">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold shrink-0">
+        <button className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm hover:bg-white/[0.04] transition-all duration-200 w-full text-left group">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary text-xs font-bold shrink-0 group-hover:bg-primary/20 transition-colors">
             {(activeProfile?.display_name ?? '?')[0].toUpperCase()}
           </div>
-          <span className="truncate font-medium text-foreground flex-1">
-            {activeProfile?.display_name ?? 'Profile'}
-          </span>
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <div className="flex-1 min-w-0">
+            <span className="block truncate font-medium text-foreground text-sm">
+              {activeProfile?.display_name ?? 'Profile'}
+            </span>
+            <span className="block text-[10px] text-muted-foreground">Active Profile</span>
+          </div>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0 group-hover:text-foreground transition-colors" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
+      <DropdownMenuContent align="start" className="w-56 glass-card">
         {profiles.map(p => (
           <DropdownMenuItem
             key={p.id}
             onClick={() => switchProfile(p.id)}
-            className={cn(p.id === activeProfile?.id && 'bg-accent')}
+            className={cn('rounded-lg', p.id === activeProfile?.id && 'bg-primary/10')}
           >
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold mr-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-primary text-xs font-bold mr-2.5">
               {(p.display_name ?? '?')[0].toUpperCase()}
             </div>
             <span className="truncate">{p.display_name ?? 'Unnamed'}</span>
             {p.id === activeProfile?.id && <span className="ml-auto text-xs text-primary">✓</span>}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={createNewProfile}>
-          <UserPlus className="h-4 w-4 mr-2" />
+        <DropdownMenuSeparator className="bg-white/5" />
+        <DropdownMenuItem onClick={createNewProfile} className="rounded-lg">
+          <UserPlus className="h-4 w-4 mr-2 text-primary" />
           สร้างโปรไฟล์ใหม่
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -73,18 +76,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar - hidden on mobile */}
-      <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card p-4">
-        <div className="mb-4">
-          <h1 className="text-lg font-bold text-primary font-mono tracking-tight">TradeLog</h1>
-          <p className="text-xs text-muted-foreground">R-Multiple Journal</p>
+      {/* Sidebar */}
+      <aside className="hidden md:flex w-60 flex-col sidebar-glass p-4">
+        {/* Logo */}
+        <div className="mb-5 px-1">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-gradient-primary font-mono tracking-tight">TradeLog</h1>
+              <p className="text-[10px] text-muted-foreground tracking-wide">R-MULTIPLE JOURNAL</p>
+            </div>
+          </div>
         </div>
 
         <div className="mb-4">
           <ProfileSwitcher />
         </div>
 
-        <Button onClick={() => navigate('/trades/new')} className="mb-6 w-full gap-2">
+        <Button onClick={() => navigate('/trades/new')} className="mb-6 w-full gap-2 h-10 rounded-xl font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow">
           <Plus className="h-4 w-4" /> Log Trade
         </Button>
 
@@ -95,8 +106,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                  isActive ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200',
+                  isActive ? 'nav-item-active text-primary font-medium' : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
                 )
               }
             >
@@ -105,16 +116,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <button onClick={signOut} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <div className="section-divider mb-2" />
+        <button onClick={signOut} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all duration-200">
           <LogOut className="h-4 w-4" /> Sign Out
         </button>
       </aside>
 
       {/* Mobile top bar */}
       <div className="flex flex-1 flex-col">
-        <header className="md:hidden flex items-center justify-between border-b border-border bg-card px-4 py-3">
+        <header className="md:hidden flex items-center justify-between border-b border-white/5 bg-background px-3 py-2">
           <ProfileSwitcher />
-          <Button size="sm" onClick={() => navigate('/trades/new')} className="gap-1 shrink-0">
+          <Button size="sm" onClick={() => navigate('/trades/new')} className="gap-1.5 shrink-0 rounded-xl shadow-lg shadow-primary/20">
             <Plus className="h-4 w-4" /> Log
           </Button>
         </header>
@@ -122,14 +134,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
 
         {/* Mobile bottom nav */}
-        <nav className="md:hidden flex border-t border-border bg-card">
+        <nav className="md:hidden flex border-t border-white/5 bg-background/80 backdrop-blur-lg">
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-1 flex-col items-center gap-1 py-2 text-xs transition-colors',
+                  'flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] transition-colors',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )
               }

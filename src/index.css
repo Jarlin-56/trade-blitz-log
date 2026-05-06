@@ -6,25 +6,25 @@
 
 @layer base {
   :root {
-    --background: 220 20% 7%;
+    --background: 228 20% 7%;
     --foreground: 210 20% 92%;
 
-    --card: 220 18% 10%;
+    --card: 228 18% 10%;
     --card-foreground: 210 20% 92%;
 
-    --popover: 220 18% 12%;
+    --popover: 228 18% 12%;
     --popover-foreground: 210 20% 92%;
 
     --primary: 142 70% 45%;
     --primary-foreground: 220 20% 7%;
 
-    --secondary: 220 16% 16%;
+    --secondary: 228 16% 16%;
     --secondary-foreground: 210 20% 85%;
 
-    --muted: 220 14% 14%;
+    --muted: 228 14% 14%;
     --muted-foreground: 215 15% 55%;
 
-    --accent: 220 16% 18%;
+    --accent: 228 16% 18%;
     --accent-foreground: 210 20% 92%;
 
     --destructive: 0 72% 51%;
@@ -37,20 +37,28 @@
     --loss: 0 72% 51%;
     --breakeven: 45 93% 47%;
 
-    --border: 220 13% 18%;
-    --input: 220 13% 18%;
+    --border: 228 13% 18%;
+    --input: 228 13% 18%;
     --ring: 142 70% 45%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 220 18% 9%;
+    --sidebar-background: 228 18% 9%;
     --sidebar-foreground: 210 20% 85%;
     --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 220 20% 7%;
-    --sidebar-accent: 220 16% 14%;
+    --sidebar-accent: 228 16% 14%;
     --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 220 13% 16%;
+    --sidebar-border: 228 13% 16%;
     --sidebar-ring: 142 70% 45%;
+
+    /* Glassmorphism & glow tokens */
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: 12px;
+    --glow-primary: 0 0 40px -10px hsl(142 70% 45% / 0.3);
+    --glow-primary-strong: 0 0 60px -10px hsl(142 70% 45% / 0.5);
+    --glow-loss: 0 0 40px -10px hsl(0 72% 51% / 0.3);
   }
 }
 
@@ -68,5 +76,149 @@
   }
   code, .font-mono {
     font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+  }
+
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+
+  .glow-primary-strong {
+    box-shadow: var(--glow-primary-strong);
+  }
+
+  .glow-loss {
+    box-shadow: var(--glow-loss);
+  }
+
+  .metric-card {
+    @apply relative overflow-hidden rounded-xl;
+    background: linear-gradient(145deg, hsl(228 18% 12%), hsl(228 18% 9%));
+    border: 1px solid var(--glass-border);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-primary);
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.3), transparent);
+  }
+
+  .chart-card {
+    @apply relative overflow-hidden rounded-xl;
+    background: linear-gradient(180deg, hsl(228 18% 11%), hsl(228 18% 9%));
+    border: 1px solid var(--glass-border);
+  }
+
+  .chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.15), transparent);
+  }
+
+  .sidebar-glass {
+    background: linear-gradient(180deg, hsl(228 18% 9%), hsl(228 20% 7%));
+    border-right: 1px solid var(--glass-border);
+  }
+
+  .nav-item-active {
+    background: linear-gradient(135deg, hsl(142 70% 45% / 0.12), hsl(142 70% 45% / 0.05));
+    border: 1px solid hsl(142 70% 45% / 0.15);
+  }
+
+  .trade-card {
+    @apply relative overflow-hidden rounded-lg;
+    background: linear-gradient(145deg, hsl(228 18% 11%), hsl(228 18% 9%));
+    border: 1px solid var(--glass-border);
+    transition: all 0.2s ease;
+  }
+
+  .trade-card:hover {
+    border-color: hsl(142 70% 45% / 0.2);
+    background: linear-gradient(145deg, hsl(228 18% 13%), hsl(228 18% 10%));
+    transform: translateX(4px);
+  }
+
+  .login-glow {
+    position: relative;
+  }
+
+  .login-glow::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, hsl(142 70% 45% / 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .section-divider {
+    @apply relative my-2;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fadeUp 0.5s ease-out forwards;
+  }
+
+  .animate-fade-up-delay-1 {
+    animation: fadeUp 0.5s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-up-delay-2 {
+    animation: fadeUp 0.5s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-up-delay-3 {
+    animation: fadeUp 0.5s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(142 70% 50%), hsl(142 70% 38%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

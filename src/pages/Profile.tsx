@@ -49,12 +49,8 @@ export default function Profile() {
     if (!activeProfile || !user || profiles.length <= 1) return;
     const confirmed = window.confirm(`ลบโปรไฟล์ "${activeProfile.display_name}" และ trade ทั้งหมดในโปรไฟล์นี้?`);
     if (!confirmed) return;
-
-    // Delete trades belonging to this profile
     await supabase.from('trades').delete().eq('profile_id', activeProfile.id);
-    // Delete profile
     await supabase.from('profiles').delete().eq('id', activeProfile.id);
-    // Activate another profile
     const remaining = profiles.filter(p => p.id !== activeProfile.id);
     if (remaining.length > 0) {
       await supabase.from('profiles').update({ is_active: true } as any).eq('id', remaining[0].id);
@@ -72,32 +68,35 @@ export default function Profile() {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-8">
-      <div className="flex items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <User className="h-7 w-7" />
+    <div className="max-w-lg mx-auto space-y-8 animate-fade-up">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary glow-primary">
+          <User className="h-8 w-8" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Profile</h1>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+          <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
         </div>
       </div>
 
-      <div className="space-y-5">
+      {/* Form */}
+      <div className="glass-card rounded-2xl p-6 space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="displayName">Display Name</Label>
+          <Label htmlFor="displayName" className="text-xs uppercase tracking-wider text-muted-foreground">Display Name</Label>
           <Input
             id="displayName"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="Your display name"
+            className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="tradingStyle">Trading Style</Label>
+          <Label htmlFor="tradingStyle" className="text-xs uppercase tracking-wider text-muted-foreground">Trading Style</Label>
           <Select value={tradingStyle} onValueChange={setTradingStyle}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-background/50 border-white/10 h-11">
               <SelectValue placeholder="Select your style" />
             </SelectTrigger>
             <SelectContent>
@@ -109,23 +108,24 @@ export default function Profile() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bio">Bio</Label>
+          <Label htmlFor="bio" className="text-xs uppercase tracking-wider text-muted-foreground">Bio</Label>
           <Textarea
             id="bio"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Tell us about yourself and your trading journey..."
             rows={4}
+            className="bg-background/50 border-white/10 focus:border-primary/50"
           />
         </div>
 
-        <Button onClick={handleSave} disabled={saving} className="w-full gap-2">
+        <Button onClick={handleSave} disabled={saving} className="w-full gap-2 h-11 rounded-xl font-semibold shadow-lg shadow-primary/20">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Profile
         </Button>
 
         {profiles.length > 1 && (
-          <Button onClick={handleDelete} variant="destructive" className="w-full gap-2">
+          <Button onClick={handleDelete} variant="destructive" className="w-full gap-2 h-11 rounded-xl font-semibold">
             <Trash2 className="h-4 w-4" />
             ลบโปรไฟล์นี้
           </Button>
