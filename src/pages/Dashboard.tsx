@@ -420,6 +420,8 @@ export default function Dashboard() {
         <PerfTable title="Performance by Tag" rows={tagPerfData} emptyText="No tag data available." />
         <PerfTable title="Performance by Condition" rows={conditionPerfTableData} emptyText="No condition data available." />
       </div>
+      </>
+      )}
     </div>
   );
 }
