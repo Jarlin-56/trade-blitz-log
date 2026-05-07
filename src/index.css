@@ -53,12 +53,12 @@
     --sidebar-ring: 142 70% 45%;
 
     /* Glassmorphism & glow tokens */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-blur: 12px;
-    --glow-primary: 0 0 40px -10px hsl(142 70% 45% / 0.3);
-    --glow-primary-strong: 0 0 60px -10px hsl(142 70% 45% / 0.5);
-    --glow-loss: 0 0 40px -10px hsl(0 72% 51% / 0.3);
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --glass-blur: 16px;
+    --glow-primary: 0 0 50px -8px hsl(142 70% 45% / 0.45);
+    --glow-primary-strong: 0 0 80px -5px hsl(142 70% 45% / 0.6);
+    --glow-loss: 0 0 50px -8px hsl(0 72% 51% / 0.45);
   }
 }
 
@@ -101,14 +101,16 @@
 
   .metric-card {
     @apply relative overflow-hidden rounded-xl;
-    background: linear-gradient(145deg, hsl(228 18% 12%), hsl(228 18% 9%));
+    background: linear-gradient(145deg, hsl(228 18% 14%), hsl(228 18% 9%));
     border: 1px solid var(--glass-border);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
   .metric-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--glow-primary);
+    border-color: hsl(142 70% 45% / 0.25);
   }
 
   .metric-card::before {
@@ -117,14 +119,15 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.3), transparent);
+    height: 2px;
+    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.5), transparent);
   }
 
   .chart-card {
     @apply relative overflow-hidden rounded-xl;
-    background: linear-gradient(180deg, hsl(228 18% 11%), hsl(228 18% 9%));
+    background: linear-gradient(180deg, hsl(228 18% 13%), hsl(228 18% 9%));
     border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
   }
 
   .chart-card::before {
@@ -133,31 +136,35 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.15), transparent);
+    height: 2px;
+    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.3), transparent);
   }
 
   .sidebar-glass {
-    background: linear-gradient(180deg, hsl(228 18% 9%), hsl(228 20% 7%));
+    background: linear-gradient(180deg, hsl(228 18% 10%), hsl(228 20% 7%));
     border-right: 1px solid var(--glass-border);
+    box-shadow: 4px 0 24px -4px rgba(0, 0, 0, 0.3);
   }
 
   .nav-item-active {
-    background: linear-gradient(135deg, hsl(142 70% 45% / 0.12), hsl(142 70% 45% / 0.05));
-    border: 1px solid hsl(142 70% 45% / 0.15);
+    background: linear-gradient(135deg, hsl(142 70% 45% / 0.18), hsl(142 70% 45% / 0.06));
+    border: 1px solid hsl(142 70% 45% / 0.25);
+    box-shadow: 0 0 16px -4px hsl(142 70% 45% / 0.2);
   }
 
   .trade-card {
     @apply relative overflow-hidden rounded-lg;
-    background: linear-gradient(145deg, hsl(228 18% 11%), hsl(228 18% 9%));
+    background: linear-gradient(145deg, hsl(228 18% 13%), hsl(228 18% 9%));
     border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.3);
     transition: all 0.2s ease;
   }
 
   .trade-card:hover {
-    border-color: hsl(142 70% 45% / 0.2);
-    background: linear-gradient(145deg, hsl(228 18% 13%), hsl(228 18% 10%));
+    border-color: hsl(142 70% 45% / 0.3);
+    background: linear-gradient(145deg, hsl(228 18% 15%), hsl(228 18% 10%));
     transform: translateX(4px);
+    box-shadow: var(--glow-primary);
   }
 
   .login-glow {
@@ -167,12 +174,12 @@
   .login-glow::before {
     content: '';
     position: absolute;
-    top: -100px;
+    top: -80px;
     left: 50%;
     transform: translateX(-50%);
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, hsl(142 70% 45% / 0.12) 0%, transparent 70%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, hsl(142 70% 45% / 0.22) 0%, hsl(142 70% 45% / 0.06) 40%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
