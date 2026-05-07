@@ -121,6 +121,10 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      {allTradesCount === 0 ? (
+        <EmptyState variant="calendar" />
+      ) : (
+      <>
       {/* Monthly Total */}
       <div className="metric-card p-3 text-center">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Monthly Total R </span>
