@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
+import EmptyState from '@/components/EmptyState';
 
 export default function Trades() {
   const { user } = useAuth();
