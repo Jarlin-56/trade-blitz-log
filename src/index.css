@@ -53,12 +53,12 @@
     --sidebar-ring: 142 70% 45%;
 
     /* Glassmorphism & glow tokens */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-blur: 12px;
-    --glow-primary: 0 0 40px -10px hsl(142 70% 45% / 0.3);
-    --glow-primary-strong: 0 0 60px -10px hsl(142 70% 45% / 0.5);
-    --glow-loss: 0 0 40px -10px hsl(0 72% 51% / 0.3);
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --glass-blur: 16px;
+    --glow-primary: 0 0 50px -8px hsl(142 70% 45% / 0.45);
+    --glow-primary-strong: 0 0 80px -5px hsl(142 70% 45% / 0.6);
+    --glow-loss: 0 0 50px -8px hsl(0 72% 51% / 0.45);
   }
 }
 
