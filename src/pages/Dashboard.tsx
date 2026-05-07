@@ -461,8 +461,5 @@ function PerfTable({ title, rows, emptyText }: { title: string; rows: Array<{ na
         )}
       </CardContent>
     </div>
-      </>
-      )}
-    </div>
   );
 }
