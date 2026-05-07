@@ -277,7 +277,9 @@ export default function Trades() {
       })()}
 
       {/* Trade list */}
-      {filtered.length === 0 ? (
+      {trades.length === 0 ? (
+        <EmptyState variant="trades" />
+      ) : filtered.length === 0 ? (
         <p className="text-muted-foreground text-center py-12">No trades found</p>
       ) : (
         <div className="space-y-2">
