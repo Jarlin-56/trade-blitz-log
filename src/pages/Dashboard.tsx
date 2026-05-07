@@ -8,6 +8,7 @@ import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Area, AreaChart } from 'recharts';
 import { Clock, TrendingUp, Target, BarChart3, Percent, Scale } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
+import EmptyState from '@/components/EmptyState';
 
 const RTooltipContent = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -235,9 +236,13 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Performance overview</p>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        {trades.length > 0 && <DateRangeFilter value={dateRange} onChange={setDateRange} />}
       </div>
 
+      {trades.length === 0 ? (
+        <EmptyState variant="dashboard" />
+      ) : (
+      <>
       {/* Key Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 animate-fade-up-delay-1">
         {metrics.map((m, i) => (
@@ -415,6 +420,8 @@ export default function Dashboard() {
         <PerfTable title="Performance by Tag" rows={tagPerfData} emptyText="No tag data available." />
         <PerfTable title="Performance by Condition" rows={conditionPerfTableData} emptyText="No condition data available." />
       </div>
+      </>
+      )}
     </div>
   );
 }

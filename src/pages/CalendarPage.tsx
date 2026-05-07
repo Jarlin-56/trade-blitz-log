@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addMonths, subMonths, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import EmptyState from '@/components/EmptyState';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
@@ -39,6 +40,18 @@ export default function CalendarPage() {
         .gte('entry_date', calStart.toISOString())
         .lte('entry_date', calEnd.toISOString());
       return data || [];
+    },
+    enabled: !!user && !!activeProfile,
+  });
+  const { data: allTradesCount = 0 } = useQuery({
+    queryKey: ['trades-count', user?.id, activeProfile?.id],
+    queryFn: async () => {
+      if (!activeProfile) return 0;
+      const { count } = await supabase
+        .from('trades')
+        .select('id', { count: 'exact', head: true })
+        .eq('profile_id', activeProfile.id);
+      return count ?? 0;
     },
     enabled: !!user && !!activeProfile,
   });
@@ -108,6 +121,10 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      {allTradesCount === 0 ? (
+        <EmptyState variant="calendar" />
+      ) : (
+      <>
       {/* Monthly Total */}
       <div className="metric-card p-3 text-center">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Monthly Total R </span>
@@ -222,6 +239,8 @@ export default function CalendarPage() {
             ))}
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );
