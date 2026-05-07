@@ -8,6 +8,7 @@ import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Area, AreaChart } from 'recharts';
 import { Clock, TrendingUp, Target, BarChart3, Percent, Scale } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
+import EmptyState from '@/components/EmptyState';
 
 const RTooltipContent = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
