@@ -56,7 +56,7 @@ export default function CalendarPage() {
     enabled: !!user && !!activeProfile,
   });
 
-
+  const dayMap = useMemo(() => {
     const map = new Map<string, DaySummary>();
     for (const t of trades) {
       const local = new Date(t.entry_date);
