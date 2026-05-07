@@ -236,9 +236,13 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Performance overview</p>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        {trades.length > 0 && <DateRangeFilter value={dateRange} onChange={setDateRange} />}
       </div>
 
+      {trades.length === 0 ? (
+        <EmptyState variant="dashboard" />
+      ) : (
+      <>
       {/* Key Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 animate-fade-up-delay-1">
         {metrics.map((m, i) => (
