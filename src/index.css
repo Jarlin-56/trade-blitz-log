@@ -218,10 +218,21 @@
   }
 
   .text-gradient-primary {
-    background: linear-gradient(135deg, hsl(142 70% 50%), hsl(142 70% 38%));
+    background: linear-gradient(135deg, hsl(155 55% 48%), hsl(155 55% 32%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(38 60% 72%), hsl(38 50% 50%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-gold {
+    box-shadow: var(--glow-gold);
   }
 }
 
