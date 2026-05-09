@@ -11,7 +11,7 @@ export default function HoldingTimeCard({ overall, win, loss }: Props) {
     <div className="metric-card p-4 animate-fade-up-delay-2">
       <div className="flex items-center gap-2 mb-3">
         <Clock className="h-4 w-4 text-muted-foreground" />
-        <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Holding Time Analysis</span>
+        <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium font-body">Holding Time Analysis</span>
       </div>
       <div className="grid grid-cols-3 gap-4 text-center">
         <div>
