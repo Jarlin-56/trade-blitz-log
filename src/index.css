@@ -107,16 +107,16 @@
 
   .metric-card {
     @apply relative overflow-hidden rounded-xl;
-    background: linear-gradient(145deg, hsl(228 18% 14%), hsl(228 18% 9%));
+    background: linear-gradient(145deg, hsl(225 22% 11%), hsl(225 25% 6%));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
   .metric-card:hover {
     transform: translateY(-3px);
-    box-shadow: var(--glow-primary);
-    border-color: hsl(142 70% 45% / 0.25);
+    box-shadow: var(--glow-gold);
+    border-color: hsl(38 55% 60% / 0.3);
   }
 
   .metric-card::before {
@@ -125,15 +125,15 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.5), transparent);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(38 55% 65% / 0.5), transparent);
   }
 
   .chart-card {
     @apply relative overflow-hidden rounded-xl;
-    background: linear-gradient(180deg, hsl(228 18% 13%), hsl(228 18% 9%));
+    background: linear-gradient(180deg, hsl(225 22% 10%), hsl(225 25% 6%));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
   }
 
   .chart-card::before {
@@ -142,35 +142,35 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.3), transparent);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(38 55% 65% / 0.35), transparent);
   }
 
   .sidebar-glass {
-    background: linear-gradient(180deg, hsl(228 18% 10%), hsl(228 20% 7%));
+    background: linear-gradient(180deg, hsl(225 24% 7%), hsl(225 25% 4%));
     border-right: 1px solid var(--glass-border);
-    box-shadow: 4px 0 24px -4px rgba(0, 0, 0, 0.3);
+    box-shadow: 4px 0 24px -4px rgba(0, 0, 0, 0.4);
   }
 
   .nav-item-active {
-    background: linear-gradient(135deg, hsl(142 70% 45% / 0.18), hsl(142 70% 45% / 0.06));
-    border: 1px solid hsl(142 70% 45% / 0.25);
-    box-shadow: 0 0 16px -4px hsl(142 70% 45% / 0.2);
+    background: linear-gradient(135deg, hsl(155 55% 38% / 0.16), hsl(38 55% 60% / 0.06));
+    border: 1px solid hsl(38 55% 60% / 0.22);
+    box-shadow: 0 0 16px -4px hsl(38 55% 60% / 0.18);
   }
 
   .trade-card {
     @apply relative overflow-hidden rounded-lg;
-    background: linear-gradient(145deg, hsl(228 18% 13%), hsl(228 18% 9%));
+    background: linear-gradient(145deg, hsl(225 22% 10%), hsl(225 25% 6%));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
     transition: all 0.2s ease;
   }
 
   .trade-card:hover {
-    border-color: hsl(142 70% 45% / 0.3);
-    background: linear-gradient(145deg, hsl(228 18% 15%), hsl(228 18% 10%));
+    border-color: hsl(38 55% 60% / 0.3);
+    background: linear-gradient(145deg, hsl(225 22% 12%), hsl(225 25% 7%));
     transform: translateX(4px);
-    box-shadow: var(--glow-primary);
+    box-shadow: var(--glow-gold);
   }
 
   .login-glow {
@@ -185,7 +185,7 @@
     transform: translateX(-50%);
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, hsl(142 70% 45% / 0.22) 0%, hsl(142 70% 45% / 0.06) 40%, transparent 70%);
+    background: radial-gradient(circle, hsl(155 55% 40% / 0.2) 0%, hsl(38 55% 60% / 0.06) 40%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -193,7 +193,7 @@
   .section-divider {
     @apply relative my-2;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+    background: linear-gradient(90deg, transparent, hsl(38 55% 60% / 0.25), transparent);
   }
 }
 
