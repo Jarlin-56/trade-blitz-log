@@ -211,7 +211,7 @@ export default function Dashboard() {
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-3 animate-fade-up">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-light tracking-tight font-display">Dashboard</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Performance overview</p>
         </div>
         {trades.length > 0 && <DateRangeFilter value={dateRange} onChange={setDateRange} />}
