@@ -16,14 +16,14 @@ export default function MetricCard({ metric }: { metric: Metric }) {
     <div className={`metric-card p-4 ${glow ? 'glow-primary' : ''}`}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium font-body">{label}</span>
+        <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{label}</span>
       </div>
-      <span className={`${small ? 'text-base' : 'text-2xl'} font-light tabular-nums tracking-display ${color}`}>
+      <span className={`${small ? 'text-base' : 'text-2xl'} font-bold font-mono ${color}`}>
         {value}
       </span>
       {sub && (
         <div className="flex gap-2 mt-1.5">
-          <span className="text-[10px] text-muted-foreground font-body">{sub}</span>
+          <span className="text-[10px] text-muted-foreground">{sub}</span>
         </div>
       )}
     </div>
