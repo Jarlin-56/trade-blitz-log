@@ -6,59 +6,65 @@
 
 @layer base {
   :root {
-    --background: 228 20% 7%;
-    --foreground: 210 20% 92%;
+    /* Luxury palette: deep navy-black + emerald + champagne gold */
+    --background: 225 25% 5%;
+    --foreground: 40 15% 90%;
 
-    --card: 228 18% 10%;
-    --card-foreground: 210 20% 92%;
+    --card: 225 22% 8%;
+    --card-foreground: 40 15% 90%;
 
-    --popover: 228 18% 12%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 225 22% 9%;
+    --popover-foreground: 40 15% 90%;
 
-    --primary: 142 70% 45%;
-    --primary-foreground: 220 20% 7%;
+    --primary: 155 55% 38%;
+    --primary-foreground: 40 30% 95%;
 
-    --secondary: 228 16% 16%;
-    --secondary-foreground: 210 20% 85%;
+    --secondary: 225 18% 14%;
+    --secondary-foreground: 40 12% 82%;
 
-    --muted: 228 14% 14%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 225 16% 12%;
+    --muted-foreground: 38 10% 58%;
 
-    --accent: 228 16% 18%;
-    --accent-foreground: 210 20% 92%;
+    --accent: 38 50% 62%;
+    --accent-foreground: 225 25% 8%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 358 55% 48%;
+    --destructive-foreground: 40 20% 95%;
 
-    --warning: 45 93% 47%;
-    --warning-foreground: 220 20% 7%;
+    --warning: 38 60% 55%;
+    --warning-foreground: 225 25% 8%;
 
-    --win: 142 70% 45%;
-    --loss: 0 72% 51%;
-    --breakeven: 45 93% 47%;
+    --win: 155 55% 42%;
+    --loss: 358 55% 50%;
+    --breakeven: 38 50% 60%;
 
-    --border: 228 13% 18%;
-    --input: 228 13% 18%;
-    --ring: 142 70% 45%;
+    /* Champagne gold accent */
+    --gold: 38 55% 65%;
+    --gold-muted: 38 30% 45%;
+
+    --border: 225 15% 16%;
+    --input: 225 15% 16%;
+    --ring: 155 55% 42%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 228 18% 9%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 142 70% 45%;
-    --sidebar-primary-foreground: 220 20% 7%;
-    --sidebar-accent: 228 16% 14%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 228 13% 16%;
-    --sidebar-ring: 142 70% 45%;
+    --sidebar-background: 225 24% 6%;
+    --sidebar-foreground: 40 12% 82%;
+    --sidebar-primary: 155 55% 38%;
+    --sidebar-primary-foreground: 40 30% 95%;
+    --sidebar-accent: 225 18% 12%;
+    --sidebar-accent-foreground: 40 15% 90%;
+    --sidebar-border: 225 15% 14%;
+    --sidebar-ring: 38 55% 65%;
 
-    /* Glassmorphism & glow tokens */
-    --glass-bg: rgba(255, 255, 255, 0.06);
-    --glass-border: rgba(255, 255, 255, 0.14);
-    --glass-blur: 16px;
-    --glow-primary: 0 0 50px -8px hsl(142 70% 45% / 0.45);
-    --glow-primary-strong: 0 0 80px -5px hsl(142 70% 45% / 0.6);
-    --glow-loss: 0 0 50px -8px hsl(0 72% 51% / 0.45);
+    /* Glassmorphism & glow tokens — refined for luxury */
+    --glass-bg: rgba(255, 250, 240, 0.035);
+    --glass-border: rgba(212, 175, 110, 0.14);
+    --glass-blur: 18px;
+    --glow-primary: 0 0 50px -10px hsl(155 55% 40% / 0.35);
+    --glow-primary-strong: 0 0 80px -8px hsl(155 55% 42% / 0.5);
+    --glow-gold: 0 0 40px -10px hsl(38 55% 60% / 0.4);
+    --glow-loss: 0 0 50px -10px hsl(358 55% 48% / 0.35);
   }
 }
 
@@ -101,16 +107,16 @@
 
   .metric-card {
     @apply relative overflow-hidden rounded-xl;
-    background: linear-gradient(145deg, hsl(228 18% 14%), hsl(228 18% 9%));
+    background: linear-gradient(145deg, hsl(225 22% 11%), hsl(225 25% 6%));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
   .metric-card:hover {
     transform: translateY(-3px);
-    box-shadow: var(--glow-primary);
-    border-color: hsl(142 70% 45% / 0.25);
+    box-shadow: var(--glow-gold);
+    border-color: hsl(38 55% 60% / 0.3);
   }
 
   .metric-card::before {
@@ -119,15 +125,15 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.5), transparent);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(38 55% 65% / 0.5), transparent);
   }
 
   .chart-card {
     @apply relative overflow-hidden rounded-xl;
-    background: linear-gradient(180deg, hsl(228 18% 13%), hsl(228 18% 9%));
+    background: linear-gradient(180deg, hsl(225 22% 10%), hsl(225 25% 6%));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
   }
 
   .chart-card::before {
@@ -136,35 +142,35 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, hsl(142 70% 45% / 0.3), transparent);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(38 55% 65% / 0.35), transparent);
   }
 
   .sidebar-glass {
-    background: linear-gradient(180deg, hsl(228 18% 10%), hsl(228 20% 7%));
+    background: linear-gradient(180deg, hsl(225 24% 7%), hsl(225 25% 4%));
     border-right: 1px solid var(--glass-border);
-    box-shadow: 4px 0 24px -4px rgba(0, 0, 0, 0.3);
+    box-shadow: 4px 0 24px -4px rgba(0, 0, 0, 0.4);
   }
 
   .nav-item-active {
-    background: linear-gradient(135deg, hsl(142 70% 45% / 0.18), hsl(142 70% 45% / 0.06));
-    border: 1px solid hsl(142 70% 45% / 0.25);
-    box-shadow: 0 0 16px -4px hsl(142 70% 45% / 0.2);
+    background: linear-gradient(135deg, hsl(155 55% 38% / 0.16), hsl(38 55% 60% / 0.06));
+    border: 1px solid hsl(38 55% 60% / 0.22);
+    box-shadow: 0 0 16px -4px hsl(38 55% 60% / 0.18);
   }
 
   .trade-card {
     @apply relative overflow-hidden rounded-lg;
-    background: linear-gradient(145deg, hsl(228 18% 13%), hsl(228 18% 9%));
+    background: linear-gradient(145deg, hsl(225 22% 10%), hsl(225 25% 6%));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
     transition: all 0.2s ease;
   }
 
   .trade-card:hover {
-    border-color: hsl(142 70% 45% / 0.3);
-    background: linear-gradient(145deg, hsl(228 18% 15%), hsl(228 18% 10%));
+    border-color: hsl(38 55% 60% / 0.3);
+    background: linear-gradient(145deg, hsl(225 22% 12%), hsl(225 25% 7%));
     transform: translateX(4px);
-    box-shadow: var(--glow-primary);
+    box-shadow: var(--glow-gold);
   }
 
   .login-glow {
@@ -179,7 +185,7 @@
     transform: translateX(-50%);
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, hsl(142 70% 45% / 0.22) 0%, hsl(142 70% 45% / 0.06) 40%, transparent 70%);
+    background: radial-gradient(circle, hsl(155 55% 40% / 0.2) 0%, hsl(38 55% 60% / 0.06) 40%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -187,7 +193,7 @@
   .section-divider {
     @apply relative my-2;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+    background: linear-gradient(90deg, transparent, hsl(38 55% 60% / 0.25), transparent);
   }
 }
 
@@ -212,10 +218,21 @@
   }
 
   .text-gradient-primary {
-    background: linear-gradient(135deg, hsl(142 70% 50%), hsl(142 70% 38%));
+    background: linear-gradient(135deg, hsl(155 55% 48%), hsl(155 55% 32%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(38 60% 72%), hsl(38 50% 50%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-gold {
+    box-shadow: var(--glow-gold);
   }
 }
 

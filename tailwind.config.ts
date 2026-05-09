@@ -54,6 +54,10 @@ export default {
         win: "hsl(var(--win))",
         loss: "hsl(var(--loss))",
         breakeven: "hsl(var(--breakeven))",
+        gold: {
+          DEFAULT: "hsl(var(--gold))",
+          muted: "hsl(var(--gold-muted))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
