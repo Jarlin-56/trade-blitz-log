@@ -12,6 +12,7 @@ const navItems = [
   { to: '/dashboard', icon: BarChart3, label: 'Dashboard' },
   { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
   { to: '/trades', icon: ClipboardList, label: 'Trades' },
+  { to: '/recap-quiz', icon: Brain, label: 'Quiz' },
   { to: '/settings', icon: Settings, label: 'Settings' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
