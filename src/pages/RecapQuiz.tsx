@@ -101,8 +101,13 @@ export default function RecapQuiz() {
     const enterCorrect = (guessEnter === true && wasGood) || (guessEnter === false && !wasGood);
     const score = (dirCorrect ? 1 : 0) + (enterCorrect ? 1 : 0);
 
-    setTradeConds([]);
     setPhase('revealed');
+
+    const { data: condData } = await supabase
+      .from('trade_conditions')
+      .select('conditions(name)')
+      .eq('trade_id', current.id);
+    setTradeConds((condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean));
 
     await supabase.from('recap_quiz_attempts').insert({
       user_id: user.id,
@@ -277,6 +282,17 @@ export default function RecapQuiz() {
                   </p>
                 </div>
               </div>
+
+              {tradeConds.length > 0 && (
+                <div className="rounded-xl bg-white/[0.03] border border-white/10 p-3">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Conditions เดิม</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {tradeConds.map((c) => (
+                      <Badge key={c} variant="outline" className="text-xs rounded-lg border-primary/20 bg-primary/5 text-primary">{c}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {current.recap_text && (
                 <div className="rounded-xl bg-white/[0.03] border border-white/10 p-3">
