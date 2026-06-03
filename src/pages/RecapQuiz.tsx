@@ -101,8 +101,13 @@ export default function RecapQuiz() {
     const enterCorrect = (guessEnter === true && wasGood) || (guessEnter === false && !wasGood);
     const score = (dirCorrect ? 1 : 0) + (enterCorrect ? 1 : 0);
 
-    setTradeConds([]);
     setPhase('revealed');
+
+    const { data: condData } = await supabase
+      .from('trade_conditions')
+      .select('conditions(name)')
+      .eq('trade_id', current.id);
+    setTradeConds((condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean));
 
     await supabase.from('recap_quiz_attempts').insert({
       user_id: user.id,
