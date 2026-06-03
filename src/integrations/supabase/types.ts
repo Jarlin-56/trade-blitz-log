@@ -68,6 +68,45 @@ export type Database = {
         }
         Relationships: []
       }
+      recap_quiz_attempts: {
+        Row: {
+          created_at: string
+          direction_correct: boolean
+          enter_correct: boolean
+          guess_direction: string | null
+          guess_enter: boolean
+          id: string
+          profile_id: string | null
+          score: number
+          trade_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction_correct?: boolean
+          enter_correct?: boolean
+          guess_direction?: string | null
+          guess_enter: boolean
+          id?: string
+          profile_id?: string | null
+          score?: number
+          trade_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction_correct?: boolean
+          enter_correct?: boolean
+          guess_direction?: string | null
+          guess_enter?: boolean
+          id?: string
+          profile_id?: string | null
+          score?: number
+          trade_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           created_at: string
