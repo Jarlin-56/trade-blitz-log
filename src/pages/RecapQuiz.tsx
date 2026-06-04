@@ -11,6 +11,7 @@ import {
   ArrowRight, RotateCcw, Target, Trophy,
 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
+import QuizHistory from '@/components/QuizHistory';
 
 type Trade = {
   id: string;
