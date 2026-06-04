@@ -262,6 +262,32 @@ export default function RecapQuiz() {
             </div>
           )}
 
+          {/* Answer: conditions */}
+          {guessEnter === true && allConditions.length > 0 && (
+            <div className="space-y-2.5">
+              <p className="text-sm font-medium">3. เข้าด้วย condition ไหน? (เลือกได้หลายอัน)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {allConditions.map((c) => {
+                  const active = guessConds.includes(c.name);
+                  return (
+                    <button
+                      key={c.id}
+                      disabled={phase === 'revealed'}
+                      onClick={() => toggleCond(c.name)}
+                      className={cn(
+                        'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
+                        active ? 'border-primary bg-primary/15 text-primary' : 'border-white/10 bg-white/[0.03] text-muted-foreground hover:border-white/20',
+                      )}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+
           {/* Submit */}
           {phase === 'answering' && (
             <Button
