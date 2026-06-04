@@ -38,7 +38,17 @@ export default function RecapQuiz() {
   const [seenIds, setSeenIds] = useState<string[]>([]);
   const [guessEnter, setGuessEnter] = useState<boolean | null>(null);
   const [guessDir, setGuessDir] = useState<'Long' | 'Short' | null>(null);
+  const [guessConds, setGuessConds] = useState<string[]>([]);
   const [tradeConds, setTradeConds] = useState<string[]>([]);
+
+  const { data: allConditions = [] } = useQuery({
+    queryKey: ['quiz-conditions', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('conditions').select('id, name').order('name');
+      return (data ?? []) as { id: string; name: string }[];
+    },
+    enabled: !!user,
+  });
 
   const { data: trades = [] } = useQuery({
     queryKey: ['quiz-trades', user?.id, activeProfile?.id],
@@ -89,6 +99,7 @@ export default function RecapQuiz() {
     setCurrent(next);
     setGuessEnter(null);
     setGuessDir(null);
+    setGuessConds([]);
     setTradeConds([]);
     setPhase('answering');
   }, [eligible, seenIds]);
@@ -124,6 +135,8 @@ export default function RecapQuiz() {
 
   const dirCorrect = current && guessEnter === true && guessDir === current.direction;
   const enterCorrect = current && ((guessEnter === true && current.result === 'Win') || (guessEnter === false && current.result !== 'Win'));
+  const toggleCond = (name: string) =>
+    setGuessConds(prev => prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]);
 
   const resultColor = (r: string) =>
     r === 'Win' ? 'text-win' : r === 'Loss' ? 'text-loss' : 'text-breakeven';
@@ -249,6 +262,32 @@ export default function RecapQuiz() {
             </div>
           )}
 
+          {/* Answer: conditions */}
+          {guessEnter === true && allConditions.length > 0 && (
+            <div className="space-y-2.5">
+              <p className="text-sm font-medium">3. เข้าด้วย condition ไหน? (เลือกได้หลายอัน)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {allConditions.map((c) => {
+                  const active = guessConds.includes(c.name);
+                  return (
+                    <button
+                      key={c.id}
+                      disabled={phase === 'revealed'}
+                      onClick={() => toggleCond(c.name)}
+                      className={cn(
+                        'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
+                        active ? 'border-primary bg-primary/15 text-primary' : 'border-white/10 bg-white/[0.03] text-muted-foreground hover:border-white/20',
+                      )}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+
           {/* Submit */}
           {phase === 'answering' && (
             <Button
@@ -283,13 +322,43 @@ export default function RecapQuiz() {
                 </div>
               </div>
 
-              {tradeConds.length > 0 && (
-                <div className="rounded-xl bg-white/[0.03] border border-white/10 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Conditions เดิม</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {tradeConds.map((c) => (
-                      <Badge key={c} variant="outline" className="text-xs rounded-lg border-primary/20 bg-primary/5 text-primary">{c}</Badge>
-                    ))}
+              {(tradeConds.length > 0 || guessConds.length > 0) && (
+                <div className="rounded-xl bg-white/[0.03] border border-white/10 p-3 space-y-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">คุณเลือก</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {guessConds.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">— ไม่ได้เลือก —</span>
+                      ) : guessConds.map((c) => {
+                        const hit = tradeConds.includes(c);
+                        return (
+                          <Badge key={c} variant="outline" className={cn(
+                            'text-xs rounded-lg gap-1',
+                            hit ? 'border-win/30 bg-win/5 text-win' : 'border-loss/30 bg-loss/5 text-loss',
+                          )}>
+                            {hit ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}{c}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Conditions จริง</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {tradeConds.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">— ไม่มีบันทึก —</span>
+                      ) : tradeConds.map((c) => {
+                        const missed = !guessConds.includes(c);
+                        return (
+                          <Badge key={c} variant="outline" className={cn(
+                            'text-xs rounded-lg',
+                            missed ? 'border-amber-500/30 bg-amber-500/5 text-amber-500' : 'border-primary/20 bg-primary/5 text-primary',
+                          )}>
+                            {c}{missed ? ' (พลาด)' : ''}
+                          </Badge>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
