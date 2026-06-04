@@ -190,7 +190,25 @@ export default function RecapQuiz() {
         ))}
       </div>
 
-      {eligible.length === 0 ? (
+      {/* View toggle */}
+      <div className="flex gap-2 animate-fade-up">
+        {([['play', 'เล่น Quiz'], ['history', 'ประวัติ / สถิติ']] as const).map(([v, label]) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={cn(
+              'flex-1 rounded-xl border py-2 text-sm font-medium transition-all',
+              view === v ? 'border-primary bg-primary/15 text-primary' : 'border-white/10 bg-white/[0.03] text-muted-foreground hover:border-white/20',
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'history' ? (
+        <QuizHistory />
+      ) : eligible.length === 0 ? (
         <EmptyState variant="trades" />
       ) : phase === 'idle' ? (
         <div className="glass-card rounded-2xl p-8 text-center space-y-4 animate-fade-up">
