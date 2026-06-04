@@ -322,13 +322,43 @@ export default function RecapQuiz() {
                 </div>
               </div>
 
-              {tradeConds.length > 0 && (
-                <div className="rounded-xl bg-white/[0.03] border border-white/10 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Conditions เดิม</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {tradeConds.map((c) => (
-                      <Badge key={c} variant="outline" className="text-xs rounded-lg border-primary/20 bg-primary/5 text-primary">{c}</Badge>
-                    ))}
+              {(tradeConds.length > 0 || guessConds.length > 0) && (
+                <div className="rounded-xl bg-white/[0.03] border border-white/10 p-3 space-y-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">คุณเลือก</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {guessConds.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">— ไม่ได้เลือก —</span>
+                      ) : guessConds.map((c) => {
+                        const hit = tradeConds.includes(c);
+                        return (
+                          <Badge key={c} variant="outline" className={cn(
+                            'text-xs rounded-lg gap-1',
+                            hit ? 'border-win/30 bg-win/5 text-win' : 'border-loss/30 bg-loss/5 text-loss',
+                          )}>
+                            {hit ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}{c}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Conditions จริง</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {tradeConds.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">— ไม่มีบันทึก —</span>
+                      ) : tradeConds.map((c) => {
+                        const missed = !guessConds.includes(c);
+                        return (
+                          <Badge key={c} variant="outline" className={cn(
+                            'text-xs rounded-lg',
+                            missed ? 'border-amber-500/30 bg-amber-500/5 text-amber-500' : 'border-primary/20 bg-primary/5 text-primary',
+                          )}>
+                            {c}{missed ? ' (พลาด)' : ''}
+                          </Badge>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
