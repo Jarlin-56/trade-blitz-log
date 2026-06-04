@@ -99,6 +99,7 @@ export default function RecapQuiz() {
     setCurrent(next);
     setGuessEnter(null);
     setGuessDir(null);
+    setGuessConds([]);
     setTradeConds([]);
     setPhase('answering');
   }, [eligible, seenIds]);
