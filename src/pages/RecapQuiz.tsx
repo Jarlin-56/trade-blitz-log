@@ -118,9 +118,10 @@ export default function RecapQuiz() {
       .from('trade_conditions')
       .select('conditions(name)')
       .eq('trade_id', current.id);
-    setTradeConds((condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean));
+    const actualConds = (condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean) as string[];
+    setTradeConds(actualConds);
 
-    await supabase.from('recap_quiz_attempts').insert({
+    const { data: attempt } = await supabase.from('recap_quiz_attempts').insert({
       user_id: user.id,
       profile_id: activeProfile?.id ?? null,
       trade_id: current.id,
@@ -129,8 +130,25 @@ export default function RecapQuiz() {
       direction_correct: dirCorrect,
       enter_correct: enterCorrect,
       score,
-    } as any);
+    } as any).select('id').single();
+
+    if (attempt?.id) {
+      const allNames = Array.from(new Set([...guessConds, ...actualConds]));
+      const rows = allNames.map((name) => ({
+        attempt_id: attempt.id,
+        user_id: user.id,
+        profile_id: activeProfile?.id ?? null,
+        condition_name: name,
+        guessed: guessConds.includes(name),
+        actual: actualConds.includes(name),
+      }));
+      if (rows.length > 0) {
+        await supabase.from('recap_quiz_condition_results').insert(rows as any);
+      }
+    }
+
     queryClient.invalidateQueries({ queryKey: ['quiz-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['quiz-cond-stats'] });
   };
 
   const dirCorrect = current && guessEnter === true && guessDir === current.direction;
