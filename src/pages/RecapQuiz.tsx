@@ -11,6 +11,7 @@ import {
   ArrowRight, RotateCcw, Target, Trophy,
 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
+import QuizHistory from '@/components/QuizHistory';
 
 type Trade = {
   id: string;
@@ -33,6 +34,7 @@ export default function RecapQuiz() {
   const { activeProfile } = useProfile();
   const queryClient = useQueryClient();
 
+  const [view, setView] = useState<'play' | 'history'>('play');
   const [phase, setPhase] = useState<Phase>('idle');
   const [current, setCurrent] = useState<Trade | null>(null);
   const [seenIds, setSeenIds] = useState<string[]>([]);
@@ -118,9 +120,10 @@ export default function RecapQuiz() {
       .from('trade_conditions')
       .select('conditions(name)')
       .eq('trade_id', current.id);
-    setTradeConds((condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean));
+    const actualConds = (condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean) as string[];
+    setTradeConds(actualConds);
 
-    await supabase.from('recap_quiz_attempts').insert({
+    const { data: attempt } = await supabase.from('recap_quiz_attempts').insert({
       user_id: user.id,
       profile_id: activeProfile?.id ?? null,
       trade_id: current.id,
@@ -129,8 +132,25 @@ export default function RecapQuiz() {
       direction_correct: dirCorrect,
       enter_correct: enterCorrect,
       score,
-    } as any);
+    } as any).select('id').single();
+
+    if (attempt?.id) {
+      const allNames = Array.from(new Set([...guessConds, ...actualConds]));
+      const rows = allNames.map((name) => ({
+        attempt_id: attempt.id,
+        user_id: user.id,
+        profile_id: activeProfile?.id ?? null,
+        condition_name: name,
+        guessed: guessConds.includes(name),
+        actual: actualConds.includes(name),
+      }));
+      if (rows.length > 0) {
+        await supabase.from('recap_quiz_condition_results').insert(rows as any);
+      }
+    }
+
     queryClient.invalidateQueries({ queryKey: ['quiz-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['quiz-cond-stats'] });
   };
 
   const dirCorrect = current && guessEnter === true && guessDir === current.direction;
@@ -170,7 +190,25 @@ export default function RecapQuiz() {
         ))}
       </div>
 
-      {eligible.length === 0 ? (
+      {/* View toggle */}
+      <div className="flex gap-2 animate-fade-up">
+        {([['play', 'เล่น Quiz'], ['history', 'ประวัติ / สถิติ']] as const).map(([v, label]) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={cn(
+              'flex-1 rounded-xl border py-2 text-sm font-medium transition-all',
+              view === v ? 'border-primary bg-primary/15 text-primary' : 'border-white/10 bg-white/[0.03] text-muted-foreground hover:border-white/20',
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'history' ? (
+        <QuizHistory />
+      ) : eligible.length === 0 ? (
         <EmptyState variant="trades" />
       ) : phase === 'idle' ? (
         <div className="glass-card rounded-2xl p-8 text-center space-y-4 animate-fade-up">

@@ -107,6 +107,47 @@ export type Database = {
         }
         Relationships: []
       }
+      recap_quiz_condition_results: {
+        Row: {
+          actual: boolean
+          attempt_id: string
+          condition_name: string
+          created_at: string
+          guessed: boolean
+          id: string
+          profile_id: string | null
+          user_id: string
+        }
+        Insert: {
+          actual?: boolean
+          attempt_id: string
+          condition_name: string
+          created_at?: string
+          guessed?: boolean
+          id?: string
+          profile_id?: string | null
+          user_id: string
+        }
+        Update: {
+          actual?: boolean
+          attempt_id?: string
+          condition_name?: string
+          created_at?: string
+          guessed?: boolean
+          id?: string
+          profile_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recap_quiz_condition_results_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "recap_quiz_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tags: {
         Row: {
           created_at: string
