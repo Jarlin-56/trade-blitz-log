@@ -135,6 +135,8 @@ export default function RecapQuiz() {
 
   const dirCorrect = current && guessEnter === true && guessDir === current.direction;
   const enterCorrect = current && ((guessEnter === true && current.result === 'Win') || (guessEnter === false && current.result !== 'Win'));
+  const toggleCond = (name: string) =>
+    setGuessConds(prev => prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]);
 
   const resultColor = (r: string) =>
     r === 'Win' ? 'text-win' : r === 'Loss' ? 'text-loss' : 'text-breakeven';
