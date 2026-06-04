@@ -38,7 +38,17 @@ export default function RecapQuiz() {
   const [seenIds, setSeenIds] = useState<string[]>([]);
   const [guessEnter, setGuessEnter] = useState<boolean | null>(null);
   const [guessDir, setGuessDir] = useState<'Long' | 'Short' | null>(null);
+  const [guessConds, setGuessConds] = useState<string[]>([]);
   const [tradeConds, setTradeConds] = useState<string[]>([]);
+
+  const { data: allConditions = [] } = useQuery({
+    queryKey: ['quiz-conditions', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('conditions').select('id, name').order('name');
+      return (data ?? []) as { id: string; name: string }[];
+    },
+    enabled: !!user,
+  });
 
   const { data: trades = [] } = useQuery({
     queryKey: ['quiz-trades', user?.id, activeProfile?.id],
