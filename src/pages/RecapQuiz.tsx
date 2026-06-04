@@ -34,6 +34,7 @@ export default function RecapQuiz() {
   const { activeProfile } = useProfile();
   const queryClient = useQueryClient();
 
+  const [view, setView] = useState<'play' | 'history'>('play');
   const [phase, setPhase] = useState<Phase>('idle');
   const [current, setCurrent] = useState<Trade | null>(null);
   const [seenIds, setSeenIds] = useState<string[]>([]);
