@@ -176,6 +176,30 @@ export default function QuizHistory() {
           ))}
         </div>
       </div>
+
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>รีเซ็ตสถิติ Quiz</DialogTitle>
+            <DialogDescription>
+              การกระทำนี้จะลบประวัติ Quiz และสถิติ Condition ทั้งหมดของ Profile นี้
+              <br />ข้อมูลจะไม่สามารถกู้คืนได้
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowResetDialog(false)}>
+              ยกเลิก
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => resetMutation.mutate()}
+              disabled={resetMutation.isPending}
+            >
+              {resetMutation.isPending ? 'กำลังลบ...' : 'ลบข้อมูล'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
