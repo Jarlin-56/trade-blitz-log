@@ -1,10 +1,19 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { cn } from '@/lib/utils';
-import { Target, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import EmptyState from '@/components/EmptyState';
 
 type Row = { condition_name: string; guessed: boolean; actual: boolean };
