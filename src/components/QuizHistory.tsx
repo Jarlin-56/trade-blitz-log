@@ -1,10 +1,19 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { cn } from '@/lib/utils';
-import { Target, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import EmptyState from '@/components/EmptyState';
 
 type Row = { condition_name: string; guessed: boolean; actual: boolean };
@@ -22,6 +31,9 @@ export default function QuizHistory() {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
 
+  const queryClient = useQueryClient();
+  const [showResetDialog, setShowResetDialog] = useState(false);
+
   const { data: rows = [] } = useQuery({
     queryKey: ['quiz-cond-stats', user?.id, activeProfile?.id],
     queryFn: async () => {
@@ -33,6 +45,26 @@ export default function QuizHistory() {
       return (data ?? []) as Row[];
     },
     enabled: !!user && !!activeProfile,
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      // ลบ condition_results ก่อน (FK reference)
+      let condQ = supabase.from('recap_quiz_condition_results').delete().neq('id', '');
+      if (activeProfile?.id) condQ = condQ.eq('profile_id', activeProfile.id);
+      else condQ = condQ.eq('user_id', user.id);
+      await condQ;
+      // ลบ attempts
+      let attemptQ = supabase.from('recap_quiz_attempts').delete().neq('id', '');
+      if (activeProfile?.id) attemptQ = attemptQ.eq('profile_id', activeProfile.id);
+      else attemptQ = attemptQ.eq('user_id', user.id);
+      await attemptQ;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quiz-cond-stats', user?.id, activeProfile?.id] });
+      setShowResetDialog(false);
+    },
   });
 
   const stats = useMemo<Stat[]>(() => {
@@ -106,9 +138,20 @@ export default function QuizHistory() {
 
       {/* Per-condition table */}
       <div className="glass-card rounded-2xl p-4 space-y-3">
-        <div className="flex items-center gap-1.5">
-          <Target className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium">ความแม่นแยกตาม Condition</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Target className="h-4 w-4 text-primary" />
+            <p className="text-sm font-medium">ความแม่นแยกตาม Condition</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowResetDialog(true)}
+            className="text-loss hover:text-loss hover:bg-loss/10 gap-1"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            รีเซ็ตสถิติ
+          </Button>
         </div>
         <div className="space-y-2.5">
           {stats.map((s) => (
@@ -133,6 +176,30 @@ export default function QuizHistory() {
           ))}
         </div>
       </div>
+
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>รีเซ็ตสถิติ Quiz</DialogTitle>
+            <DialogDescription>
+              การกระทำนี้จะลบประวัติ Quiz และสถิติ Condition ทั้งหมดของ Profile นี้
+              <br />ข้อมูลจะไม่สามารถกู้คืนได้
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowResetDialog(false)}>
+              ยกเลิก
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => resetMutation.mutate()}
+              disabled={resetMutation.isPending}
+            >
+              {resetMutation.isPending ? 'กำลังลบ...' : 'ลบข้อมูล'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
