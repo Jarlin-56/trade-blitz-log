@@ -31,6 +31,9 @@ export default function QuizHistory() {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
 
+  const queryClient = useQueryClient();
+  const [showResetDialog, setShowResetDialog] = useState(false);
+
   const { data: rows = [] } = useQuery({
     queryKey: ['quiz-cond-stats', user?.id, activeProfile?.id],
     queryFn: async () => {
@@ -42,6 +45,26 @@ export default function QuizHistory() {
       return (data ?? []) as Row[];
     },
     enabled: !!user && !!activeProfile,
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      // ลบ condition_results ก่อน (FK reference)
+      let condQ = supabase.from('recap_quiz_condition_results').delete().neq('id', '');
+      if (activeProfile?.id) condQ = condQ.eq('profile_id', activeProfile.id);
+      else condQ = condQ.eq('user_id', user.id);
+      await condQ;
+      // ลบ attempts
+      let attemptQ = supabase.from('recap_quiz_attempts').delete().neq('id', '');
+      if (activeProfile?.id) attemptQ = attemptQ.eq('profile_id', activeProfile.id);
+      else attemptQ = attemptQ.eq('user_id', user.id);
+      await attemptQ;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quiz-cond-stats', user?.id, activeProfile?.id] });
+      setShowResetDialog(false);
+    },
   });
 
   const stats = useMemo<Stat[]>(() => {
