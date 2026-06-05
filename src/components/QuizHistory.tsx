@@ -49,20 +49,26 @@ export default function QuizHistory() {
 
   const resetMutation = useMutation({
     mutationFn: async () => {
-      if (!user) return;
+      if (!user) throw new Error('กรุณาเข้าสู่ระบบก่อน');
       // ลบ condition_results ก่อน (FK reference)
-      let condQ = supabase.from('recap_quiz_condition_results').delete().neq('id', '');
+      let condQ = supabase.from('recap_quiz_condition_results').delete();
       if (activeProfile?.id) condQ = condQ.eq('profile_id', activeProfile.id);
       else condQ = condQ.eq('user_id', user.id);
-      await condQ;
+      const { error: condError } = await condQ;
+      if (condError) throw condError;
+
       // ลบ attempts
-      let attemptQ = supabase.from('recap_quiz_attempts').delete().neq('id', '');
+      let attemptQ = supabase.from('recap_quiz_attempts').delete();
       if (activeProfile?.id) attemptQ = attemptQ.eq('profile_id', activeProfile.id);
       else attemptQ = attemptQ.eq('user_id', user.id);
-      await attemptQ;
+      const { error: attemptError } = await attemptQ;
+      if (attemptError) throw attemptError;
     },
     onSuccess: () => {
+      queryClient.setQueryData(['quiz-cond-stats', user?.id, activeProfile?.id], []);
+      queryClient.setQueryData(['quiz-stats', user?.id, activeProfile?.id], []);
       queryClient.invalidateQueries({ queryKey: ['quiz-cond-stats', user?.id, activeProfile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['quiz-stats', user?.id, activeProfile?.id] });
       setShowResetDialog(false);
     },
   });
@@ -186,6 +192,11 @@ export default function QuizHistory() {
               <br />ข้อมูลจะไม่สามารถกู้คืนได้
             </DialogDescription>
           </DialogHeader>
+          {resetMutation.isError && (
+            <p className="text-sm text-loss">
+              ลบไม่สำเร็จ: {(resetMutation.error as Error).message}
+            </p>
+          )}
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setShowResetDialog(false)}>
               ยกเลิก
