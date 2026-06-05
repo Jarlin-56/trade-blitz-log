@@ -138,9 +138,20 @@ export default function QuizHistory() {
 
       {/* Per-condition table */}
       <div className="glass-card rounded-2xl p-4 space-y-3">
-        <div className="flex items-center gap-1.5">
-          <Target className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium">ความแม่นแยกตาม Condition</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Target className="h-4 w-4 text-primary" />
+            <p className="text-sm font-medium">ความแม่นแยกตาม Condition</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowResetDialog(true)}
+            className="text-loss hover:text-loss hover:bg-loss/10 gap-1"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            รีเซ็ตสถิติ
+          </Button>
         </div>
         <div className="space-y-2.5">
           {stats.map((s) => (
