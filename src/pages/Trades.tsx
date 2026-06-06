@@ -173,7 +173,7 @@ export default function Trades() {
       {/* Filters */}
       <div className="flex gap-2 flex-wrap items-center">
         <Select value={filterResult} onValueChange={v => { const p = new URLSearchParams(searchParams); p.set('result', v); setSearchParams(p); }}>
-          <SelectTrigger className="w-[130px] h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]">
+          <SelectTrigger className="flex-1 min-w-[120px] sm:flex-none sm:w-[130px] h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
