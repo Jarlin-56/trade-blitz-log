@@ -188,7 +188,7 @@ export default function Trades() {
 
         <Popover open={conditionsOpen} onOpenChange={setConditionsOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 text-xs gap-1 font-normal rounded-lg border-white/10 bg-white/[0.03]">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 text-xs gap-1 font-normal rounded-lg border-white/10 bg-white/[0.03]">
               Conditions <ChevronsUpDown className="h-3 w-3 opacity-50" />
             </Button>
           </PopoverTrigger>
