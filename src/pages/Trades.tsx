@@ -173,7 +173,7 @@ export default function Trades() {
       {/* Filters */}
       <div className="flex gap-2 flex-wrap items-center">
         <Select value={filterResult} onValueChange={v => { const p = new URLSearchParams(searchParams); p.set('result', v); setSearchParams(p); }}>
-          <SelectTrigger className="w-[130px] h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]">
+          <SelectTrigger className="flex-1 min-w-[120px] sm:flex-none sm:w-[130px] h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -188,7 +188,7 @@ export default function Trades() {
 
         <Popover open={conditionsOpen} onOpenChange={setConditionsOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 text-xs gap-1 font-normal rounded-lg border-white/10 bg-white/[0.03]">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 text-xs gap-1 font-normal rounded-lg border-white/10 bg-white/[0.03]">
               Conditions <ChevronsUpDown className="h-3 w-3 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -212,7 +212,7 @@ export default function Trades() {
 
         <Popover open={tagsOpen} onOpenChange={setTagsOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 text-xs gap-1 font-normal rounded-lg border-white/10 bg-white/[0.03]">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 text-xs gap-1 font-normal rounded-lg border-white/10 bg-white/[0.03]">
               Tags <ChevronsUpDown className="h-3 w-3 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -268,7 +268,7 @@ export default function Trades() {
             ].map((m, i) => (
               <div key={i} className="metric-card p-3 text-center">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{m.label}</p>
-                <p className={cn('text-xl font-bold font-mono', m.color)}>{m.value}</p>
+                <p className={cn('text-base sm:text-xl font-bold font-mono break-all', m.color)}>{m.value}</p>
                 {m.sub && <p className="text-[9px] text-muted-foreground mt-1">{m.sub}</p>}
               </div>
             ))}
@@ -283,41 +283,47 @@ export default function Trades() {
         <p className="text-muted-foreground text-center py-12">No trades found</p>
       ) : (
         <div className="space-y-2">
-          {filtered.map((trade, i) => (
+          {filtered.map((trade, i) => {
+            const conds = getConditions(trade.id);
+            const tgs = getTags(trade.id);
+            return (
             <Link to={`/trades/${trade.id}`} key={trade.id}>
               <div className="trade-card" style={{ animationDelay: `${i * 30}ms` }}>
-                <CardContent className="flex items-center justify-between py-3 px-4">
-                  <div className="flex items-center gap-3">
-                    <div>
+                <CardContent className="py-3 px-3 sm:px-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex items-center gap-2 flex-wrap">
                       <span className="font-mono font-semibold text-sm">{trade.asset}</span>
-                      <span className={cn('ml-2 text-[10px] px-1.5 py-0.5 rounded-md font-medium', trade.direction === 'Long' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss')}>
+                      <span className={cn('text-[10px] px-1.5 py-0.5 rounded-md font-medium', trade.direction === 'Long' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss')}>
                         {trade.direction}
                       </span>
                     </div>
-                    <div className="hidden sm:flex gap-1">
-                      {getConditions(trade.id).map((c: string) => (
+                    <span className={cn('font-mono font-bold text-sm shrink-0', resultColor(trade.result))}>
+                      {Number(trade.earned_r) >= 0 ? '+' : ''}{Number(trade.earned_r).toFixed(1)}R
+                    </span>
+                  </div>
+
+                  {(conds.length > 0 || tgs.length > 0) && (
+                    <div className="flex gap-1 flex-wrap mt-2">
+                      {conds.map((c: string) => (
                         <Badge key={c} variant="outline" className="text-[10px] border-white/10 rounded-md">{c}</Badge>
                       ))}
-                      {getTags(trade.id).map((t: string) => (
+                      {tgs.map((t: string) => (
                         <Badge key={t} variant="secondary" className="text-[10px] rounded-md">#{t}</Badge>
                       ))}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
+                  )}
+
+                  <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                    <span>{new Date(trade.entry_date).toLocaleDateString()}</span>
                     {trade.duration_minutes != null && (
-                      <span className="text-muted-foreground text-[10px]">⏱️ {formatDuration(trade.duration_minutes)}</span>
+                      <span>⏱️ {formatDuration(trade.duration_minutes)}</span>
                     )}
-                    <span className="text-muted-foreground text-[10px]">
-                      {new Date(trade.entry_date).toLocaleDateString()}
-                    </span>
-                    <span className={cn('font-mono font-bold text-sm', resultColor(trade.result))}>
-                      {Number(trade.earned_r) >= 0 ? '+' : ''}{Number(trade.earned_r).toFixed(1)}R
-                    </span>
                   </div>
                 </CardContent>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
