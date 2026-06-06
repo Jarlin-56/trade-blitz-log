@@ -268,7 +268,7 @@ export default function Trades() {
             ].map((m, i) => (
               <div key={i} className="metric-card p-3 text-center">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{m.label}</p>
-                <p className={cn('text-xl font-bold font-mono', m.color)}>{m.value}</p>
+                <p className={cn('text-base sm:text-xl font-bold font-mono break-all', m.color)}>{m.value}</p>
                 {m.sub && <p className="text-[9px] text-muted-foreground mt-1">{m.sub}</p>}
               </div>
             ))}
