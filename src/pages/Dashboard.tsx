@@ -314,9 +314,12 @@ export default function Dashboard() {
         <EmptyState variant="dashboard" />
       ) : (
         <>
+          <InsightsCard insights={insights} />
+
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 animate-fade-up-delay-1">
             {metrics.map((m, i) => <MetricCard key={i} metric={m} />)}
           </div>
+
 
           <HoldingTimeCard {...holdingTime} />
 
