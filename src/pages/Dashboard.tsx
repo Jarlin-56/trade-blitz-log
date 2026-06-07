@@ -14,6 +14,7 @@ import ConditionPerfChart from '@/components/dashboard/ConditionPerfChart';
 import RDistributionChart from '@/components/dashboard/RDistributionChart';
 import RBarChart from '@/components/dashboard/RBarChart';
 import PerformanceTable from '@/components/dashboard/PerformanceTable';
+import InsightsCard, { Insight } from '@/components/dashboard/InsightsCard';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -199,6 +200,98 @@ export default function Dashboard() {
     return days.map(d => ({ name: d, r: parseFloat(dayMap[d].toFixed(2)) }));
   }, [executedTrades]);
 
+  const insights = useMemo(() => {
+    const out: Insight[] = [];
+    if (executedTrades.length < 3) return out;
+
+    // 1. Best condition by avg R
+    const condAvg = conditionPerfTableData
+      .filter(c => c.trades >= 2)
+      .map(c => ({ ...c, avg: c.totalR / c.trades }))
+      .sort((a, b) => b.avg - a.avg);
+    if (condAvg.length > 0) {
+      const best = condAvg[0];
+      out.push({
+        text: `Condition "${best.name}" ให้ R เฉลี่ยสูงสุด (${best.avg >= 0 ? '+' : ''}${best.avg.toFixed(1)}R จาก ${best.trades} เทรด)`,
+        tone: 'positive',
+      });
+      const worst = condAvg[condAvg.length - 1];
+      if (condAvg.length > 1 && worst.avg < 0) {
+        out.push({
+          text: `Condition "${worst.name}" ทำผลงานแย่สุด (${worst.avg.toFixed(1)}R เฉลี่ย) — ควรทบทวน`,
+          tone: 'negative',
+        });
+      }
+    }
+
+    // 2. Time-of-day session performance
+    const sessions = [
+      { name: 'ช่วงเช้า (06:00–12:00)', from: 6, to: 12 },
+      { name: 'ช่วงบ่าย (12:00–18:00)', from: 12, to: 18 },
+      { name: 'ช่วงค่ำ (18:00–24:00)', from: 18, to: 24 },
+      { name: 'ช่วงดึก (00:00–06:00)', from: 0, to: 6 },
+    ].map(s => {
+      const ts = executedTrades.filter(t => {
+        const h = new Date(t.entry_date).getHours();
+        return h >= s.from && h < s.to;
+      });
+      const wins = ts.filter(t => t.result === 'Win').length;
+      return {
+        name: s.name,
+        count: ts.length,
+        winRate: ts.length > 0 ? Math.round((wins / ts.length) * 100) : 0,
+        r: ts.reduce((sum, t) => sum + Number(t.earned_r), 0),
+      };
+    }).filter(s => s.count >= 2);
+    if (sessions.length > 0) {
+      const worstSession = [...sessions].sort((a, b) => a.r - b.r)[0];
+      if (worstSession.r < 0) {
+        out.push({
+          text: `คุณมักแพ้${worstSession.name} (Win rate ${worstSession.winRate}%, รวม ${worstSession.r.toFixed(1)}R)`,
+          tone: 'negative',
+        });
+      }
+      const bestSession = [...sessions].sort((a, b) => b.r - a.r)[0];
+      if (bestSession.r > 0 && bestSession.name !== worstSession.name) {
+        out.push({
+          text: `${bestSession.name} คือช่วงที่คุณทำกำไรดีสุด (Win rate ${bestSession.winRate}%, รวม +${bestSession.r.toFixed(1)}R)`,
+          tone: 'positive',
+        });
+      }
+    }
+
+    // 3. Best/worst day of week
+    const daysWithData = dayData.filter(d => Math.abs(d.r) > 0.01);
+    if (daysWithData.length >= 2) {
+      const bestDay = [...daysWithData].sort((a, b) => b.r - a.r)[0];
+      const worstDay = [...daysWithData].sort((a, b) => a.r - b.r)[0];
+      if (bestDay.r > 0) {
+        out.push({ text: `วัน${bestDay.name} เป็นวันที่ทำกำไรดีที่สุด (+${bestDay.r.toFixed(1)}R)`, tone: 'positive' });
+      }
+      if (worstDay.r < 0 && worstDay.name !== bestDay.name) {
+        out.push({ text: `วัน${worstDay.name} เป็นวันที่ขาดทุนมากสุด (${worstDay.r.toFixed(1)}R)`, tone: 'negative' });
+      }
+    }
+
+    // 4. Holding time win vs loss
+    const withDur = executedTrades.filter(t => (t as any).duration_minutes != null);
+    const winDur = withDur.filter(t => t.result === 'Win');
+    const lossDur = withDur.filter(t => t.result === 'Loss');
+    if (winDur.length >= 2 && lossDur.length >= 2) {
+      const avgWin = winDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / winDur.length;
+      const avgLoss = lossDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / lossDur.length;
+      const fmt = (m: number) => (m < 60 ? `${Math.round(m)} นาที` : `${(m / 60).toFixed(1)} ชม.`);
+      if (avgLoss > avgWin * 1.3) {
+        out.push({
+          text: `เทรดที่ขาดทุนมักถือนานกว่า (เฉลี่ย ${fmt(avgLoss)} เทียบกับ ${fmt(avgWin)} ตอนชนะ) — ระวังการถือไม้ขาดทุนนาน`,
+          tone: 'negative',
+        });
+      }
+    }
+
+    return out;
+  }, [executedTrades, conditionPerfTableData, dayData]);
+
   const metrics: Metric[] = [
     { label: 'Total R', value: `${totalR >= 0 ? '+' : ''}${totalR.toFixed(2)}R`, color: totalR >= 0 ? 'text-win' : 'text-loss', icon: TrendingUp, glow: totalR >= 0 },
     { label: 'Win Rate', value: `${winRate}%`, color: 'text-foreground', icon: Target },
@@ -221,9 +314,12 @@ export default function Dashboard() {
         <EmptyState variant="dashboard" />
       ) : (
         <>
+          <InsightsCard insights={insights} />
+
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 animate-fade-up-delay-1">
             {metrics.map((m, i) => <MetricCard key={i} metric={m} />)}
           </div>
+
 
           <HoldingTimeCard {...holdingTime} />
 
