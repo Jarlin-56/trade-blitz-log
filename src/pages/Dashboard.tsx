@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useFilters } from '@/contexts/FilterContext';
-import { TrendingUp, Target, BarChart3, Percent, Scale } from 'lucide-react';
+import { TrendingUp, Target, BarChart3, Percent, Scale, Lightbulb } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 import EmptyState from '@/components/EmptyState';
 import MetricCard, { Metric } from '@/components/dashboard/MetricCard';
@@ -14,6 +14,7 @@ import ConditionPerfChart from '@/components/dashboard/ConditionPerfChart';
 import RDistributionChart from '@/components/dashboard/RDistributionChart';
 import RBarChart from '@/components/dashboard/RBarChart';
 import PerformanceTable from '@/components/dashboard/PerformanceTable';
+import { Button } from '@/components/ui/button';
 import InsightsCard, { Insight } from '@/components/dashboard/InsightsCard';
 
 export default function Dashboard() {
