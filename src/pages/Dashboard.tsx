@@ -21,6 +21,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
   const { dateRange, setDateRange } = useFilters();
+  const [insightsOpen, setInsightsOpen] = useState(false);
 
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id, activeProfile?.id],
