@@ -309,14 +309,25 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Performance overview</p>
         </div>
-        {trades.length > 0 && <DateRangeFilter value={dateRange} onChange={setDateRange} />}
+        {trades.length > 0 && (
+          <div className="flex items-center gap-2">
+            {insights.length > 0 && (
+              <InsightsCard insights={insights} open={insightsOpen} onOpenChange={setInsightsOpen}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                  <span className="hidden sm:inline">Insights</span>
+                </Button>
+              </InsightsCard>
+            )}
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
+        )}
       </div>
 
       {trades.length === 0 ? (
         <EmptyState variant="dashboard" />
       ) : (
         <>
-          <InsightsCard insights={insights} />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 animate-fade-up-delay-1">
             {metrics.map((m, i) => <MetricCard key={i} metric={m} />)}
