@@ -1,35 +1,60 @@
+import React from 'react';
 import { Lightbulb } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 export interface Insight {
   text: string;
   tone: 'positive' | 'negative' | 'neutral';
 }
 
-export default function InsightsCard({ insights }: { insights: Insight[] }) {
+export default function InsightsCard({
+  insights,
+  open,
+  onOpenChange,
+  children,
+}: {
+  insights: Insight[];
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  children?: React.ReactNode;
+}) {
   if (insights.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-5 animate-fade-up">
-      <div className="flex items-center gap-2 mb-3">
-        <Lightbulb className="h-4 w-4 text-primary" />
-        <h2 className="text-sm font-semibold tracking-tight">Auto Insights</h2>
-      </div>
-      <ul className="space-y-2">
-        {insights.map((ins, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-            <span
-              className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                ins.tone === 'positive'
-                  ? 'bg-win'
-                  : ins.tone === 'negative'
-                  ? 'bg-loss'
-                  : 'bg-muted-foreground'
-              }`}
-            />
-            <span className="text-foreground/90">{ins.text}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+      <DialogContent className="sm:max-w-md gap-0 p-0 overflow-hidden">
+        <DialogHeader className="p-4 pb-0 text-left">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Lightbulb className="h-4 w-4 text-primary" />
+            Auto Insights
+          </DialogTitle>
+        </DialogHeader>
+        <div className="p-4 pt-3">
+          <ul className="space-y-2.5">
+            {insights.map((ins, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed">
+                <span
+                  className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+                    ins.tone === 'positive'
+                      ? 'bg-win'
+                      : ins.tone === 'negative'
+                      ? 'bg-loss'
+                      : 'bg-muted-foreground'
+                  }`}
+                />
+                <span className="text-foreground/90">{ins.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

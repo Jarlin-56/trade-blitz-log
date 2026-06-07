@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useFilters } from '@/contexts/FilterContext';
-import { TrendingUp, Target, BarChart3, Percent, Scale } from 'lucide-react';
+import { TrendingUp, Target, BarChart3, Percent, Scale, Lightbulb } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 import EmptyState from '@/components/EmptyState';
 import MetricCard, { Metric } from '@/components/dashboard/MetricCard';
@@ -14,12 +14,14 @@ import ConditionPerfChart from '@/components/dashboard/ConditionPerfChart';
 import RDistributionChart from '@/components/dashboard/RDistributionChart';
 import RBarChart from '@/components/dashboard/RBarChart';
 import PerformanceTable from '@/components/dashboard/PerformanceTable';
+import { Button } from '@/components/ui/button';
 import InsightsCard, { Insight } from '@/components/dashboard/InsightsCard';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
   const { dateRange, setDateRange } = useFilters();
+  const [insightsOpen, setInsightsOpen] = useState(false);
 
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id, activeProfile?.id],
@@ -307,14 +309,25 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Performance overview</p>
         </div>
-        {trades.length > 0 && <DateRangeFilter value={dateRange} onChange={setDateRange} />}
+        {trades.length > 0 && (
+          <div className="flex items-center gap-2">
+            {insights.length > 0 && (
+              <InsightsCard insights={insights} open={insightsOpen} onOpenChange={setInsightsOpen}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                  <span className="hidden sm:inline">Insights</span>
+                </Button>
+              </InsightsCard>
+            )}
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
+        )}
       </div>
 
       {trades.length === 0 ? (
         <EmptyState variant="dashboard" />
       ) : (
         <>
-          <InsightsCard insights={insights} />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 animate-fade-up-delay-1">
             {metrics.map((m, i) => <MetricCard key={i} metric={m} />)}
