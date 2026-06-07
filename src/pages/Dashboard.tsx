@@ -14,6 +14,7 @@ import ConditionPerfChart from '@/components/dashboard/ConditionPerfChart';
 import RDistributionChart from '@/components/dashboard/RDistributionChart';
 import RBarChart from '@/components/dashboard/RBarChart';
 import PerformanceTable from '@/components/dashboard/PerformanceTable';
+import InsightsCard, { Insight } from '@/components/dashboard/InsightsCard';
 
 export default function Dashboard() {
   const { user } = useAuth();
