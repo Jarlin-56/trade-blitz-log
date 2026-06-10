@@ -418,6 +418,22 @@ export default function Dashboard() {
       });
     }
 
+    // ---- 9. Holding time win vs loss ----
+    const withDur = executedTrades.filter(t => (t as any).duration_minutes != null);
+    const winDur = withDur.filter(t => t.result === 'Win');
+    const lossDur = withDur.filter(t => t.result === 'Loss');
+    if (winDur.length >= 2 && lossDur.length >= 2) {
+      const avgWin = winDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / winDur.length;
+      const avgLoss = lossDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / lossDur.length;
+      const fmt = (m: number) => (m < 60 ? `${Math.round(m)} นาที` : `${(m / 60).toFixed(1)} ชม.`);
+      if (avgLoss > avgWin * 1.3) {
+        out.push({
+          text: `เทรดที่ขาดทุนมักถือนานกว่า (เฉลี่ย ${fmt(avgLoss)} เทียบกับ ${fmt(avgWin)} ตอนชนะ) — ระวังการถือไม้ขาดทุนนาน`,
+          tone: 'negative',
+        });
+      }
+    }
+
     return out;
   }, [executedTrades, conditionPerfTableData, dayData, tradeConditions]);
 
