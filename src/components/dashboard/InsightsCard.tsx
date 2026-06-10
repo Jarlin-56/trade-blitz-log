@@ -36,7 +36,7 @@ export default function InsightsCard({
             Auto Insights
           </DialogTitle>
         </DialogHeader>
-        <div className="p-4 pt-3">
+        <div className="p-4 pt-3 max-h-[70vh] overflow-y-auto">
           <ul className="space-y-2.5">
             {insights.map((ins, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed">
