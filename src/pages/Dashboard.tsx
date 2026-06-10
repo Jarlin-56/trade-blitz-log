@@ -206,7 +206,25 @@ export default function Dashboard() {
     const out: Insight[] = [];
     if (executedTrades.length < 3) return out;
 
-    // 1. Best condition by avg R
+    const sessionLabel = (d: Date) => {
+      const h = d.getHours();
+      if (h >= 6 && h < 12) return 'ช่วงเช้า';
+      if (h >= 12 && h < 18) return 'ช่วงบ่าย';
+      if (h >= 18 && h < 24) return 'ช่วงค่ำ';
+      return 'ช่วงดึก';
+    };
+
+    // Map trade -> its conditions (checklist items)
+    const condByTrade = new Map<string, string[]>();
+    for (const tc of tradeConditions) {
+      const name = (tc.conditions as any)?.name;
+      if (!name) continue;
+      const arr = condByTrade.get(tc.trade_id) ?? [];
+      arr.push(name);
+      condByTrade.set(tc.trade_id, arr);
+    }
+
+    // ---- 1. Best condition by avg R ----
     const condAvg = conditionPerfTableData
       .filter(c => c.trades >= 2)
       .map(c => ({ ...c, avg: c.totalR / c.trades }))
@@ -226,7 +244,42 @@ export default function Dashboard() {
       }
     }
 
-    // 2. Time-of-day session performance
+    // ---- 2. Cross-dimension: condition × session ----
+    const comboMap = new Map<string, { r: number; n: number; wins: number }>();
+    for (const t of executedTrades) {
+      const conds = condByTrade.get(t.id) ?? [];
+      const sess = sessionLabel(new Date(t.entry_date));
+      for (const c of conds) {
+        const key = `${c} + ${sess}`;
+        const e = comboMap.get(key) ?? { r: 0, n: 0, wins: 0 };
+        e.r += Number(t.earned_r);
+        e.n++;
+        if (t.result === 'Win') e.wins++;
+        comboMap.set(key, e);
+      }
+    }
+    const combos = Array.from(comboMap.entries())
+      .map(([k, e]) => ({ k, avg: e.r / e.n, n: e.n, wr: Math.round((e.wins / e.n) * 100) }))
+      .filter(c => c.n >= 3)
+      .sort((a, b) => b.avg - a.avg);
+    if (combos.length > 0) {
+      const top = combos[0];
+      if (top.avg > 0.1) {
+        out.push({
+          text: `คอมโบที่ดีสุด: "${top.k}" ให้ R เฉลี่ย +${top.avg.toFixed(1)}R (Win rate ${top.wr}%, ${top.n} เทรด)`,
+          tone: 'positive',
+        });
+      }
+      const bottom = combos[combos.length - 1];
+      if (combos.length > 1 && bottom.avg < -0.1) {
+        out.push({
+          text: `คอมโบที่ควรเลี่ยง: "${bottom.k}" ให้ R เฉลี่ย ${bottom.avg.toFixed(1)}R (Win rate ${bottom.wr}%, ${bottom.n} เทรด)`,
+          tone: 'negative',
+        });
+      }
+    }
+
+    // ---- 3. Time-of-day session performance ----
     const sessions = [
       { name: 'ช่วงเช้า (06:00–12:00)', from: 6, to: 12 },
       { name: 'ช่วงบ่าย (12:00–18:00)', from: 12, to: 18 },
@@ -262,7 +315,7 @@ export default function Dashboard() {
       }
     }
 
-    // 3. Best/worst day of week
+    // ---- 4. Best/worst day of week ----
     const daysWithData = dayData.filter(d => Math.abs(d.r) > 0.01);
     if (daysWithData.length >= 2) {
       const bestDay = [...daysWithData].sort((a, b) => b.r - a.r)[0];
@@ -275,24 +328,98 @@ export default function Dashboard() {
       }
     }
 
-    // 4. Holding time win vs loss
-    const withDur = executedTrades.filter(t => (t as any).duration_minutes != null);
-    const winDur = withDur.filter(t => t.result === 'Win');
-    const lossDur = withDur.filter(t => t.result === 'Loss');
-    if (winDur.length >= 2 && lossDur.length >= 2) {
-      const avgWin = winDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / winDur.length;
-      const avgLoss = lossDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / lossDur.length;
-      const fmt = (m: number) => (m < 60 ? `${Math.round(m)} นาที` : `${(m / 60).toFixed(1)} ชม.`);
-      if (avgLoss > avgWin * 1.3) {
+    // ---- 5. Checklist completeness vs result ----
+    const counts = executedTrades.map(t => ({ t, c: (condByTrade.get(t.id) ?? []).length }));
+    const hasAnyCond = counts.some(x => x.c > 0);
+    if (hasAnyCond) {
+      const avgCount = counts.reduce((s, x) => s + x.c, 0) / counts.length;
+      const threshold = Math.max(1, Math.ceil(avgCount));
+      const hi = counts.filter(x => x.c >= threshold);
+      const lo = counts.filter(x => x.c < threshold);
+      const wrOf = (arr: typeof counts) =>
+        arr.length > 0 ? Math.round((arr.filter(x => x.t.result === 'Win').length / arr.length) * 100) : 0;
+      if (hi.length >= 3 && lo.length >= 3) {
+        const wrHi = wrOf(hi);
+        const wrLo = wrOf(lo);
+        if (wrHi >= wrLo + 10) {
+          out.push({
+            text: `วินัย checklist ได้ผล: เทรดที่เช็คเงื่อนไขครบกว่า (≥${threshold} ข้อ) ให้ Win rate ${wrHi}% เทียบ ${wrLo}% เมื่อเช็คน้อย`,
+            tone: 'positive',
+          });
+        } else if (wrLo >= wrHi + 10) {
+          out.push({
+            text: `น่าสังเกต: เทรดที่เช็คเงื่อนไขน้อย (<${threshold} ข้อ) กลับให้ Win rate ${wrLo}% เทียบ ${wrHi}% — ลองทบทวนเงื่อนไขที่ใช้`,
+            tone: 'neutral',
+          });
+        }
+      }
+    }
+
+    // ---- 6. Trend / improvement over time ----
+    if (executedTrades.length >= 8) {
+      const half = Math.floor(executedTrades.length / 2);
+      const n = Math.min(15, half);
+      const recent = executedTrades.slice(-n);
+      const prev = executedTrades.slice(-n * 2, -n);
+      if (prev.length >= 3) {
+        const avgOf = (arr: typeof recent) => arr.reduce((s, t) => s + Number(t.earned_r), 0) / arr.length;
+        const avgRecent = avgOf(recent);
+        const avgPrev = avgOf(prev);
+        const diff = avgRecent - avgPrev;
+        if (diff > 0.2) {
+          out.push({
+            text: `ฟอร์มกำลังดีขึ้น: ${n} เทรดล่าสุด R เฉลี่ย ${avgRecent >= 0 ? '+' : ''}${avgRecent.toFixed(1)}R ดีกว่าช่วงก่อนหน้า (${avgPrev >= 0 ? '+' : ''}${avgPrev.toFixed(1)}R)`,
+            tone: 'positive',
+          });
+        } else if (diff < -0.2) {
+          out.push({
+            text: `ฟอร์มกำลังถดถอย: ${n} เทรดล่าสุด R เฉลี่ย ${avgRecent >= 0 ? '+' : ''}${avgRecent.toFixed(1)}R แย่ลงจากช่วงก่อน (${avgPrev >= 0 ? '+' : ''}${avgPrev.toFixed(1)}R) — ชะลอและทบทวน`,
+            tone: 'negative',
+          });
+        }
+      }
+    }
+
+    // ---- 7. Risky behavior: revenge trading after a loss ----
+    const overallWr = executedTrades.length > 0
+      ? Math.round((executedTrades.filter(t => t.result === 'Win').length / executedTrades.length) * 100)
+      : 0;
+    const revenge: typeof executedTrades = [];
+    for (let i = 1; i < executedTrades.length; i++) {
+      if (executedTrades[i - 1].result !== 'Loss') continue;
+      const gap = (new Date(executedTrades[i].entry_date).getTime() - new Date(executedTrades[i - 1].entry_date).getTime()) / 60000;
+      if (gap >= 0 && gap <= 60) revenge.push(executedTrades[i]);
+    }
+    if (revenge.length >= 3) {
+      const revWr = Math.round((revenge.filter(t => t.result === 'Win').length / revenge.length) * 100);
+      if (revWr <= overallWr - 10) {
         out.push({
-          text: `เทรดที่ขาดทุนมักถือนานกว่า (เฉลี่ย ${fmt(avgLoss)} เทียบกับ ${fmt(avgWin)} ตอนชนะ) — ระวังการถือไม้ขาดทุนนาน`,
+          text: `ระวัง revenge trading: เทรดที่เปิดภายใน 1 ชม. หลังขาดทุน Win rate เหลือ ${revWr}% (เฉลี่ยรวม ${overallWr}%) — ${revenge.length} ครั้ง`,
           tone: 'negative',
         });
       }
     }
 
+    // ---- 8. Risky behavior: loss streak ----
+    let curStreak = 0;
+    let maxStreak = 0;
+    for (const t of executedTrades) {
+      if (t.result === 'Loss') {
+        curStreak++;
+        maxStreak = Math.max(maxStreak, curStreak);
+      } else if (t.result === 'Win') {
+        curStreak = 0;
+      }
+    }
+    if (maxStreak >= 4) {
+      out.push({
+        text: `เคยขาดทุนติดกันสูงสุด ${maxStreak} ไม้ — ควรมีกฎหยุดเทรดเมื่อแพ้ติดต่อกัน`,
+        tone: 'negative',
+      });
+    }
+
     return out;
-  }, [executedTrades, conditionPerfTableData, dayData]);
+  }, [executedTrades, conditionPerfTableData, dayData, tradeConditions]);
 
   const metrics: Metric[] = [
     { label: 'Total R', value: `${totalR >= 0 ? '+' : ''}${totalR.toFixed(2)}R`, color: totalR >= 0 ? 'text-win' : 'text-loss', icon: TrendingUp, glow: totalR >= 0 },
