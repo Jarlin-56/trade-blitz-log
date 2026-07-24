@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import QuickNoteFab from './QuickNoteFab';
 
 const navItems = [
   { to: '/dashboard', icon: BarChart3, label: 'Dashboard' },
@@ -152,6 +153,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
       </div>
+      <QuickNoteFab />
     </div>
   );
 }
