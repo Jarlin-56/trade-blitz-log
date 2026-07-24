@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,9 +21,14 @@ export default function TradeNew() {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefill = (location.state as any)?.prefill as
+    | { asset?: string; direction?: TradeDirection; note?: string; image_url?: string }
+    | undefined;
+  const quickNoteId = (location.state as any)?.quickNoteId as string | undefined;
 
-  const [asset, setAsset] = useState(() => localStorage.getItem('lastTradingPair') || 'XAUUSD');
-  const [direction, setDirection] = useState<TradeDirection>('Long');
+  const [asset, setAsset] = useState(() => prefill?.asset || localStorage.getItem('lastTradingPair') || 'XAUUSD');
+  const [direction, setDirection] = useState<TradeDirection>(prefill?.direction || 'Long');
   const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 16));
   const [result, setResult] = useState<TradeResult | null>(null);
   const [earnedR, setEarnedR] = useState('');
@@ -32,9 +37,23 @@ export default function TradeNew() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [durationHours, setDurationHours] = useState('');
   const [durationMins, setDurationMins] = useState('');
-  const [recap, setRecap] = useState('');
+  const [recap, setRecap] = useState(prefill?.note || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [prefillImageUrl] = useState<string | null>(prefill?.image_url || null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch prefill image and turn into a File so it's uploaded as part of the trade
+  useEffect(() => {
+    if (!prefillImageUrl) return;
+    (async () => {
+      try {
+        const res = await fetch(prefillImageUrl);
+        const blob = await res.blob();
+        const ext = (blob.type.split('/')[1] || 'png').split('+')[0];
+        setImageFile(new File([blob], `quicknote.${ext}`, { type: blob.type || 'image/png' }));
+      } catch { /* ignore */ }
+    })();
+  }, [prefillImageUrl]);
 
   const { data: conditions = [] } = useQuery({
     queryKey: ['conditions', user?.id],
@@ -124,6 +143,9 @@ export default function TradeNew() {
       }
 
       localStorage.setItem('lastTradingPair', asset.toUpperCase());
+      if (quickNoteId) {
+        await supabase.from('quick_notes' as any).update({ converted_trade_id: trade.id }).eq('id', quickNoteId);
+      }
       toast.success('Trade logged!');
       navigate('/trades');
     } catch (err: any) {
