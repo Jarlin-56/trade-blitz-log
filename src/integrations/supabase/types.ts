@@ -68,6 +68,45 @@ export type Database = {
         }
         Relationships: []
       }
+      quick_notes: {
+        Row: {
+          asset: string | null
+          converted_trade_id: string | null
+          created_at: string
+          direction: string | null
+          id: string
+          image_url: string | null
+          note: string | null
+          profile_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset?: string | null
+          converted_trade_id?: string | null
+          created_at?: string
+          direction?: string | null
+          id?: string
+          image_url?: string | null
+          note?: string | null
+          profile_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset?: string | null
+          converted_trade_id?: string | null
+          created_at?: string
+          direction?: string | null
+          id?: string
+          image_url?: string | null
+          note?: string | null
+          profile_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       recap_quiz_attempts: {
         Row: {
           created_at: string
