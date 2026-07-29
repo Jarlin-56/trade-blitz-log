@@ -12,9 +12,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { Check, ChevronsUpDown, X, Download } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 import EmptyState from '@/components/EmptyState';
+import { downloadCsv } from '@/lib/csv';
 
 export default function Trades() {
   const { user } = useAuth();
@@ -144,6 +145,26 @@ export default function Trades() {
   const getTags = (tradeId: string) =>
     tradeTags.filter((tt: any) => tt.trade_id === tradeId).map((tt: any) => tt.tags?.name).filter(Boolean);
 
+  const handleExport = () => {
+    if (filtered.length === 0) return;
+    downloadCsv(
+      `trades-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Date', 'Asset', 'Direction', 'Result', 'Earned R', 'Missed R', 'Duration (min)', 'Conditions', 'Tags', 'Recap'],
+      filtered.map(t => [
+        new Date(t.entry_date).toLocaleString(),
+        t.asset,
+        t.direction,
+        t.result,
+        Number(t.earned_r),
+        Number(t.missed_r),
+        t.duration_minutes ?? '',
+        getConditions(t.id).join(' | '),
+        getTags(t.id).join(' | '),
+        t.recap_text ?? '',
+      ]),
+    );
+  };
+
   const resultColor = (r: string) => {
     if (r === 'Win') return 'text-win';
     if (r === 'Loss') return 'text-loss';
@@ -167,7 +188,18 @@ export default function Trades() {
           <h1 className="text-2xl font-bold tracking-tight">Trade History</h1>
           <p className="text-xs text-muted-foreground mt-0.5">All recorded trades</p>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={filtered.length === 0}
+            className="h-9 text-xs gap-1.5 rounded-lg border-white/10 bg-white/[0.03]"
+          >
+            <Download className="h-3.5 w-3.5" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

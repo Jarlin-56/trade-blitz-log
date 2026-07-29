@@ -1,60 +1,65 @@
-
 ## เป้าหมาย
-ทำให้จดบันทึกไอเดียเทรดได้เร็วโดยไม่ต้องเปิดเว็บใหม่ทุกครั้ง — ติดเป็นแอปบนหน้าโฮมได้ทั้งมือถือ/คอม และมีปุ่ม Quick Note ลอยอยู่ทุกหน้า เก็บโน้ตไว้ก่อน ค่อยกดแปลงเป็นเทรดจริงทีหลัง
+อุดช่องว่างการใช้งานประจำวัน ให้ journal ใช้จริงได้ครบวงจร: บันทึก → แก้ไข → ค้นหา → เอาข้อมูลออก
 
-## ส่วนที่ 1 — ติดแอปเป็น PWA
-- เพิ่ม `public/manifest.webmanifest` (ชื่อแอป, theme #22c55e, bg #111319, `display: standalone`, ไอคอน 192/512)
-- สร้างไอคอนแอปด้วย imagegen (โลโก้ธีมเขียว/เข้ม) ใส่ `public/`
-- เพิ่ม `<link rel="manifest">`, `theme-color`, `apple-touch-icon` ใน `index.html`
-- ไม่ทำ offline / service worker (ตามที่คุณต้องการ — แค่ติดหน้าจอพอ)
-- ผลลัพธ์: Android กด "Add to Home Screen", iOS ผ่าน Safari Share → Add to Home Screen, Chrome desktop มีไอคอน install บน address bar
+---
 
-## ส่วนที่ 2 — ปุ่ม Quick Note ลอย (FAB)
-- เพิ่ม FAB มุมขวาล่างใน `AppLayout` (โชว์ทุกหน้าที่ล็อกอินแล้ว, ซ่อนตอนอยู่หน้า TradeNew/Login)
-- ไอคอนสมุด+บวก, มี badge เลข note ที่ยังไม่แปลงเป็นเทรด
-- กดแล้วเปิด Dialog/Sheet (Dialog บนคอม, Sheet บนมือถือแบบเดียวกับที่ทำ Insights)
+## Phase 1 — ช่องว่างที่เจ็บที่สุด (ทำก่อน)
 
-## ส่วนที่ 3 — ฟอร์ม Quick Note
-ฟิลด์ในป๊อปอัพ:
-- Asset (text, optional)
-- ทิศ: Long / Short / — (toggle)
-- โน้ต (textarea)
-- แนบรูป: ปุ่มเดียวรวม 2 ทาง
-  - "เลือกไฟล์" (`<input type="file" accept="image/*">` — บนมือถือเรียกกล้อง/แกลเลอรี, บนคอมเลือกไฟล์)
-  - "วางจาก clipboard" (Ctrl/Cmd+V หรือปุ่ม Paste — สำหรับ screenshot ที่แคปไว้)
-- ปุ่ม บันทึก / ยกเลิก
+**1. แก้ไขไม้ที่บันทึกไปแล้ว**
+ตอนนี้มีแค่หน้า `/trades/new` และ `/trades/:id` (ดู + ลบ) ไม่มีทางแก้ไม้ที่พิมพ์ผิดเลย ต้องลบแล้วบันทึกใหม่
+- เพิ่ม route `/trades/:id/edit` ใช้ฟอร์มเดียวกับหน้าบันทึกใหม่ (แยกฟอร์มเป็น component ใช้ร่วมกัน)
+- โหลดค่าเดิมทั้งหมด (asset, direction, วันเวลา, result, R, duration, recap, รูป, conditions, tags) แล้ว update
+- ปุ่ม Edit ในหน้า Trade Detail
 
-## ส่วนที่ 4 — หน้ารายการ Quick Notes
-- แท็บใหม่ในป๊อปอัพเดียวกัน: "โน้ตใหม่" / "รายการ (n)"
-- แสดง card: รูป (ถ้ามี) + asset + ทิศ + โน้ต + เวลา
-- แต่ละใบมี 2 ปุ่ม:
-  - **สร้างเทรด** → นำทางไป `/trades/new` พร้อม prefill (asset, ทิศ, แนบภาพ, โน้ตเป็น recap_text) ผ่าน location state
-  - **ลบ**
-- เมื่อสร้างเทรดสำเร็จ (ตรวจ id ที่คืนจาก insert) มาร์กโน้ตเป็น converted และลบออกจากรายการค้าง
+**2. หน้าจัดการ Quick Notes**
+ตอนนี้สร้าง note ได้จาก FAB แต่ไม่มีที่ดูรายการทั้งหมด แก้ไข หรือลบ note ที่ไม่ได้ใช้
+- หน้า `/notes`: รายการโน้ตที่ยังไม่ถูกแปลง + ที่แปลงแล้ว (แยก tab)
+- แต่ละใบ: ดูรูป/ข้อความ, แก้ไข, ลบ, ปุ่ม "แปลงเป็นไม้"
 
-## ส่วนที่ 5 — Backend
-ตารางใหม่ `quick_notes`:
-- `id uuid pk`, `user_id uuid`, `profile_id uuid`, `asset text`, `direction text check in (Long,Short)`, `note text`, `image_url text`, `converted_trade_id uuid null`, `created_at timestamptz`
-- GRANT ให้ authenticated + service_role
-- RLS: owner (`auth.uid() = user_id`) select/insert/update/delete ของตัวเอง
-- ใช้ bucket เดิม `trade-images` (public อยู่แล้ว) เก็บภาพในโฟลเดอร์ `quick-notes/<user_id>/...`
+**3. Export CSV**
+- ปุ่ม Export ในหน้า Trades ส่งออกตามฟิลเตอร์ที่เลือกอยู่
+- คอลัมน์: วันเวลา, asset, direction, result, earned R, missed R, duration, conditions, tags, recap
 
-## ส่วนที่ 6 — Prefill หน้าสร้างเทรด
-- แก้ `TradeNew.tsx` ให้อ่าน `location.state.prefill` (asset, direction, note, image_url) แล้ว set ค่า default
-- หลังบันทึกเทรดสำเร็จ ถ้ามี `location.state.quickNoteId` ให้ update `quick_notes.converted_trade_id`
+---
+
+## Phase 2 — ค้นหาและมองเห็นข้อมูล
+
+**4. ค้นหา + ฟิลเตอร์เพิ่มในหน้า Trades**
+- ช่องค้นหา (asset / ข้อความใน recap)
+- ฟิลเตอร์ตาม condition และ tag, เรียงตาม R / วันที่
+- Pagination หรือ infinite scroll เมื่อไม้เยอะ
+
+**5. เลือกหลายไม้พร้อมกัน (bulk)**
+- ติ๊กเลือกหลายไม้ → ลบพร้อมกัน หรือเพิ่ม tag ทีเดียว
+
+**6. เปรียบเทียบระหว่าง Profile**
+ตอนนี้ดูได้ทีละ profile — เพิ่มมุมมองสรุปเทียบทุก profile (Total R, Win rate, จำนวนไม้)
+
+---
+
+## Phase 3 — วินัยและการใช้งานระยะยาว
+
+**7. Streak / Discipline tracker**
+- นับวันที่บันทึก journal ต่อเนื่อง, % ไม้ที่ติ๊ก checklist ครบ
+- แสดงบน Dashboard เป็นแถบเล็ก ๆ
+
+**8. Onboarding สำหรับผู้ใช้ใหม่**
+- ผู้ใช้ใหม่ยังไม่มี conditions/tags เลย → wizard สั้น ๆ ให้ตั้ง condition ชุดแรก + สร้าง profile
+
+**9. Landing page**
+`/` ตอนนี้เป็นแค่ redirect — ทำหน้าแนะนำสั้น ๆ (จุดขาย: R-multiple, checklist, Recap Quiz) + ปุ่มสมัคร
+
+**10. เก็บกวาดโค้ด**
+- ลบไฟล์ `ConditionPerfChart.tsx` ที่ไม่ถูกใช้แล้ว
+- ยกสไตล์หน้า TradeNew / TradeDetail ให้เป็น glass-card เหมือน Dashboard
+
+---
 
 ## รายละเอียดทางเทคนิค
-- ใช้ Dialog + Sheet เดียวกันกับ Insights (responsive)
-- Query key: `['quick_notes', user.id, profile.id]` invalidate หลัง insert/update/delete
-- ปุ่ม FAB ใช้ z-50, `bottom-4 right-4`, ขนาด 56px วงกลม, primary color + shadow-glow
-- Paste image: listener `onPaste` บน dialog อ่าน `clipboardData.items` filter image
-- ไม่แตะ `client.ts`, `types.ts`, `config.toml`
+- **ไม่ต้องแก้ฐานข้อมูลเลยใน Phase 1–2** ตารางที่มีอยู่ (`trades`, `trade_conditions`, `trade_tags`, `quick_notes`) รองรับครบแล้ว
+- Phase 3 ข้อ 7 ถ้าจะเก็บ streak แบบแม่นยำอาจต้องคำนวณจาก `trades.created_at` ฝั่ง client ก่อน (ไม่ต้องเพิ่มตาราง)
+- Export CSV ทำฝั่ง client ล้วน (Blob download) ไม่ต้องมี edge function
+- แยก `TradeForm` เป็น component เดียวใช้ทั้ง new/edit เพื่อไม่ให้ logic ซ้ำ
 
-## สิ่งที่ไม่ทำในรอบนี้
-- Offline mode / service worker
-- Chrome extension / Share Target API (ค่อยเพิ่มถ้าจำเป็น)
-- AI แปลงโน้ตอัตโนมัติ
-
-## ไฟล์ที่แตะ
-- ใหม่: `public/manifest.webmanifest`, `public/icon-192.png`, `public/icon-512.png`, `src/components/QuickNoteFab.tsx`, `src/components/QuickNoteDialog.tsx`, `supabase/migrations/<new>.sql`
-- แก้: `index.html`, `src/components/AppLayout.tsx`, `src/pages/TradeNew.tsx`
+## เสนอให้เริ่ม
+Phase 1 ทั้ง 3 ข้อในรอบเดียว — เป็นสิ่งที่กระทบการใช้งานประจำวันมากที่สุด
