@@ -480,7 +480,7 @@ export default function Dashboard() {
           <HoldingTimeCard {...holdingTime} />
 
           <CumulativeRChart data={cumulativeData} />
-          <ConditionPerfChart data={conditionPerfData} />
+          
           <RDistributionChart data={rDistData} />
           <RBarChart title="Performance by Hour" data={hourlyData} hasData={executedTrades.length > 0} xInterval={1} xFontSize={10} barRadius={[4, 4, 0, 0]} />
           <RBarChart title="Performance by Day" data={dayData} hasData={executedTrades.length > 0} />
