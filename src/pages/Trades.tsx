@@ -12,9 +12,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { Check, ChevronsUpDown, X, Download } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 import EmptyState from '@/components/EmptyState';
+import { downloadCsv } from '@/lib/csv';
 
 export default function Trades() {
   const { user } = useAuth();
