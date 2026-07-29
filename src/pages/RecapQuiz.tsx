@@ -76,7 +76,12 @@ export default function RecapQuiz() {
     enabled: !!user && !!activeProfile,
   });
 
-  const eligible = useMemo(() => trades.filter(t => EXECUTED.includes(t.result)), [trades]);
+  const eligible = useMemo(() => {
+    const cutoff = rangeDays ? Date.now() - rangeDays * 86400000 : null;
+    return trades.filter(
+      t => EXECUTED.includes(t.result) && (!cutoff || new Date(t.entry_date).getTime() >= cutoff),
+    );
+  }, [trades, rangeDays]);
 
   const summary = useMemo(() => {
     const total = stats.length;
