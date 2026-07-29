@@ -15,6 +15,8 @@ import Dashboard from "./pages/Dashboard";
 import Trades from "./pages/Trades";
 import TradeNew from "./pages/TradeNew";
 import TradeDetail from "./pages/TradeDetail";
+import TradeEdit from "./pages/TradeEdit";
+import Notes from "./pages/Notes";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import SettingsConditions from "./pages/SettingsConditions";
@@ -59,9 +61,18 @@ const App = () => (
               element={<ProtectedRoute><AppLayout><TradeNew /></AppLayout></ProtectedRoute>}
             />
             <Route
+              path="/notes"
+              element={<ProtectedRoute><AppLayout><Notes /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/trades/:id/edit"
+              element={<ProtectedRoute><AppLayout><TradeEdit /></AppLayout></ProtectedRoute>}
+            />
+            <Route
               path="/trades/:id"
               element={<ProtectedRoute><AppLayout><TradeDetail /></AppLayout></ProtectedRoute>}
             />
+
             <Route
               path="/profile"
               element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>}

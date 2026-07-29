@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Trash2, ArrowLeft } from 'lucide-react';
+import { Trash2, ArrowLeft, Pencil } from 'lucide-react';
 
 export default function TradeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -58,9 +58,14 @@ export default function TradeDetail() {
         <Button variant="ghost" size="sm" onClick={() => navigate('/trades')} className="gap-1">
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
-        <Button variant="destructive" size="sm" onClick={handleDelete} className="gap-1">
-          <Trash2 className="h-4 w-4" /> Delete
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/trades/${id}/edit`)} className="gap-1">
+            <Pencil className="h-4 w-4" /> Edit
+          </Button>
+          <Button variant="destructive" size="sm" onClick={handleDelete} className="gap-1">
+            <Trash2 className="h-4 w-4" /> Delete
+          </Button>
+        </div>
       </div>
 
       <Card>
