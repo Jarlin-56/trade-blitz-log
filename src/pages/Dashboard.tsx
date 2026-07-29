@@ -10,7 +10,7 @@ import EmptyState from '@/components/EmptyState';
 import MetricCard, { Metric } from '@/components/dashboard/MetricCard';
 import HoldingTimeCard from '@/components/dashboard/HoldingTimeCard';
 import CumulativeRChart from '@/components/dashboard/CumulativeRChart';
-import ConditionPerfChart from '@/components/dashboard/ConditionPerfChart';
+
 import RDistributionChart from '@/components/dashboard/RDistributionChart';
 import RBarChart from '@/components/dashboard/RBarChart';
 import PerformanceTable from '@/components/dashboard/PerformanceTable';
