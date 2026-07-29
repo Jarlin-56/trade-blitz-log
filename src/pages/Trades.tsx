@@ -188,7 +188,18 @@ export default function Trades() {
           <h1 className="text-2xl font-bold tracking-tight">Trade History</h1>
           <p className="text-xs text-muted-foreground mt-0.5">All recorded trades</p>
         </div>
-        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={filtered.length === 0}
+            className="h-9 text-xs gap-1.5 rounded-lg border-white/10 bg-white/[0.03]"
+          >
+            <Download className="h-3.5 w-3.5" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
