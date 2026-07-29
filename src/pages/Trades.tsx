@@ -145,6 +145,26 @@ export default function Trades() {
   const getTags = (tradeId: string) =>
     tradeTags.filter((tt: any) => tt.trade_id === tradeId).map((tt: any) => tt.tags?.name).filter(Boolean);
 
+  const handleExport = () => {
+    if (filtered.length === 0) return;
+    downloadCsv(
+      `trades-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Date', 'Asset', 'Direction', 'Result', 'Earned R', 'Missed R', 'Duration (min)', 'Conditions', 'Tags', 'Recap'],
+      filtered.map(t => [
+        new Date(t.entry_date).toLocaleString(),
+        t.asset,
+        t.direction,
+        t.result,
+        Number(t.earned_r),
+        Number(t.missed_r),
+        t.duration_minutes ?? '',
+        getConditions(t.id).join(' | '),
+        getTags(t.id).join(' | '),
+        t.recap_text ?? '',
+      ]),
+    );
+  };
+
   const resultColor = (r: string) => {
     if (r === 'Win') return 'text-win';
     if (r === 'Loss') return 'text-loss';
