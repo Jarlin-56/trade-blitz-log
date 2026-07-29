@@ -10,7 +10,7 @@ import EmptyState from '@/components/EmptyState';
 import MetricCard, { Metric } from '@/components/dashboard/MetricCard';
 import HoldingTimeCard from '@/components/dashboard/HoldingTimeCard';
 import CumulativeRChart from '@/components/dashboard/CumulativeRChart';
-import ConditionPerfChart from '@/components/dashboard/ConditionPerfChart';
+
 import RDistributionChart from '@/components/dashboard/RDistributionChart';
 import RBarChart from '@/components/dashboard/RBarChart';
 import PerformanceTable from '@/components/dashboard/PerformanceTable';
@@ -126,24 +126,8 @@ export default function Dashboard() {
     r: parseFloat(executedTrades.slice(0, i + 1).reduce((s, tr) => s + Number(tr.earned_r), 0).toFixed(2)),
   }));
 
-  const conditionPerfData = useMemo(() => {
-    const dateTradeIds = new Set(dateTrades.map(t => t.id));
-    const executedIds = new Set(executedTrades.map(t => t.id));
-    const winIds = new Set(executedTrades.filter(t => t.result === 'Win').map(t => t.id));
-    const condMap = new Map<string, { total: number; wins: number }>();
-    for (const tc of tradeConditions) {
-      if (!dateTradeIds.has(tc.trade_id) || !executedIds.has(tc.trade_id)) continue;
-      const name = (tc.conditions as any)?.name;
-      if (!name) continue;
-      const entry = condMap.get(name) ?? { total: 0, wins: 0 };
-      entry.total++;
-      if (winIds.has(tc.trade_id)) entry.wins++;
-      condMap.set(name, entry);
-    }
-    return Array.from(condMap.entries())
-      .map(([name, { total, wins }]) => ({ name, winRate: Math.round((wins / total) * 100), trades: total }))
-      .sort((a, b) => b.winRate - a.winRate);
-  }, [dateTrades, executedTrades, tradeConditions]);
+
+
 
   const buildPerf = (joins: Array<{ trade_id: string; name: string | undefined }>) => {
     const executedMap = new Map(executedTrades.map(t => [t.id, t]));
@@ -480,7 +464,7 @@ export default function Dashboard() {
           <HoldingTimeCard {...holdingTime} />
 
           <CumulativeRChart data={cumulativeData} />
-          <ConditionPerfChart data={conditionPerfData} />
+          
           <RDistributionChart data={rDistData} />
           <RBarChart title="Performance by Hour" data={hourlyData} hasData={executedTrades.length > 0} xInterval={1} xFontSize={10} barRadius={[4, 4, 0, 0]} />
           <RBarChart title="Performance by Day" data={dayData} hasData={executedTrades.length > 0} />
