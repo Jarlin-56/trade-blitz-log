@@ -35,6 +35,7 @@ export default function RecapQuiz() {
   const queryClient = useQueryClient();
 
   const [view, setView] = useState<'play' | 'history'>('play');
+  const [rangeDays, setRangeDays] = useState<number | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [current, setCurrent] = useState<Trade | null>(null);
   const [seenIds, setSeenIds] = useState<string[]>([]);
@@ -76,7 +77,12 @@ export default function RecapQuiz() {
     enabled: !!user && !!activeProfile,
   });
 
-  const eligible = useMemo(() => trades.filter(t => EXECUTED.includes(t.result)), [trades]);
+  const eligible = useMemo(() => {
+    const cutoff = rangeDays ? Date.now() - rangeDays * 86400000 : null;
+    return trades.filter(
+      t => EXECUTED.includes(t.result) && (!cutoff || new Date(t.entry_date).getTime() >= cutoff),
+    );
+  }, [trades, rangeDays]);
 
   const summary = useMemo(() => {
     const total = stats.length;
@@ -205,6 +211,27 @@ export default function RecapQuiz() {
           </button>
         ))}
       </div>
+
+      {view === 'play' && (
+        <div className="glass-card rounded-2xl p-4 space-y-2.5 animate-fade-up">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">ช่วงเวลาที่จะสุ่ม</p>
+          <div className="flex flex-wrap gap-2">
+            {([[7, '7 วัน'], [30, '30 วัน'], [90, '90 วัน'], [365, '1 ปี'], [null, 'ทั้งหมด']] as const).map(([d, label]) => (
+              <button
+                key={label}
+                onClick={() => { setRangeDays(d); setPhase('idle'); setCurrent(null); setSeenIds([]); }}
+                className={cn(
+                  'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
+                  rangeDays === d ? 'border-primary bg-primary/15 text-primary' : 'border-white/10 bg-white/[0.03] text-muted-foreground hover:border-white/20',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted-foreground">มีไม้ให้สุ่ม {eligible.length} ไม้</p>
+        </div>
+      )}
 
       {view === 'history' ? (
         <QuizHistory />
