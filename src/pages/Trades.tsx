@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,22 +7,44 @@ import { useProfile } from '@/contexts/ProfileContext';
 import { useFilters } from '@/contexts/FilterContext';
 import { CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown, X, Download } from 'lucide-react';
+import { Check, ChevronsUpDown, X, Download, Search, Trash2, TagIcon, CheckSquare } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 import EmptyState from '@/components/EmptyState';
 import { downloadCsv } from '@/lib/csv';
+import { useToast } from '@/hooks/use-toast';
+
+const PAGE_SIZE = 25;
+
+type SortKey = 'date-desc' | 'date-asc' | 'r-desc' | 'r-asc';
 
 export default function Trades() {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
   const { dateRange, setDateRange } = useFilters();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const filterResult = searchParams.get('result') || 'all';
+
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<SortKey>('date-desc');
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [bulkTagOpen, setBulkTagOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const selectedConditions = useMemo(() => {
     const raw = searchParams.get('conditions');
@@ -116,28 +138,49 @@ export default function Trades() {
   const removeCondition = (name: string) => updateParam('conditions', activeConditionNames.filter(c => c !== name));
   const removeTag = (name: string) => updateParam('tags', selectedTags.filter(t => t !== name));
 
-  const filtered = trades.filter(t => {
-    if (dateRange) {
-      const d = new Date(t.entry_date);
-      if (d < dateRange.from || d > dateRange.to) return false;
-    }
-    if (filterResult !== 'all' && t.result !== filterResult) return false;
-    if (activeConditionNames.length > 0) {
-      const tradeCondNames = tradeConditions
-        .filter((tc: any) => tc.trade_id === t.id)
-        .map((tc: any) => tc.conditions?.name)
-        .filter(Boolean);
-      if (!activeConditionNames.every(c => tradeCondNames.includes(c))) return false;
-    }
-    if (selectedTags.length > 0) {
-      const tradeTagNames = tradeTags
-        .filter((tt: any) => tt.trade_id === t.id)
-        .map((tt: any) => tt.tags?.name)
-        .filter(Boolean);
-      if (!selectedTags.every(tag => tradeTagNames.includes(tag))) return false;
-    }
-    return true;
-  });
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const list = trades.filter(t => {
+      if (dateRange) {
+        const d = new Date(t.entry_date);
+        if (d < dateRange.from || d > dateRange.to) return false;
+      }
+      if (filterResult !== 'all' && t.result !== filterResult) return false;
+      if (term) {
+        const hay = `${t.asset} ${t.recap_text ?? ''}`.toLowerCase();
+        if (!hay.includes(term)) return false;
+      }
+      if (activeConditionNames.length > 0) {
+        const tradeCondNames = tradeConditions
+          .filter((tc: any) => tc.trade_id === t.id)
+          .map((tc: any) => tc.conditions?.name)
+          .filter(Boolean);
+        if (!activeConditionNames.every(c => tradeCondNames.includes(c))) return false;
+      }
+      if (selectedTags.length > 0) {
+        const tradeTagNames = tradeTags
+          .filter((tt: any) => tt.trade_id === t.id)
+          .map((tt: any) => tt.tags?.name)
+          .filter(Boolean);
+        if (!selectedTags.every(tag => tradeTagNames.includes(tag))) return false;
+      }
+      return true;
+    });
+
+    const sorted = [...list].sort((a, b) => {
+      switch (sort) {
+        case 'date-asc': return +new Date(a.entry_date) - +new Date(b.entry_date);
+        case 'r-desc': return Number(b.earned_r) - Number(a.earned_r);
+        case 'r-asc': return Number(a.earned_r) - Number(b.earned_r);
+        default: return +new Date(b.entry_date) - +new Date(a.entry_date);
+      }
+    });
+    return sorted;
+  }, [trades, dateRange, filterResult, search, activeConditionNames, selectedTags, tradeConditions, tradeTags, sort]);
+
+  useEffect(() => { setVisible(PAGE_SIZE); }, [search, sort, filterResult, dateRange, activeConditionNames.length, selectedTags.length]);
+
+  const paged = filtered.slice(0, visible);
 
   const getConditions = (tradeId: string) =>
     tradeConditions.filter((tc: any) => tc.trade_id === tradeId).map((tc: any) => tc.conditions?.name).filter(Boolean);
@@ -165,6 +208,52 @@ export default function Trades() {
     );
   };
 
+  const toggleSelected = (id: string) =>
+    setSelected(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
+
+  const exitSelectMode = () => { setSelectMode(false); setSelected([]); };
+
+  const refreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['trades'] });
+    queryClient.invalidateQueries({ queryKey: ['trade-tags-all'] });
+    queryClient.invalidateQueries({ queryKey: ['trade-conditions-all'] });
+  };
+
+  const bulkDelete = async () => {
+    setBusy(true);
+    const { error } = await supabase.from('trades').delete().in('id', selected);
+    setBusy(false);
+    setConfirmDelete(false);
+    if (error) {
+      toast({ title: 'ลบไม่สำเร็จ', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: `ลบ ${selected.length} ไม้แล้ว` });
+    exitSelectMode();
+    refreshAll();
+  };
+
+  const bulkAddTag = async (tagId: string, tagName: string) => {
+    setBusy(true);
+    const existing = new Set(
+      tradeTags.filter((tt: any) => tt.tag_id === tagId).map((tt: any) => tt.trade_id),
+    );
+    const rows = selected.filter(id => !existing.has(id)).map(id => ({ trade_id: id, tag_id: tagId }));
+    if (rows.length > 0) {
+      const { error } = await supabase.from('trade_tags').insert(rows);
+      if (error) {
+        setBusy(false);
+        toast({ title: 'เพิ่ม tag ไม่สำเร็จ', description: error.message, variant: 'destructive' });
+        return;
+      }
+    }
+    setBusy(false);
+    setBulkTagOpen(false);
+    toast({ title: `เพิ่ม #${tagName} ให้ ${rows.length} ไม้แล้ว` });
+    exitSelectMode();
+    refreshAll();
+  };
+
   const resultColor = (r: string) => {
     if (r === 'Win') return 'text-win';
     if (r === 'Loss') return 'text-loss';
@@ -181,8 +270,58 @@ export default function Trades() {
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
   };
 
+  const renderCard = (trade: any, i: number) => {
+    const conds = getConditions(trade.id);
+    const tgs = getTags(trade.id);
+    const isSelected = selected.includes(trade.id);
+    const inner = (
+      <div className={cn('trade-card', isSelected && 'ring-1 ring-primary/50')} style={{ animationDelay: `${Math.min(i, 15) * 30}ms` }}>
+        <CardContent className="py-3 px-3 sm:px-4">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex items-center gap-2 flex-wrap">
+              {selectMode && <Checkbox checked={isSelected} className="mr-0.5" />}
+              <span className="font-mono font-semibold text-sm">{trade.asset}</span>
+              <span className={cn('text-[10px] px-1.5 py-0.5 rounded-md font-medium', trade.direction === 'Long' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss')}>
+                {trade.direction}
+              </span>
+            </div>
+            <span className={cn('font-mono font-bold text-sm shrink-0', resultColor(trade.result))}>
+              {Number(trade.earned_r) >= 0 ? '+' : ''}{Number(trade.earned_r).toFixed(1)}R
+            </span>
+          </div>
+
+          {(conds.length > 0 || tgs.length > 0) && (
+            <div className="flex gap-1 flex-wrap mt-2">
+              {conds.map((c: string) => (
+                <Badge key={c} variant="outline" className="text-[10px] border-white/10 rounded-md">{c}</Badge>
+              ))}
+              {tgs.map((t: string) => (
+                <Badge key={t} variant="secondary" className="text-[10px] rounded-md">#{t}</Badge>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+            <span>{new Date(trade.entry_date).toLocaleDateString()}</span>
+            {trade.duration_minutes != null && <span>⏱️ {formatDuration(trade.duration_minutes)}</span>}
+          </div>
+        </CardContent>
+      </div>
+    );
+
+    if (selectMode) {
+      return (
+        <div key={trade.id} role="button" tabIndex={0} onClick={() => toggleSelected(trade.id)}
+          onKeyDown={e => { if (e.key === 'Enter') toggleSelected(trade.id); }} className="cursor-pointer">
+          {inner}
+        </div>
+      );
+    }
+    return <Link to={`/trades/${trade.id}`} key={trade.id}>{inner}</Link>;
+  };
+
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
+    <div className="space-y-4 max-w-5xl mx-auto pb-20">
       <div className="flex items-center justify-between flex-wrap gap-3 animate-fade-up">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Trade History</h1>
@@ -193,6 +332,14 @@ export default function Trades() {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+            className="h-9 text-xs gap-1.5 rounded-lg border-white/10 bg-white/[0.03]"
+          >
+            <CheckSquare className="h-3.5 w-3.5" /> {selectMode ? 'Cancel' : 'Select'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleExport}
             disabled={filtered.length === 0}
             className="h-9 text-xs gap-1.5 rounded-lg border-white/10 bg-white/[0.03]"
@@ -200,6 +347,22 @@ export default function Trades() {
             <Download className="h-3.5 w-3.5" /> Export CSV
           </Button>
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="ค้นหา asset หรือข้อความใน recap..."
+          className="pl-9 h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -215,6 +378,18 @@ export default function Trades() {
             <SelectItem value="Break-even">Break-even</SelectItem>
             <SelectItem value="Missed">Missed</SelectItem>
             <SelectItem value="Canceled">Canceled</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={sort} onValueChange={v => setSort(v as SortKey)}>
+          <SelectTrigger className="flex-1 min-w-[120px] sm:flex-none sm:w-[150px] h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date-desc">ล่าสุดก่อน</SelectItem>
+            <SelectItem value="date-asc">เก่าสุดก่อน</SelectItem>
+            <SelectItem value="r-desc">R มากสุด</SelectItem>
+            <SelectItem value="r-asc">R น้อยสุด</SelectItem>
           </SelectContent>
         </Select>
 
@@ -308,56 +483,85 @@ export default function Trades() {
         );
       })()}
 
+      {/* Select-all bar */}
+      {selectMode && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Button
+            variant="ghost" size="sm" className="h-7 text-xs"
+            onClick={() => setSelected(selected.length === paged.length ? [] : paged.map(t => t.id))}
+          >
+            {selected.length === paged.length && paged.length > 0 ? 'ยกเลิกทั้งหมด' : 'เลือกทั้งหมดที่แสดง'}
+          </Button>
+          <span>เลือกแล้ว {selected.length}</span>
+        </div>
+      )}
+
       {/* Trade list */}
       {trades.length === 0 ? (
         <EmptyState variant="trades" />
       ) : filtered.length === 0 ? (
         <p className="text-muted-foreground text-center py-12">No trades found</p>
       ) : (
-        <div className="space-y-2">
-          {filtered.map((trade, i) => {
-            const conds = getConditions(trade.id);
-            const tgs = getTags(trade.id);
-            return (
-            <Link to={`/trades/${trade.id}`} key={trade.id}>
-              <div className="trade-card" style={{ animationDelay: `${i * 30}ms` }}>
-                <CardContent className="py-3 px-3 sm:px-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-semibold text-sm">{trade.asset}</span>
-                      <span className={cn('text-[10px] px-1.5 py-0.5 rounded-md font-medium', trade.direction === 'Long' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss')}>
-                        {trade.direction}
-                      </span>
-                    </div>
-                    <span className={cn('font-mono font-bold text-sm shrink-0', resultColor(trade.result))}>
-                      {Number(trade.earned_r) >= 0 ? '+' : ''}{Number(trade.earned_r).toFixed(1)}R
-                    </span>
-                  </div>
+        <>
+          <div className="space-y-2">{paged.map(renderCard)}</div>
+          {visible < filtered.length && (
+            <Button
+              variant="outline"
+              onClick={() => setVisible(v => v + PAGE_SIZE)}
+              className="w-full h-10 text-xs rounded-lg border-white/10 bg-white/[0.03]"
+            >
+              โหลดเพิ่ม ({filtered.length - visible} เหลือ)
+            </Button>
+          )}
+        </>
+      )}
 
-                  {(conds.length > 0 || tgs.length > 0) && (
-                    <div className="flex gap-1 flex-wrap mt-2">
-                      {conds.map((c: string) => (
-                        <Badge key={c} variant="outline" className="text-[10px] border-white/10 rounded-md">{c}</Badge>
+      {/* Bulk action bar */}
+      {selectMode && selected.length > 0 && (
+        <div className="fixed inset-x-0 bottom-16 md:bottom-4 z-50 px-4">
+          <div className="mx-auto max-w-md glass-card p-2 flex items-center gap-2">
+            <span className="text-xs pl-2 flex-1">{selected.length} ไม้</span>
+            <Popover open={bulkTagOpen} onOpenChange={setBulkTagOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" disabled={busy} className="h-8 text-xs gap-1.5 rounded-lg border-white/10 bg-white/[0.03]">
+                  <TagIcon className="h-3.5 w-3.5" /> เพิ่ม Tag
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0" align="end">
+                <Command>
+                  <CommandInput placeholder="เลือก tag..." className="h-8 text-xs" />
+                  <CommandList>
+                    <CommandEmpty className="text-xs py-3 text-center">ยังไม่มี tag</CommandEmpty>
+                    <CommandGroup>
+                      {allTags.map((t: any) => (
+                        <CommandItem key={t.id} value={t.name} onSelect={() => bulkAddTag(t.id, t.name)} className="text-xs">
+                          #{t.name}
+                        </CommandItem>
                       ))}
-                      {tgs.map((t: string) => (
-                        <Badge key={t} variant="secondary" className="text-[10px] rounded-md">#{t}</Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                    <span>{new Date(trade.entry_date).toLocaleDateString()}</span>
-                    {trade.duration_minutes != null && (
-                      <span>⏱️ {formatDuration(trade.duration_minutes)}</span>
-                    )}
-                  </div>
-                </CardContent>
-              </div>
-            </Link>
-            );
-          })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <Button variant="destructive" size="sm" disabled={busy} onClick={() => setConfirmDelete(true)} className="h-8 text-xs gap-1.5 rounded-lg">
+              <Trash2 className="h-3.5 w-3.5" /> ลบ
+            </Button>
+          </div>
         </div>
       )}
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent className="glass-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle>ลบ {selected.length} ไม้?</AlertDialogTitle>
+            <AlertDialogDescription>การลบไม่สามารถย้อนกลับได้</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={bulkDelete} disabled={busy}>ลบ</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
