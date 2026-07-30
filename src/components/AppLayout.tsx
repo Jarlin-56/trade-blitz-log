@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut, User, ChevronDown, UserPlus, TrendingUp, Brain, StickyNote } from 'lucide-react';
+import { BarChart3, CalendarDays, ClipboardList, Settings, Plus, LogOut, User, ChevronDown, UserPlus, TrendingUp, Brain, StickyNote, GitCompare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ const navItems = [
   { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
   { to: '/trades', icon: ClipboardList, label: 'Trades' },
   { to: '/notes', icon: StickyNote, label: 'Notes' },
+  { to: '/compare', icon: GitCompare, label: 'Compare' },
   { to: '/recap-quiz', icon: Brain, label: 'Quiz' },
   { to: '/settings', icon: Settings, label: 'Settings' },
   { to: '/profile', icon: User, label: 'Profile' },
