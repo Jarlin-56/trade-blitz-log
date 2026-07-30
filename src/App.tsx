@@ -23,6 +23,7 @@ import SettingsConditions from "./pages/SettingsConditions";
 import SettingsTags from "./pages/SettingsTags";
 import CalendarPage from "./pages/CalendarPage";
 import RecapQuiz from "./pages/RecapQuiz";
+import Compare from "./pages/Compare";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,10 @@ const App = () => (
             <Route
               path="/trades"
               element={<ProtectedRoute><AppLayout><Trades /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/compare"
+              element={<ProtectedRoute><AppLayout><Compare /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/recap-quiz"
