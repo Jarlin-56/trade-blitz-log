@@ -105,7 +105,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quick_notes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recap_quiz_attempts: {
         Row: {
@@ -144,7 +152,22 @@ export type Database = {
           trade_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recap_quiz_attempts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recap_quiz_attempts_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recap_quiz_condition_results: {
         Row: {
@@ -183,6 +206,13 @@ export type Database = {
             columns: ["attempt_id"]
             isOneToOne: false
             referencedRelation: "recap_quiz_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recap_quiz_condition_results_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
