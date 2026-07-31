@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import Landing from './Landing';
 
 export default function Index() {
   const { session, loading } = useAuth();
@@ -8,5 +9,6 @@ export default function Index() {
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
     </div>
   );
-  return <Navigate to={session ? '/dashboard' : '/login'} replace />;
+  if (session) return <Navigate to="/dashboard" replace />;
+  return <Landing />;
 }
