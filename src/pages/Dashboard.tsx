@@ -16,6 +16,8 @@ import RBarChart from '@/components/dashboard/RBarChart';
 import PerformanceTable from '@/components/dashboard/PerformanceTable';
 import { Button } from '@/components/ui/button';
 import InsightsCard, { Insight } from '@/components/dashboard/InsightsCard';
+import StreakCard from '@/components/dashboard/StreakCard';
+import OnboardingWizard from '@/components/OnboardingWizard';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -431,6 +433,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
+      <OnboardingWizard />
       <div className="flex items-center justify-between flex-wrap gap-3 animate-fade-up">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -455,6 +458,12 @@ export default function Dashboard() {
         <EmptyState variant="dashboard" />
       ) : (
         <>
+
+          <StreakCard
+            trades={trades as any}
+            tradeConditions={tradeConditions as any}
+            allTradeIds={trades.map(t => t.id)}
+          />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 animate-fade-up-delay-1">
             {metrics.map((m, i) => <MetricCard key={i} metric={m} />)}
