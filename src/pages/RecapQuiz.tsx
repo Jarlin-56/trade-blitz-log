@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import QuizHistory from '@/components/QuizHistory';
+import StorageImage from '@/components/StorageImage';
 
 type Trade = {
   id: string;
