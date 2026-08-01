@@ -257,7 +257,7 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
                   <div key={n.id} className="glass-card rounded-lg p-3 space-y-2">
                     <div className="flex items-start gap-2">
                       {n.image_url && (
-                        <img src={n.image_url} alt="" className="h-14 w-14 rounded object-cover shrink-0 bg-black/30" />
+                        <StorageImage source={n.image_url} alt="" className="h-14 w-14 rounded object-cover shrink-0 bg-black/30" />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap text-xs">
