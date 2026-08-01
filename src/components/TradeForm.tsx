@@ -369,7 +369,7 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
             <Label>Chart Image</Label>
             {existingImageUrl && !imageFile && (
               <div className="relative rounded-lg overflow-hidden border border-border">
-                <img src={existingImageUrl} alt="Current chart" className="w-full max-h-56 object-contain bg-black/40" />
+                <StorageImage source={existingImageUrl} alt="Current chart" className="w-full max-h-56 object-contain bg-black/40" />
                 <Button
                   type="button" size="icon" variant="secondary"
                   className="absolute top-1.5 right-1.5 h-7 w-7"
