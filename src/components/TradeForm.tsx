@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
+import StorageImage from '@/components/StorageImage';
+import { getSignedUrl, uploadImage, removeStorageImages } from '@/lib/storage';
 
 type TradeResult = Database['public']['Enums']['trade_result'];
 type TradeDirection = Database['public']['Enums']['trade_direction'];
