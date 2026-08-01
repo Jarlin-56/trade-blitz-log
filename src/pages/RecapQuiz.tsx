@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import QuizHistory from '@/components/QuizHistory';
+import StorageImage from '@/components/StorageImage';
 
 type Trade = {
   id: string;
@@ -436,7 +437,7 @@ export default function RecapQuiz() {
               )}
 
               {current.image_url && (
-                <img src={current.image_url} alt="Trade chart" className="rounded-xl w-full border border-white/10" />
+                <StorageImage source={current.image_url} alt="Trade chart" className="rounded-xl w-full border border-white/10" />
               )}
 
               <Button onClick={pickNext} className="w-full gap-2 rounded-xl">

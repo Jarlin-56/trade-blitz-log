@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 import { TrendingUp, ArrowRight } from 'lucide-react';
 
 export default function Register() {
@@ -75,6 +76,14 @@ export default function Register() {
               )}
             </Button>
           </form>
+
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">หรือ</span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <GoogleSignInButton label="สมัครด้วย Google" />
         </div>
 
         <p className="text-center text-sm text-muted-foreground">

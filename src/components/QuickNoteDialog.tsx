@@ -16,6 +16,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Image as ImageIcon, ClipboardPaste, Trash2, ArrowRight, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import StorageImage from '@/components/StorageImage';
+import { uploadImage, removeStorageImages } from '@/lib/storage';
 
 interface Props {
   open: boolean;
@@ -98,11 +100,7 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
     try {
       let image_url: string | null = null;
       if (imageFile) {
-        const ext = (imageFile.name.split('.').pop() || 'png').toLowerCase();
-        const path = `quick-notes/${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('trade-images').upload(path, imageFile);
-        if (upErr) throw upErr;
-        image_url = supabase.storage.from('trade-images').getPublicUrl(path).data.publicUrl;
+        image_url = await uploadImage(imageFile, user.id, 'quick-notes');
       }
       const { error } = await supabase.from('quick_notes' as any).insert({
         user_id: user.id,
@@ -126,8 +124,10 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
+      const { data: row } = await supabase.from('quick_notes' as any).select('image_url').eq('id', id).maybeSingle();
       const { error } = await supabase.from('quick_notes' as any).delete().eq('id', id);
       if (error) throw error;
+      await removeStorageImages([(row as any)?.image_url]);
     },
     onSuccess: () => {
       toast.success('ลบโน้ตแล้ว');
@@ -257,7 +257,7 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
                   <div key={n.id} className="glass-card rounded-lg p-3 space-y-2">
                     <div className="flex items-start gap-2">
                       {n.image_url && (
-                        <img src={n.image_url} alt="" className="h-14 w-14 rounded object-cover shrink-0 bg-black/30" />
+                        <StorageImage source={n.image_url} alt="" className="h-14 w-14 rounded object-cover shrink-0 bg-black/30" />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap text-xs">

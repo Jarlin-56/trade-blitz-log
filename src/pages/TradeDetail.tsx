@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Trash2, ArrowLeft, Pencil } from 'lucide-react';
+import StorageImage from '@/components/StorageImage';
+import { removeStorageImages } from '@/lib/storage';
 
 export default function TradeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -43,9 +45,14 @@ export default function TradeDetail() {
 
   const handleDelete = async () => {
     if (!confirm('Delete this trade?')) return;
+    const imageUrl = (trade as any)?.image_url as string | null;
     const { error } = await supabase.from('trades').delete().eq('id', id!);
     if (error) toast.error(error.message);
-    else { toast.success('Trade deleted'); navigate('/trades'); }
+    else {
+      await removeStorageImages([imageUrl]);
+      toast.success('Trade deleted');
+      navigate('/trades');
+    }
   };
 
   if (!trade) return <p className="text-center text-muted-foreground py-12">Loading…</p>;
@@ -127,7 +134,7 @@ export default function TradeDetail() {
           {trade.image_url && (
             <div>
               <span className="text-sm text-muted-foreground">Chart</span>
-              <img src={trade.image_url} alt="Trade chart" className="mt-2 rounded-lg w-full" />
+              <StorageImage source={trade.image_url} alt="Trade chart" className="mt-2 rounded-lg w-full" />
             </div>
           )}
         </CardContent>
