@@ -22,6 +22,7 @@ import { Check, ChevronsUpDown, X, Download, Search, Trash2, TagIcon, CheckSquar
 import DateRangeFilter from '@/components/DateRangeFilter';
 import EmptyState from '@/components/EmptyState';
 import { downloadCsv } from '@/lib/csv';
+import { removeStorageImages } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 
 const PAGE_SIZE = 25;

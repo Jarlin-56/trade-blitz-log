@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Trash2, ArrowLeft, Pencil } from 'lucide-react';
+import StorageImage from '@/components/StorageImage';
+import { removeStorageImages } from '@/lib/storage';
 
 export default function TradeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -127,7 +129,7 @@ export default function TradeDetail() {
           {trade.image_url && (
             <div>
               <span className="text-sm text-muted-foreground">Chart</span>
-              <img src={trade.image_url} alt="Trade chart" className="mt-2 rounded-lg w-full" />
+              <StorageImage source={trade.image_url} alt="Trade chart" className="mt-2 rounded-lg w-full" />
             </div>
           )}
         </CardContent>
