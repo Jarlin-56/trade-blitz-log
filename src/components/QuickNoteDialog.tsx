@@ -16,6 +16,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Image as ImageIcon, ClipboardPaste, Trash2, ArrowRight, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import StorageImage from '@/components/StorageImage';
+import { uploadImage, removeStorageImages } from '@/lib/storage';
 
 interface Props {
   open: boolean;

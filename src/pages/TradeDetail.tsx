@@ -45,9 +45,14 @@ export default function TradeDetail() {
 
   const handleDelete = async () => {
     if (!confirm('Delete this trade?')) return;
+    const imageUrl = (trade as any)?.image_url as string | null;
     const { error } = await supabase.from('trades').delete().eq('id', id!);
     if (error) toast.error(error.message);
-    else { toast.success('Trade deleted'); navigate('/trades'); }
+    else {
+      await removeStorageImages([imageUrl]);
+      toast.success('Trade deleted');
+      navigate('/trades');
+    }
   };
 
   if (!trade) return <p className="text-center text-muted-foreground py-12">Loading…</p>;
