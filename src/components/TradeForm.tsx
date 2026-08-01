@@ -59,7 +59,9 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
     if (!prefillImageUrl) return;
     (async () => {
       try {
-        const res = await fetch(prefillImageUrl);
+        const signed = await getSignedUrl(prefillImageUrl);
+        if (!signed) return;
+        const res = await fetch(signed);
         const blob = await res.blob();
         const ext = (blob.type.split('/')[1] || 'png').split('+')[0];
         setImageFile(new File([blob], `quicknote.${ext}`, { type: blob.type || 'image/png' }));
@@ -137,11 +139,11 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
     try {
       let imageUrl: string | null = existingImageUrl;
       if (imageFile) {
-        const ext = imageFile.name.split('.').pop();
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from('trade-images').upload(path, imageFile);
-        if (uploadErr) throw uploadErr;
-        imageUrl = supabase.storage.from('trade-images').getPublicUrl(path).data.publicUrl;
+        imageUrl = await uploadImage(imageFile, user.id, 'trades');
+        // clean up the replaced image
+        if (existingImageUrl && existingImageUrl !== imageUrl) {
+          await removeStorageImages([existingImageUrl]);
+        }
       }
 
       const payload = {
