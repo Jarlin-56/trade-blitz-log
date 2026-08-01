@@ -100,11 +100,7 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
     try {
       let image_url: string | null = null;
       if (imageFile) {
-        const ext = (imageFile.name.split('.').pop() || 'png').toLowerCase();
-        const path = `quick-notes/${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('trade-images').upload(path, imageFile);
-        if (upErr) throw upErr;
-        image_url = supabase.storage.from('trade-images').getPublicUrl(path).data.publicUrl;
+        image_url = await uploadImage(imageFile, user.id, 'quick-notes');
       }
       const { error } = await supabase.from('quick_notes' as any).insert({
         user_id: user.id,
@@ -128,8 +124,10 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
+      const { data: row } = await supabase.from('quick_notes' as any).select('image_url').eq('id', id).maybeSingle();
       const { error } = await supabase.from('quick_notes' as any).delete().eq('id', id);
       if (error) throw error;
+      await removeStorageImages([(row as any)?.image_url]);
     },
     onSuccess: () => {
       toast.success('ลบโน้ตแล้ว');
