@@ -18,10 +18,11 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown, X, Download, Search, Trash2, TagIcon, CheckSquare } from 'lucide-react';
+import { Check, ChevronsUpDown, X, Download, Upload, Search, Trash2, TagIcon, CheckSquare } from 'lucide-react';
 import DateRangeFilter from '@/components/DateRangeFilter';
 import EmptyState from '@/components/EmptyState';
 import { downloadCsv } from '@/lib/csv';
+import ImportTradesDialog from '@/components/ImportTradesDialog';
 import { removeStorageImages } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -46,6 +47,7 @@ export default function Trades() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [bulkTagOpen, setBulkTagOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const selectedConditions = useMemo(() => {
     const raw = searchParams.get('conditions');
@@ -349,6 +351,15 @@ export default function Trades() {
           >
             <Download className="h-3.5 w-3.5" /> Export CSV
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setImportOpen(true)}
+            className="h-9 text-xs gap-1.5 rounded-lg border-white/10 bg-white/[0.03]"
+          >
+            <Upload className="h-3.5 w-3.5" /> Import CSV
+          </Button>
+          <ImportTradesDialog open={importOpen} onOpenChange={setImportOpen} onImported={refreshAll} />
         </div>
       </div>
 
