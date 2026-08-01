@@ -221,6 +221,7 @@ export default function Trades() {
 
   const bulkDelete = async () => {
     setBusy(true);
+    const { data: rows } = await supabase.from('trades').select('image_url').in('id', selected);
     const { error } = await supabase.from('trades').delete().in('id', selected);
     setBusy(false);
     setConfirmDelete(false);
@@ -228,6 +229,7 @@ export default function Trades() {
       toast({ title: 'ลบไม่สำเร็จ', description: error.message, variant: 'destructive' });
       return;
     }
+    await removeStorageImages((rows ?? []).map((r: any) => r.image_url));
     toast({ title: `ลบ ${selected.length} ไม้แล้ว` });
     exitSelectMode();
     refreshAll();

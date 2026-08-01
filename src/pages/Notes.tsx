@@ -18,6 +18,8 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { StickyNote, Pencil, Trash2, ArrowRight, ExternalLink } from 'lucide-react';
+import StorageImage from '@/components/StorageImage';
+import { removeStorageImages } from '@/lib/storage';
 
 type Note = {
   id: string;
@@ -75,8 +77,10 @@ export default function Notes() {
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
+      const { data: row } = await supabase.from('quick_notes' as any).select('image_url').eq('id', id).maybeSingle();
       const { error } = await supabase.from('quick_notes' as any).delete().eq('id', id);
       if (error) throw error;
+      await removeStorageImages([(row as any)?.image_url]);
     },
     onSuccess: () => {
       toast.success('ลบโน้ตแล้ว');
@@ -125,7 +129,7 @@ export default function Notes() {
 
       {n.note && <p className="text-sm whitespace-pre-wrap break-words">{n.note}</p>}
       {n.image_url && (
-        <img src={n.image_url} alt="Quick note chart" loading="lazy" className="rounded-lg w-full max-h-64 object-contain bg-black/40" />
+        <StorageImage source={n.image_url} alt="Quick note chart" className="rounded-lg w-full max-h-64 object-contain bg-black/40" />
       )}
 
       <div className="flex gap-2 flex-wrap">

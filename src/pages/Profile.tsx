@@ -47,10 +47,18 @@ export default function Profile() {
 
   const handleDelete = async () => {
     if (!activeProfile || !user || profiles.length <= 1) return;
-    const confirmed = window.confirm(`ลบโปรไฟล์ "${activeProfile.display_name}" และ trade ทั้งหมดในโปรไฟล์นี้?`);
+    const confirmed = window.confirm(`ลบโปรไฟล์ "${activeProfile.display_name}" และข้อมูลทั้งหมดในโปรไฟล์นี้ (ไม้เทรด, โน้ต, ผลควิซ)?`);
     if (!confirmed) return;
-    await supabase.from('trades').delete().eq('profile_id', activeProfile.id);
+    // collect images to clean up, then delete the profile (children cascade in DB)
+    const [{ data: tradeRows }, { data: noteRows }] = await Promise.all([
+      supabase.from('trades').select('image_url').eq('profile_id', activeProfile.id),
+      supabase.from('quick_notes' as any).select('image_url').eq('profile_id', activeProfile.id),
+    ]);
     await supabase.from('profiles').delete().eq('id', activeProfile.id);
+    await removeStorageImages([
+      ...((tradeRows ?? []) as any[]).map(r => r.image_url),
+      ...((noteRows ?? []) as any[]).map(r => r.image_url),
+    ]);
     const remaining = profiles.filter(p => p.id !== activeProfile.id);
     if (remaining.length > 0) {
       await supabase.from('profiles').update({ is_active: true } as any).eq('id', remaining[0].id);
