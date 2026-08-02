@@ -24,7 +24,9 @@ import SettingsTags from "./pages/SettingsTags";
 import CalendarPage from "./pages/CalendarPage";
 import RecapQuiz from "./pages/RecapQuiz";
 import Compare from "./pages/Compare";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
+
 
 const queryClient = new QueryClient();
 
@@ -41,6 +43,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
             <Route
               path="/dashboard"
               element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>}

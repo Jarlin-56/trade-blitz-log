@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,16 @@ import { TrendingUp, ArrowRight } from 'lucide-react';
 
 export default function Login() {
   const { session, loading } = useAuth();
+  const [params] = useSearchParams();
+  const rawNext = params.get('next');
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   if (loading) return null;
-  if (session) return <Navigate to="/dashboard" replace />;
+  if (session) return <Navigate to={next ?? '/dashboard'} replace />;
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +88,7 @@ export default function Login() {
             <div className="h-px flex-1 bg-white/10" />
           </div>
 
-          <GoogleSignInButton label="เข้าสู่ระบบด้วย Google" />
+          <GoogleSignInButton label="เข้าสู่ระบบด้วย Google" next={next} />
         </div>
 
         <p className="text-center text-sm text-muted-foreground">
