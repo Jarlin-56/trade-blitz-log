@@ -43,6 +43,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
             <Route
               path="/dashboard"
               element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>}
