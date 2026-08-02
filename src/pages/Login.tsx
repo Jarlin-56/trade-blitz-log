@@ -88,7 +88,7 @@ export default function Login() {
             <div className="h-px flex-1 bg-white/10" />
           </div>
 
-          <GoogleSignInButton label="เข้าสู่ระบบด้วย Google" />
+          <GoogleSignInButton label="เข้าสู่ระบบด้วย Google" next={next} />
         </div>
 
         <p className="text-center text-sm text-muted-foreground">
