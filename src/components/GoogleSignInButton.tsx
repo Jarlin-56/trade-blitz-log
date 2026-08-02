@@ -3,14 +3,19 @@ import { lovable } from '@/integrations/lovable/index';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-export default function GoogleSignInButton({ label = 'เข้าสู่ระบบด้วย Google' }: { label?: string }) {
+export default function GoogleSignInButton({
+  label = 'เข้าสู่ระบบด้วย Google',
+  next,
+}: { label?: string; next?: string | null }) {
   const [loading, setLoading] = useState(false);
 
   const signIn = async () => {
     setLoading(true);
+    const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '';
     const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}${safeNext}`,
     });
+
     if (result.error) {
       toast.error(result.error.message || 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
       setLoading(false);
