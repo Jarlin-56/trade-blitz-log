@@ -1,0 +1,441 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://evhgtzdhmwoeyivsbmfg.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "r-squared-journal",
+      "version": "0.1.0",
+      "title": "R-Squared Journal"
+    },
+    "tools": [
+      {
+        "name": "list_profiles",
+        "title": "List trading profiles",
+        "description": "List the signed-in user's trading profiles (accounts) and which one is active.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_trades",
+        "title": "List trades",
+        "description": "List journaled trades for a profile, newest first. Optionally filter by asset, result, or recent days.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "profile_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Profile to read. Null uses the active profile."
+            },
+            "asset": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Filter by asset symbol, case-insensitive partial match."
+            },
+            "result": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "Win",
+                    "Loss",
+                    "Break-even",
+                    "Missed",
+                    "Canceled"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by trade result."
+            },
+            "days": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only trades entered within the last N days."
+            },
+            "limit": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Max rows to return (default 20, max 100)."
+            }
+          },
+          "required": [
+            "profile_id",
+            "asset",
+            "result",
+            "days",
+            "limit"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_trade",
+        "title": "Get trade detail",
+        "description": "Get one trade with its checklist conditions and tags.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "trade_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Trade id."
+            }
+          },
+          "required": [
+            "trade_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_stats",
+        "title": "Get performance stats",
+        "description": "Summarize R-multiple performance for a profile: total R, win rate, average R, missed R, and result counts.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "profile_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Profile to analyze. Null uses the active profile."
+            },
+            "days": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only trades within the last N days. Null means all time."
+            }
+          },
+          "required": [
+            "profile_id",
+            "days"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_conditions",
+        "title": "List checklist conditions",
+        "description": "List the user's checklist condition names and tags, usable when logging a trade.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_trade",
+        "title": "Log a trade",
+        "description": "Create a post-trade journal entry (R-multiples only, no prices). Optionally attach existing checklist condition names.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "asset": {
+              "type": "string",
+              "description": "Asset / symbol traded."
+            },
+            "direction": {
+              "type": "string",
+              "enum": [
+                "Long",
+                "Short"
+              ],
+              "description": "Trade direction."
+            },
+            "result": {
+              "type": "string",
+              "enum": [
+                "Win",
+                "Loss",
+                "Break-even",
+                "Missed",
+                "Canceled"
+              ],
+              "description": "Trade result."
+            },
+            "earned_r": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "R multiple earned (negative for losses). Default 0."
+            },
+            "missed_r": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "R left on the table. Default 0."
+            },
+            "entry_date": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "ISO datetime of entry. Null means now."
+            },
+            "duration_minutes": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Holding time in minutes."
+            },
+            "recap_text": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Recap / lesson notes."
+            },
+            "condition_names": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Names of existing checklist conditions that were met."
+            },
+            "profile_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Profile to log into. Null uses the active profile."
+            }
+          },
+          "required": [
+            "asset",
+            "direction",
+            "result",
+            "earned_r",
+            "missed_r",
+            "entry_date",
+            "duration_minutes",
+            "recap_text",
+            "condition_names",
+            "profile_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_quick_note",
+        "title": "Create quick note",
+        "description": "Save a quick trading note (idea, observation) that can later be converted into a full trade log.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "note": {
+              "type": "string",
+              "description": "Note text."
+            },
+            "asset": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Asset / symbol, if known."
+            },
+            "direction": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "Long",
+                    "Short"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Direction, if known."
+            },
+            "profile_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Profile to save into. Null uses the active profile."
+            }
+          },
+          "required": [
+            "note",
+            "asset",
+            "direction",
+            "profile_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_quick_notes",
+        "title": "List quick notes",
+        "description": "List quick notes for a profile, newest first. Optionally only those not yet converted to trades.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "profile_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Profile to read. Null uses the active profile."
+            },
+            "pending_only": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Only notes not yet converted into a trade."
+            },
+            "limit": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Max rows to return (default 20, max 100)."
+            }
+          },
+          "required": [
+            "profile_id",
+            "pending_only",
+            "limit"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
