@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import InsightsCard, { Insight } from '@/components/dashboard/InsightsCard';
 import StreakCard from '@/components/dashboard/StreakCard';
 import OnboardingWizard from '@/components/OnboardingWizard';
+import MetricsAnalysisCard from '@/components/dashboard/MetricsAnalysisCard';
+import { computeMetricStats, metricInsights, MetricDef, MetricValueRow } from '@/lib/metrics';
 
 export default function Dashboard() {
   const { user } = useAuth();
