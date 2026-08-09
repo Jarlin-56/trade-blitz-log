@@ -447,6 +447,16 @@ export default function Dashboard() {
     return out;
   }, [executedTrades, conditionPerfTableData, dayData, tradeConditions]);
 
+  const metricStats = useMemo(
+    () => computeMetricStats(customMetrics.filter(m => m.is_active !== false), metricValues, dateTrades as any),
+    [customMetrics, metricValues, dateTrades]
+  );
+
+  const allInsights = useMemo<Insight[]>(
+    () => [...insights, ...metricInsights(metricStats).map(text => ({ text, tone: 'neutral' as const }))],
+    [insights, metricStats]
+  );
+
   const metrics: Metric[] = [
     { label: 'Total R', value: `${totalR >= 0 ? '+' : ''}${totalR.toFixed(2)}R`, color: totalR >= 0 ? 'text-win' : 'text-loss', icon: TrendingUp, glow: totalR >= 0 },
     { label: 'Win Rate', value: `${winRate}%`, color: 'text-foreground', icon: Target },
