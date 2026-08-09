@@ -271,6 +271,104 @@ export type Database = {
           },
         ]
       }
+      trade_metric_values: {
+        Row: {
+          created_at: string
+          id: string
+          metric_id: string
+          trade_id: string
+          updated_at: string
+          user_id: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_id: string
+          trade_id: string
+          updated_at?: string
+          user_id: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_id?: string
+          trade_id?: string
+          updated_at?: string
+          user_id?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_metric_values_metric_id_fkey"
+            columns: ["metric_id"]
+            isOneToOne: false
+            referencedRelation: "trade_metrics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_metric_values_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_metrics: {
+        Row: {
+          created_at: string
+          decimals: number
+          id: string
+          is_active: boolean
+          max_value: number | null
+          min_value: number | null
+          name: string
+          profile_id: string | null
+          sort_order: number
+          unit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decimals?: number
+          id?: string
+          is_active?: boolean
+          max_value?: number | null
+          min_value?: number | null
+          name: string
+          profile_id?: string | null
+          sort_order?: number
+          unit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decimals?: number
+          id?: string
+          is_active?: boolean
+          max_value?: number | null
+          min_value?: number | null
+          name?: string
+          profile_id?: string | null
+          sort_order?: number
+          unit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_metrics_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trade_tags: {
         Row: {
           id: string
