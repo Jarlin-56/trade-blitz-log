@@ -82,6 +82,26 @@ export default function Trades() {
     enabled: !!user,
   });
 
+  const { data: customMetrics = [] } = useQuery({
+    queryKey: ['trade-metrics', user?.id, activeProfile?.id],
+    queryFn: async () => {
+      let q = supabase.from('trade_metrics').select('*').order('sort_order');
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: metricValues = [] } = useQuery({
+    queryKey: ['trade-metric-values', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('trade_metric_values').select('trade_id, metric_id, value');
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id, activeProfile?.id],
     queryFn: async () => {
@@ -191,11 +211,16 @@ export default function Trades() {
   const getTags = (tradeId: string) =>
     tradeTags.filter((tt: any) => tt.trade_id === tradeId).map((tt: any) => tt.tags?.name).filter(Boolean);
 
+  const metricValueOf = (tradeId: string, metricId: string) => {
+    const row = metricValues.find((v: any) => v.trade_id === tradeId && v.metric_id === metricId);
+    return row?.value != null ? Number(row.value) : '';
+  };
+
   const handleExport = () => {
     if (filtered.length === 0) return;
     downloadCsv(
       `trades-${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Date', 'Asset', 'Direction', 'Result', 'Earned R', 'Missed R', 'Duration (min)', 'Conditions', 'Tags', 'Recap'],
+      ['Date', 'Asset', 'Direction', 'Result', 'Earned R', 'Missed R', 'Duration (min)', 'Conditions', 'Tags', 'Recap', ...customMetrics.map((m: any) => m.unit ? `${m.name} (${m.unit})` : m.name)],
       filtered.map(t => [
         new Date(t.entry_date).toLocaleString(),
         t.asset,
@@ -207,6 +232,7 @@ export default function Trades() {
         getConditions(t.id).join(' | '),
         getTags(t.id).join(' | '),
         t.recap_text ?? '',
+        ...customMetrics.map((m: any) => metricValueOf(t.id, m.id)),
       ]),
     );
   };
