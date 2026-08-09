@@ -503,6 +503,7 @@ export default function Dashboard() {
             {metrics.map((m, i) => <MetricCard key={i} metric={m} />)}
           </div>
 
+          <MetricsAnalysisCard stats={metricStats} />
 
           <HoldingTimeCard {...holdingTime} />
 
