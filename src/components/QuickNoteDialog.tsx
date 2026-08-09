@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Image as ImageIcon, ClipboardPaste, Trash2, ArrowRight, X } from 'lucide-react';
+import { Image as ImageIcon, ClipboardPaste, Trash2, ArrowRight, X, Pin } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import StorageImage from '@/components/StorageImage';
@@ -22,16 +22,19 @@ import { uploadImage, removeStorageImages } from '@/lib/storage';
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  initialFile?: File | null;
+  asWidget?: boolean;
 }
 
 type Direction = 'Long' | 'Short' | null;
 
-export default function QuickNoteDialog({ open, onOpenChange }: Props) {
+export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWidget }: Props) {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [isPinned, setIsPinned] = useState(true);
 
   const [tab, setTab] = useState('new');
   const [asset, setAsset] = useState('');
@@ -64,6 +67,13 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
     setImagePreview(url);
     return () => URL.revokeObjectURL(url);
   }, [imageFile]);
+
+  useEffect(() => {
+    if (open && initialFile && !imageFile) {
+      setImageFile(initialFile);
+      setTab('new');
+    }
+  }, [open, initialFile]);
 
   // Paste handler
   useEffect(() => {
@@ -100,7 +110,11 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
     try {
       let image_url: string | null = null;
       if (imageFile) {
-        image_url = await uploadImage(imageFile, user.id, 'quick-notes');
+        const ext = (imageFile.name.split('.').pop() || 'png').toLowerCase();
+        const path = `${user.id}/quick-notes/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('trade-images').upload(path, imageFile);
+        if (upErr) throw upErr;
+        image_url = supabase.storage.from('trade-images').getPublicUrl(path).data.publicUrl;
       }
       const { error } = await supabase.from('quick_notes' as any).insert({
         user_id: user.id,
@@ -292,6 +306,38 @@ export default function QuickNoteDialog({ open, onOpenChange }: Props) {
       </Tabs>
     </div>
   );
+
+  if (asWidget) {
+    return (
+      <div className="flex flex-col h-screen w-screen bg-background text-foreground border border-border/40 shadow-xl overflow-hidden rounded-lg">
+        {/* Draggable Custom Titlebar */}
+        <div
+          className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/80 backdrop-blur"
+          style={{ WebkitAppRegion: 'drag' } as any}
+        >
+          <div className="font-semibold text-sm">Quick Note</div>
+          <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as any}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn("h-7 w-7", isPinned && "bg-accent")}
+              onClick={() => {
+                const newPinned = !isPinned;
+                setIsPinned(newPinned);
+                window.electronAPI?.toggleAlwaysOnTop(newPinned);
+              }}
+            >
+              <Pin className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onOpenChange(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex-1 min-h-0 p-4">{body}</div>
+      </div>
+    );
+  }
 
   if (isMobile) {
     return (

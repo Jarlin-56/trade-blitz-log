@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { lovable } from '@/integrations/lovable/index';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -12,6 +13,38 @@ export default function GoogleSignInButton({
   const signIn = async () => {
     setLoading(true);
     const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '';
+
+    // If running inside Electron, use the deep linking flow
+    if (window.electronAPI) {
+      try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: 'trade-blitz-log://auth-callback',
+            skipBrowserRedirect: true,
+          },
+        });
+
+        if (error) {
+          toast.error(error.message || 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
+          setLoading(false);
+          return;
+        }
+
+        if (data?.url) {
+          window.electronAPI.openExternalUrl(data.url);
+        } else {
+          toast.error('ไม่ได้รับลิงก์สำหรับเข้าสู่ระบบ');
+        }
+      } catch (err: any) {
+        toast.error(err.message || 'เกิดข้อผิดพลาดในการเปิดระบบล็อกอิน');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Standard web flow
     const result = await lovable.auth.signInWithOAuth('google', {
       redirect_uri: `${window.location.origin}${safeNext}`,
     });

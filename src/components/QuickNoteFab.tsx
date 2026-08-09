@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,14 +6,30 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { NotebookPen } from 'lucide-react';
 import QuickNoteDialog from './QuickNoteDialog';
+import { useElectron } from '@/hooks/useElectron';
 
 const HIDE_ON = ['/trades/new', '/login', '/register'];
 
 export default function QuickNoteFab() {
   const [open, setOpen] = useState(false);
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const { user } = useAuth();
   const { activeProfile } = useProfile();
   const loc = useLocation();
+  const { screenshotBase64, clearScreenshot } = useElectron();
+
+  useEffect(() => {
+    if (screenshotBase64) {
+      fetch(screenshotBase64)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], 'screenshot.png', { type: 'image/png' });
+          setScreenshotFile(file);
+          setOpen(true);
+          clearScreenshot();
+        });
+    }
+  }, [screenshotBase64, clearScreenshot]);
 
   const { data: count = 0 } = useQuery({
     queryKey: ['quick_notes_count', user?.id, activeProfile?.id],
@@ -42,7 +58,7 @@ export default function QuickNoteFab() {
           </span>
         )}
       </button>
-      <QuickNoteDialog open={open} onOpenChange={setOpen} />
+      <QuickNoteDialog open={open} onOpenChange={setOpen} initialFile={screenshotFile} />
     </>
   );
 }

@@ -21,7 +21,8 @@ export default function Register() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+    const redirectTo = window.electronAPI ? 'trade-blitz-log://auth-callback' : window.location.origin;
+    const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
     if (error) toast.error(error.message);
     else toast.success('Check your email to confirm your account');
     setSubmitting(false);

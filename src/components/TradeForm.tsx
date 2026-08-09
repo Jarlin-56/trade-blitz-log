@@ -27,7 +27,7 @@ const toLocalInput = (iso: string) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-export default function TradeForm({ tradeId }: { tradeId?: string }) {
+export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?: string; asWidget?: boolean; initialFile?: File | null }) {
   const isEdit = !!tradeId;
   const { user } = useAuth();
   const { activeProfile } = useProfile();
@@ -52,11 +52,27 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
   const [durationMins, setDurationMins] = useState('');
   const [recap, setRecap] = useState(prefill?.note || '');
   const [metricValues, setMetricValues] = useState<Record<string, string>>({});
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(initialFile ?? null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [prefillImageUrl] = useState<string | null>(prefill?.image_url || null);
   const [submitting, setSubmitting] = useState(false);
   const [loaded, setLoaded] = useState(!isEdit);
+
+  // Sync screenshot / file from widget hotkey captures after mount
+  useEffect(() => {
+    if (initialFile) setImageFile(initialFile);
+  }, [initialFile]);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
 
   // Turn a quick-note image into a File so it gets uploaded with the trade
   useEffect(() => {
@@ -233,7 +249,10 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
       qc.invalidateQueries({ queryKey: ['trade-metric-values'] });
 
       toast.success(isEdit ? 'อัปเดตไม้แล้ว' : 'Trade logged!');
-      navigate(isEdit ? `/trades/${tradeId}` : '/trades');
+      if (asWidget) {
+        window.electronAPI?.hideWindow();      } else {
+        navigate(isEdit ? `/trades/${tradeId}` : '/trades');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to save trade');
     } finally {
@@ -249,9 +268,30 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
 
   if (!loaded) return <p className="text-center text-muted-foreground py-12">Loading…</p>;
 
+
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">{isEdit ? 'Edit Trade' : 'Log Trade'}</h1>
+    <form onSubmit={handleSubmit} className={cn('max-w-2xl mx-auto space-y-6', asWidget && 'max-w-none pb-2')}>
+      {!asWidget && (
+        <h1 className="text-2xl font-bold">{isEdit ? 'Edit Trade' : 'Log Trade'}</h1>
+      )}
+
+      {asWidget && imagePreviewUrl && (
+        <div className="rounded-lg overflow-hidden border border-primary/30 bg-primary/5">
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-primary/20">
+            <span className="text-xs font-medium text-primary">Screenshot attached</span>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6"
+              onClick={() => setImageFile(null)}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+          <img src={imagePreviewUrl} alt="Screenshot" className="w-full max-h-40 object-contain bg-black/40" />
+        </div>
+      )}
 
       {/* Trade Identity */}
       <Card>
@@ -292,8 +332,7 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Result</Label>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {([
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">             {([
                 { v: 'Win' as TradeResult, color: 'bg-win hover:bg-win/90 text-primary-foreground' },
                 { v: 'Loss' as TradeResult, color: 'bg-loss hover:bg-loss/90 text-white' },
                 { v: 'Break-even' as TradeResult, color: 'bg-breakeven hover:bg-breakeven/90 text-primary-foreground' },
@@ -305,7 +344,7 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
                   type="button"
                   variant={result === v ? 'default' : 'outline'}
                   className={cn('text-sm', result === v && color)}
-                  onClick={() => { setResult(v); if (v !== 'Win') setEarnedR(''); if (v !== 'Missed') setMissedR(''); if (['Canceled', 'Missed'].includes(v)) { setDurationHours(''); setDurationMins(''); } }}
+                  onClick={() => setResult(v)}
                 >
                   {v}
                 </Button>
@@ -436,21 +475,28 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
                 ><X className="h-3.5 w-3.5" /></Button>
               </div>
             )}
-            <div
-              className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => document.getElementById('chart-upload')?.click()}
-              onDragOver={e => e.preventDefault()}
-              onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) setImageFile(f); }}
-            >
-              {imageFile ? (
-                <p className="text-sm text-foreground">{imageFile.name}</p>
-              ) : (
+            {imagePreviewUrl ? (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img src={imagePreviewUrl} alt="Chart preview" className="w-full max-h-56 object-contain bg-black/40" />
+                <Button
+                  type="button" size="icon" variant="secondary"
+                  className="absolute top-1.5 right-1.5 h-7 w-7"
+                  onClick={() => setImageFile(null)}
+                ><X className="h-3.5 w-3.5" /></Button>
+              </div>
+            ) : (
+              <div
+                className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => document.getElementById('chart-upload')?.click()}
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) setImageFile(f); }}
+              >
                 <p className="text-sm text-muted-foreground">
                   {existingImageUrl ? 'Drag & drop or click to replace' : 'Drag & drop or click to upload'}
                 </p>
-              )}
-            </div>
-            <input id="chart-upload" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) setImageFile(f); }} />
+                <input id="chart-upload" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) setImageFile(f); }} />
+              </div>
+            )}
           </div>
 
           {tags.length > 0 && (
