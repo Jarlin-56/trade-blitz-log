@@ -56,6 +56,28 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const { data: customMetrics = [] } = useQuery({
+    queryKey: ['trade-metrics', user?.id, activeProfile?.id],
+    queryFn: async () => {
+      let q = supabase.from('trade_metrics').select('*').order('sort_order');
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
+      return (data ?? []) as MetricDef[];
+    },
+    enabled: !!user,
+  });
+
+  const { data: metricValues = [] } = useQuery({
+    queryKey: ['trade-metric-values', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('trade_metric_values').select('trade_id, metric_id, value');
+      return (data ?? []) as MetricValueRow[];
+    },
+    enabled: !!user,
+  });
+
+
+
   const dateTrades = useMemo(() => {
     if (!dateRange) return trades;
     return trades.filter(t => {
