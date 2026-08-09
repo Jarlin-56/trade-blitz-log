@@ -475,8 +475,8 @@ export default function Dashboard() {
         </div>
         {trades.length > 0 && (
           <div className="flex items-center gap-2">
-            {insights.length > 0 && (
-              <InsightsCard insights={insights} open={insightsOpen} onOpenChange={setInsightsOpen}>
+            {allInsights.length > 0 && (
+              <InsightsCard insights={allInsights} open={insightsOpen} onOpenChange={setInsightsOpen}>
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <Lightbulb className="h-4 w-4 text-primary" />
                   <span className="hidden sm:inline">Insights</span>
