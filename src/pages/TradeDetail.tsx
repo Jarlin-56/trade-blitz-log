@@ -43,6 +43,20 @@ export default function TradeDetail() {
     enabled: !!id,
   });
 
+  const { data: metricRows = [] } = useQuery({
+    queryKey: ['trade-metric-values', 'detail', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('trade_metric_values')
+        .select('value, trade_metrics(name, unit, decimals, sort_order)')
+        .eq('trade_id', id!);
+      return (data ?? [])
+        .filter((r: any) => r.value != null && r.trade_metrics)
+        .sort((a: any, b: any) => (a.trade_metrics.sort_order ?? 0) - (b.trade_metrics.sort_order ?? 0));
+    },
+    enabled: !!id,
+  });
+
   const handleDelete = async () => {
     if (!confirm('Delete this trade?')) return;
     const imageUrl = (trade as any)?.image_url as string | null;
@@ -120,6 +134,23 @@ export default function TradeDetail() {
               <span className="text-sm text-muted-foreground">Tags</span>
               <div className="flex flex-wrap gap-1 mt-1">
                 {tags.map((t: string) => <Badge key={t} variant="secondary">#{t}</Badge>)}
+              </div>
+            </div>
+          )}
+
+          {metricRows.length > 0 && (
+            <div>
+              <span className="text-sm text-muted-foreground">Metrics</span>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {metricRows.map((r: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between rounded-md bg-accent/40 px-3 py-2 text-sm">
+                    <span className="truncate">{r.trade_metrics.name}</span>
+                    <span className="font-mono">
+                      {Number(r.value).toFixed(r.trade_metrics.decimals ?? 2)}
+                      {r.trade_metrics.unit ? ` ${r.trade_metrics.unit}` : ''}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
