@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import InsightsCard, { Insight } from '@/components/dashboard/InsightsCard';
 import StreakCard from '@/components/dashboard/StreakCard';
 import OnboardingWizard from '@/components/OnboardingWizard';
+import MetricsAnalysisCard from '@/components/dashboard/MetricsAnalysisCard';
+import { computeMetricStats, metricInsights, MetricDef, MetricValueRow } from '@/lib/metrics';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -53,6 +55,28 @@ export default function Dashboard() {
     },
     enabled: !!user,
   });
+
+  const { data: customMetrics = [] } = useQuery({
+    queryKey: ['trade-metrics', user?.id, activeProfile?.id],
+    queryFn: async () => {
+      let q = supabase.from('trade_metrics').select('*').order('sort_order');
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
+      return (data ?? []) as MetricDef[];
+    },
+    enabled: !!user,
+  });
+
+  const { data: metricValues = [] } = useQuery({
+    queryKey: ['trade-metric-values', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('trade_metric_values').select('trade_id, metric_id, value');
+      return (data ?? []) as MetricValueRow[];
+    },
+    enabled: !!user,
+  });
+
+
 
   const dateTrades = useMemo(() => {
     if (!dateRange) return trades;
@@ -423,6 +447,16 @@ export default function Dashboard() {
     return out;
   }, [executedTrades, conditionPerfTableData, dayData, tradeConditions]);
 
+  const metricStats = useMemo(
+    () => computeMetricStats(customMetrics.filter(m => m.is_active !== false), metricValues, dateTrades as any),
+    [customMetrics, metricValues, dateTrades]
+  );
+
+  const allInsights = useMemo<Insight[]>(
+    () => [...insights, ...metricInsights(metricStats).map(text => ({ text, tone: 'neutral' as const }))],
+    [insights, metricStats]
+  );
+
   const metrics: Metric[] = [
     { label: 'Total R', value: `${totalR >= 0 ? '+' : ''}${totalR.toFixed(2)}R`, color: totalR >= 0 ? 'text-win' : 'text-loss', icon: TrendingUp, glow: totalR >= 0 },
     { label: 'Win Rate', value: `${winRate}%`, color: 'text-foreground', icon: Target },
@@ -441,8 +475,8 @@ export default function Dashboard() {
         </div>
         {trades.length > 0 && (
           <div className="flex items-center gap-2">
-            {insights.length > 0 && (
-              <InsightsCard insights={insights} open={insightsOpen} onOpenChange={setInsightsOpen}>
+            {allInsights.length > 0 && (
+              <InsightsCard insights={allInsights} open={insightsOpen} onOpenChange={setInsightsOpen}>
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <Lightbulb className="h-4 w-4 text-primary" />
                   <span className="hidden sm:inline">Insights</span>
@@ -469,6 +503,7 @@ export default function Dashboard() {
             {metrics.map((m, i) => <MetricCard key={i} metric={m} />)}
           </div>
 
+          <MetricsAnalysisCard stats={metricStats} />
 
           <HoldingTimeCard {...holdingTime} />
 

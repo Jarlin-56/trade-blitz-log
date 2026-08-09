@@ -16,6 +16,7 @@ import { X } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 import StorageImage from '@/components/StorageImage';
 import { getSignedUrl, uploadImage, removeStorageImages } from '@/lib/storage';
+import type { MetricDef } from '@/lib/metrics';
 
 type TradeResult = Database['public']['Enums']['trade_result'];
 type TradeDirection = Database['public']['Enums']['trade_direction'];
@@ -50,6 +51,7 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
   const [durationHours, setDurationHours] = useState('');
   const [durationMins, setDurationMins] = useState('');
   const [recap, setRecap] = useState(prefill?.note || '');
+  const [metricValues, setMetricValues] = useState<Record<string, string>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [prefillImageUrl] = useState<string | null>(prefill?.image_url || null);
@@ -89,6 +91,17 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
     enabled: !!user,
   });
 
+  const { data: customMetrics = [] } = useQuery({
+    queryKey: ['trade-metrics', user?.id, activeProfile?.id],
+    queryFn: async () => {
+      let q = supabase.from('trade_metrics').select('*').eq('is_active', true).order('sort_order');
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
+      return (data ?? []) as MetricDef[];
+    },
+    enabled: !!user,
+  });
+
   // Load existing trade for edit mode
   useEffect(() => {
     if (!isEdit || !user) return;
@@ -107,12 +120,16 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
         setDurationHours(String(Math.floor(trade.duration_minutes / 60) || ''));
         setDurationMins(String(trade.duration_minutes % 60 || ''));
       }
-      const [{ data: tc }, { data: tt }] = await Promise.all([
+      const [{ data: tc }, { data: tt }, { data: tmv }] = await Promise.all([
         supabase.from('trade_conditions').select('condition_id').eq('trade_id', tradeId!),
         supabase.from('trade_tags').select('tag_id').eq('trade_id', tradeId!),
+        supabase.from('trade_metric_values').select('metric_id, value').eq('trade_id', tradeId!),
       ]);
       setSelectedConditions((tc ?? []).map((r: any) => r.condition_id));
       setSelectedTags((tt ?? []).map((r: any) => r.tag_id));
+      setMetricValues(
+        Object.fromEntries((tmv ?? []).filter((r: any) => r.value != null).map((r: any) => [r.metric_id, String(Number(r.value))]))
+      );
       setLoaded(true);
     })();
   }, [isEdit, tradeId, user, navigate]);
@@ -191,6 +208,17 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
         );
       }
 
+      // Custom metric values — replace the full set for this trade
+      await supabase.from('trade_metric_values').delete().eq('trade_id', savedId!);
+      const metricRows = customMetrics
+        .filter(m => metricValues[m.id] !== undefined && metricValues[m.id] !== '')
+        .map(m => ({ user_id: user.id, trade_id: savedId!, metric_id: m.id, value: Number(metricValues[m.id]) }))
+        .filter(r => Number.isFinite(r.value));
+      if (metricRows.length > 0) {
+        const { error: mvErr } = await supabase.from('trade_metric_values').insert(metricRows);
+        if (mvErr) throw mvErr;
+      }
+
       localStorage.setItem('lastTradingPair', asset.toUpperCase());
       if (quickNoteId) {
         await supabase.from('quick_notes' as any).update({ converted_trade_id: savedId }).eq('id', quickNoteId);
@@ -202,6 +230,7 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
       qc.invalidateQueries({ queryKey: ['trade-tags'] });
       qc.invalidateQueries({ queryKey: ['trade-conditions-all'] });
       qc.invalidateQueries({ queryKey: ['trade-tags-all'] });
+      qc.invalidateQueries({ queryKey: ['trade-metric-values'] });
 
       toast.success(isEdit ? 'อัปเดตไม้แล้ว' : 'Trade logged!');
       navigate(isEdit ? `/trades/${tradeId}` : '/trades');
@@ -351,6 +380,36 @@ export default function TradeForm({ tradeId }: { tradeId?: string }) {
                   <Checkbox checked={selectedConditions.includes(c.id)} onCheckedChange={() => toggleCondition(c.id)} />
                   <span className="text-sm">{c.name}</span>
                 </label>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Custom Metrics */}
+      {customMetrics.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Metrics</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {customMetrics.map(m => (
+                <div key={m.id} className="space-y-2">
+                  <Label>
+                    {m.name}
+                    {m.unit ? <span className="text-muted-foreground font-normal"> ({m.unit})</span> : null}
+                  </Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    inputMode="decimal"
+                    min={m.min_value ?? undefined}
+                    max={m.max_value ?? undefined}
+                    placeholder="-"
+                    value={metricValues[m.id] ?? ''}
+                    onChange={e => setMetricValues(prev => ({ ...prev, [m.id]: e.target.value }))}
+                    className="font-mono"
+                  />
+                </div>
               ))}
             </div>
           </CardContent>

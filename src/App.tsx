@@ -21,6 +21,7 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import SettingsConditions from "./pages/SettingsConditions";
 import SettingsTags from "./pages/SettingsTags";
+import SettingsMetrics from "./pages/SettingsMetrics";
 import CalendarPage from "./pages/CalendarPage";
 import RecapQuiz from "./pages/RecapQuiz";
 import Compare from "./pages/Compare";
@@ -93,6 +94,7 @@ const App = () => (
               <Route index element={<Navigate to="/settings/conditions" replace />} />
               <Route path="conditions" element={<SettingsConditions />} />
               <Route path="tags" element={<SettingsTags />} />
+              <Route path="metrics" element={<SettingsMetrics />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

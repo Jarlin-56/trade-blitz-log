@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 const settingsNav = [
   { to: '/settings/conditions', label: 'Conditions' },
   { to: '/settings/tags', label: 'Tags' },
+  { to: '/settings/metrics', label: 'Metrics' },
 ];
 
 export default function Settings() {
