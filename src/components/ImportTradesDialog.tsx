@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Upload, FileWarning } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseCsv } from '@/lib/csv';
+import { useQuery } from '@tanstack/react-query';
 
 type ParsedTrade = {
   asset: string;
@@ -18,6 +19,7 @@ type ParsedTrade = {
   missed_r: number;
   duration_minutes: number | null;
   recap_text: string | null;
+  metrics?: Record<string, number>;
 };
 
 const DIRECTIONS = ['Long', 'Short'] as const;
@@ -43,6 +45,17 @@ export default function ImportTradesDialog({
   const [errors, setErrors] = useState<string[]>([]);
   const [importing, setImporting] = useState(false);
 
+  const { data: customMetrics = [] } = useQuery({
+    queryKey: ['trade-metrics', user?.id, activeProfile?.id],
+    queryFn: async () => {
+      let q = supabase.from('trade_metrics').select('*').eq('is_active', true).order('sort_order');
+      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
+      const { data } = await q;
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const reset = () => { setRows([]); setErrors([]); };
 
   const handleFile = async (file: File) => {
@@ -64,6 +77,11 @@ export default function ImportTradesDialog({
       setErrors(['ไม่พบคอลัมน์ที่จำเป็น: Asset และ Result']);
       return;
     }
+
+    const metricIdx = customMetrics.map((m: any) => ({
+      id: m.id,
+      i: findIdx(headers, [m.unit ? `${m.name} (${m.unit})` : m.name, m.name]),
+    })).filter(x => x.i !== -1);
 
     const parsed: ParsedTrade[] = [];
     const errs: string[] = [];
@@ -96,6 +114,11 @@ export default function ImportTradesDialog({
         missed_r: result === 'Missed' ? Math.abs(num(idx.missed)) : 0,
         duration_minutes: durRaw ? parseInt(durRaw, 10) || null : null,
         recap_text: idx.recap === -1 ? null : (r[idx.recap] ?? '').trim() || null,
+        metrics: Object.fromEntries(
+          metricIdx
+            .map(({ id, i }) => [id, parseFloat((r[i] ?? '').replace(/[^0-9.-]/g, ''))] as const)
+            .filter(([, v]) => Number.isFinite(v))
+        ),
       });
     });
 
@@ -107,8 +130,16 @@ export default function ImportTradesDialog({
   const doImport = async () => {
     if (!user || rows.length === 0) return;
     setImporting(true);
-    const payload = rows.map(r => ({ ...r, user_id: user.id, profile_id: activeProfile?.id ?? null }));
-    const { error } = await supabase.from('trades').insert(payload as any);
+    const payload = rows.map(({ metrics, ...r }) => ({ ...r, user_id: user.id, profile_id: activeProfile?.id ?? null }));
+    const { data: inserted, error } = await supabase.from('trades').insert(payload as any).select('id');
+    if (!error && inserted) {
+      const mvRows = inserted.flatMap((t: any, i: number) =>
+        Object.entries(rows[i]?.metrics ?? {}).map(([metric_id, value]) => ({
+          user_id: user.id, trade_id: t.id, metric_id, value,
+        }))
+      );
+      if (mvRows.length > 0) await supabase.from('trade_metric_values').insert(mvRows);
+    }
     setImporting(false);
     if (error) { toast.error(error.message); return; }
     toast.success(`นำเข้า ${rows.length} ไม้แล้ว`);
