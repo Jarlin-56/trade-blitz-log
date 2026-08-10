@@ -107,11 +107,15 @@ export default function ImportTradesDialog({
 
       const parseNumber = (i: number) => {
         if (i === -1 || (r[i] ?? '').trim() === '') return null;
-        const value = Number((r[i] ?? '').replace(/[^0-9.-]/g, ''));
-        return Number.isFinite(value) ? value : null;
+        const raw = (r[i] ?? '').trim();
+        const cleaned = raw.replace(/,/g, '').replace(/[^0-9.eE+-]/g, '');
+        if (!cleaned) return Number.NaN;
+        const value = Number(cleaned);
+        return Number.isFinite(value) ? value : Number.NaN;
       };
       const earnedRaw = parseNumber(idx.earned);
       const missedRaw = parseNumber(idx.missed);
+      if (Number.isNaN(earnedRaw) || Number.isNaN(missedRaw)) { errs.push(`บรรทัด ${line}: ค่า R ต้องเป็นตัวเลข`); return; }
       if (result === 'Win' && (earnedRaw == null || earnedRaw <= 0)) { errs.push(`บรรทัด ${line}: Win ต้องมี Earned R มากกว่า 0`); return; }
       if (result === 'Missed' && (missedRaw == null || missedRaw <= 0)) { errs.push(`บรรทัด ${line}: Missed ต้องมี Missed R มากกว่า 0`); return; }
       const durRaw = idx.duration === -1 ? '' : (r[idx.duration] ?? '').trim();
@@ -121,10 +125,15 @@ export default function ImportTradesDialog({
       const metrics: Record<string, number> = {};
       for (const { id, i } of metricIdx) {
         const metric = customMetrics.find(m => m.id === id);
-        const value = i === -1 ? null : (r[i] ?? '').replace(/[^0-9.-]/g, '');
         if (!metric) continue;
-        const validation = validateMetricValue(value, metric);
-        if (validation?.ok === false) { errs.push(`บรรทัด ${line}: ${validation.error}`); return; }
+        const raw = (r[i] ?? '').trim();
+        if (!raw) continue;
+        const cleaned = raw.replace(/,/g, '').replace(/[^0-9.eE+-]/g, '');
+        const validation = validateMetricValue(cleaned, metric);
+        if (!cleaned || validation?.ok === false) {
+          errs.push(`บรรทัด ${line}: ${validation?.ok === false ? validation.error : `${metric.name} ต้องเป็นตัวเลข`}`);
+          return;
+        }
         if (validation?.ok === true) metrics[id] = validation.value;
       }
 

@@ -36,12 +36,13 @@ export default function SettingsMetrics() {
   const { data: metrics = [] } = useQuery({
     queryKey: ['trade-metrics', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trade_metrics').select('*').order('sort_order').order('created_at');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase.from('trade_metrics').select('*')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id).order('sort_order').order('created_at');
+      if (error) throw error;
       return (data ?? []) as TradeMetric[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const invalidate = () => {
@@ -76,7 +77,9 @@ export default function SettingsMetrics() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<TradeMetric> }) => {
-      const { error } = await supabase.from('trade_metrics').update(patch as any).eq('id', id);
+      if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อน');
+      const { error } = await supabase.from('trade_metrics').update(patch as any)
+        .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -85,7 +88,9 @@ export default function SettingsMetrics() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('trade_metrics').delete().eq('id', id);
+      if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อน');
+      const { error } = await supabase.from('trade_metrics').delete()
+        .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
       if (error) throw error;
     },
     onSuccess: () => { invalidate(); toast.success('ลบแล้ว'); },
