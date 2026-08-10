@@ -42,21 +42,27 @@ export default function Dashboard() {
   const { data: tradeConditions = [] } = useQuery({
     queryKey: ['trade_conditions_dashboard', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)');
+      if (!user || !activeProfile) return [];
+      const ids = trades.map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)').in('trade_id', ids);
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user && !!activeProfile,
+    enabled: !!user && !!activeProfile && trades.length > 0,
   });
 
   const { data: tradeTags = [] } = useQuery({
     queryKey: ['trade_tags_dashboard', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)');
+      if (!user || !activeProfile) return [];
+      const ids = trades.map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)').in('trade_id', ids);
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user && !!activeProfile,
+    enabled: !!user && !!activeProfile && trades.length > 0,
   });
 
   const { data: customMetrics = [] } = useQuery({

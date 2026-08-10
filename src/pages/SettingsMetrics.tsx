@@ -55,6 +55,10 @@ export default function SettingsMetrics() {
       if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อนเพิ่มฟิลด์');
       const validationError = validateMetricDefinition({ name, decimals, minValue, maxValue });
       if (validationError) throw new Error(validationError);
+      const normalizedName = name.trim().toLowerCase();
+      if (metrics.some(metric => metric.name.trim().toLowerCase() === normalizedName)) {
+        throw new Error('มีชื่อฟิลด์นี้ในโปรไฟล์แล้ว');
+      }
       const { error } = await supabase.from('trade_metrics').insert({
         user_id: user.id,
         profile_id: activeProfile.id,
@@ -98,14 +102,16 @@ export default function SettingsMetrics() {
   });
 
   const move = async (index: number, dir: -1 | 1) => {
+    if (!user || !activeProfile) return;
     const target = index + dir;
     if (target < 0 || target >= metrics.length) return;
     const a = metrics[index];
     const b = metrics[target];
-    await Promise.all([
-      supabase.from('trade_metrics').update({ sort_order: target } as any).eq('id', a.id),
-      supabase.from('trade_metrics').update({ sort_order: index } as any).eq('id', b.id),
-    ]);
+    const filters = (id: string) => supabase.from('trade_metrics').update({ sort_order: id === a.id ? target : index } as any)
+      .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
+    const results = await Promise.all([filters(a.id), filters(b.id)]);
+    const failed = results.find(result => result.error);
+    if (failed?.error) { toast.error(failed.error.message); return; }
     invalidate();
   };
 

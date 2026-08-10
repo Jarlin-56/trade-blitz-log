@@ -72,9 +72,13 @@ export default function RecapQuiz() {
   const { data: stats = [] } = useQuery({
     queryKey: ['quiz-stats', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('recap_quiz_attempts').select('direction_correct, enter_correct, score');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase
+        .from('recap_quiz_attempts')
+        .select('direction_correct, enter_correct, score')
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id);
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user && !!activeProfile,
@@ -116,25 +120,26 @@ export default function RecapQuiz() {
   }, [eligible, seenIds]);
 
   const reveal = async () => {
-    if (!current || !user || guessEnter === null) return;
+    if (!current || !user || !activeProfile || guessEnter === null) return;
     const dirCorrect = guessEnter === true && guessDir === current.direction;
-    // "เข้า" ถูก = ไม้นี้ผลเป็น Win/Break-even ถือว่าน่าเข้า; เทียบกับการตัดสินใจเข้า
-    const wasGood = current.result === 'Win';
+    // Win และ Break-even ถือว่าเป็นผลที่เข้าได้; Loss คือผลที่ไม่ควรเข้า
+    const wasGood = current.result === 'Win' || current.result === 'Break-even';
     const enterCorrect = (guessEnter === true && wasGood) || (guessEnter === false && !wasGood);
     const score = (dirCorrect ? 1 : 0) + (enterCorrect ? 1 : 0);
 
-    setPhase('revealed');
-
-    const { data: condData } = await supabase
+    const { data: condData, error: condError } = await supabase
       .from('trade_conditions')
       .select('conditions(name)')
       .eq('trade_id', current.id);
+    if (condError) {
+      toast.error(`โหลด condition ไม่สำเร็จ: ${condError.message}`);
+      return;
+    }
     const actualConds = (condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean) as string[];
-    setTradeConds(actualConds);
 
-    const { data: attempt } = await supabase.from('recap_quiz_attempts').insert({
+    const { data: attempt, error: attemptError } = await supabase.from('recap_quiz_attempts').insert({
       user_id: user.id,
-      profile_id: activeProfile?.id ?? null,
+      profile_id: activeProfile.id,
       trade_id: current.id,
       guess_enter: guessEnter,
       guess_direction: guessDir,
@@ -142,22 +147,33 @@ export default function RecapQuiz() {
       enter_correct: enterCorrect,
       score,
     } as any).select('id').single();
+    if (attemptError || !attempt?.id) {
+      toast.error(`บันทึกผล Quiz ไม่สำเร็จ: ${attemptError?.message ?? 'ไม่พบรหัสผลลัพธ์'}`);
+      return;
+    }
 
-    if (attempt?.id) {
-      const allNames = Array.from(new Set([...guessConds, ...actualConds]));
-      const rows = allNames.map((name) => ({
-        attempt_id: attempt.id,
-        user_id: user.id,
-        profile_id: activeProfile?.id ?? null,
-        condition_name: name,
-        guessed: guessConds.includes(name),
-        actual: actualConds.includes(name),
-      }));
-      if (rows.length > 0) {
-        await supabase.from('recap_quiz_condition_results').insert(rows as any);
+    const allNames = Array.from(new Set([...guessConds, ...actualConds]));
+    const rows = allNames.map((name) => ({
+      attempt_id: attempt.id,
+      user_id: user.id,
+      profile_id: activeProfile.id,
+      condition_name: name,
+      guessed: guessConds.includes(name),
+      actual: actualConds.includes(name),
+    }));
+    if (rows.length > 0) {
+      const { error: conditionResultError } = await supabase
+        .from('recap_quiz_condition_results').insert(rows as any);
+      if (conditionResultError) {
+        await supabase.from('recap_quiz_attempts').delete()
+          .eq('id', attempt.id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
+        toast.error(`บันทึกคะแนน condition ไม่สำเร็จ: ${conditionResultError.message}`);
+        return;
       }
     }
 
+    setTradeConds(actualConds);
+    setPhase('revealed');
     queryClient.invalidateQueries({ queryKey: ['quiz-stats'] });
     queryClient.invalidateQueries({ queryKey: ['quiz-cond-stats'] });
   };

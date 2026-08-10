@@ -158,11 +158,13 @@ export default function ImportTradesDialog({
   const doImport = async () => {
     if (!user || !activeProfile || rows.length === 0) return;
     setImporting(true);
+    let insertedIds: string[] = [];
     try {
       const payload = rows.map(({ metrics, ...r }) => ({ ...r, user_id: user.id, profile_id: activeProfile.id }));
       const { data: inserted, error } = await supabase.from('trades').insert(payload as any).select('id');
       if (error) throw error;
       if (!inserted || inserted.length !== rows.length) throw new Error('นำเข้าข้อมูลได้ไม่ครบทุกแถว');
+      insertedIds = inserted.map((trade: any) => trade.id);
 
       const mvRows = inserted.flatMap((t: any, i: number) =>
         Object.entries(rows[i]?.metrics ?? {}).map(([metric_id, value]) => ({
@@ -171,7 +173,10 @@ export default function ImportTradesDialog({
       );
       if (mvRows.length > 0) {
         const { error: metricError } = await supabase.from('trade_metric_values').insert(mvRows);
-        if (metricError) throw metricError;
+        if (metricError) {
+          await supabase.from('trades').delete().eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', insertedIds);
+          throw new Error(`บันทึกค่าตัวเลขไม่สำเร็จ จึงยกเลิกการนำเข้าทั้งหมด: ${metricError.message}`);
+        }
       }
       toast.success(`นำเข้า ${rows.length} ไม้แล้ว`);
       reset();

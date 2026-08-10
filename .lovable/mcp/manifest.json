@@ -217,6 +217,7 @@
           "properties": {
             "asset": {
               "type": "string",
+              "minLength": 1,
               "description": "Asset / symbol traded."
             },
             "direction": {
@@ -239,18 +240,26 @@
               "description": "Trade result."
             },
             "earned_r": {
-              "type": [
-                "number",
-                "null"
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
               ],
-              "description": "R multiple earned (negative for losses). Default 0."
+              "description": "R multiple earned. Win must be positive; Loss is -1; other results are 0."
             },
             "missed_r": {
-              "type": [
-                "number",
-                "null"
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
               ],
-              "description": "R left on the table. Default 0."
+              "description": "R left on the table. Missed must be positive; otherwise 0."
             },
             "entry_date": {
               "type": [
@@ -262,7 +271,8 @@
             "duration_minutes": {
               "anyOf": [
                 {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": 0
                 },
                 {
                   "type": "null"
@@ -282,7 +292,8 @@
                 {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                   }
                 },
                 {

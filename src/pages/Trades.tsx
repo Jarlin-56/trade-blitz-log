@@ -127,7 +127,13 @@ export default function Trades() {
   const { data: tradeConditions = [] } = useQuery({
     queryKey: ['trade-conditions-all', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)');
+      if (!user || !activeProfile) return [];
+      const { data: profileTrades, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (tradeError) throw tradeError;
+      const ids = (profileTrades ?? []).map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)').in('trade_id', ids);
       if (error) throw error;
       return data ?? [];
     },
@@ -137,7 +143,13 @@ export default function Trades() {
   const { data: tradeTags = [] } = useQuery({
     queryKey: ['trade-tags-all', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)');
+      if (!user || !activeProfile) return [];
+      const { data: profileTrades, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (tradeError) throw tradeError;
+      const ids = (profileTrades ?? []).map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)').in('trade_id', ids);
       if (error) throw error;
       return data ?? [];
     },
@@ -264,8 +276,13 @@ export default function Trades() {
   const bulkDelete = async () => {
     if (!user || !activeProfile || selected.length === 0) return;
     setBusy(true);
-    const { data: rows } = await supabase.from('trades').select('image_url')
+    const { data: rows, error: fetchError } = await supabase.from('trades').select('image_url')
       .eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', selected);
+    if (fetchError) {
+      setBusy(false);
+      toast({ title: 'อ่านข้อมูลก่อนลบไม่สำเร็จ', description: fetchError.message, variant: 'destructive' });
+      return;
+    }
     const { error } = await supabase.from('trades').delete()
       .eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', selected);
     setBusy(false);
