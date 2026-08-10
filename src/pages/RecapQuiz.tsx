@@ -46,12 +46,13 @@ export default function RecapQuiz() {
   const [tradeConds, setTradeConds] = useState<string[]>([]);
 
   const { data: allConditions = [] } = useQuery({
-    queryKey: ['quiz-conditions', user?.id],
+    queryKey: ['quiz-conditions', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('conditions').select('id, name').order('name');
+      const { data, error } = await supabase.from('conditions').select('id, name').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return (data ?? []) as { id: string; name: string }[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: trades = [] } = useQuery({
