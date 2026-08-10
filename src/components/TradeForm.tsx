@@ -17,6 +17,7 @@ import type { Database } from '@/integrations/supabase/types';
 import StorageImage from '@/components/StorageImage';
 import { getSignedUrl, uploadImage, removeStorageImages } from '@/lib/storage';
 import type { MetricDef } from '@/lib/metrics';
+import { validateMetricValue } from '@/lib/metric-validation';
 
 type TradeResult = Database['public']['Enums']['trade_result'];
 type TradeDirection = Database['public']['Enums']['trade_direction'];
@@ -92,7 +93,8 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   const { data: conditions = [] } = useQuery({
     queryKey: ['conditions', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('conditions').select('*').order('name');
+      const { data, error } = await supabase.from('conditions').select('*').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,
@@ -101,7 +103,8 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   const { data: tags = [] } = useQuery({
     queryKey: ['tags', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('tags').select('*').order('name');
+      const { data, error } = await supabase.from('tags').select('*').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,
@@ -110,12 +113,18 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   const { data: customMetrics = [] } = useQuery({
     queryKey: ['trade-metrics', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trade_metrics').select('*').eq('is_active', true).order('sort_order');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!activeProfile) return [];
+      const { data, error } = await supabase
+        .from('trade_metrics')
+        .select('*')
+        .eq('user_id', user?.id ?? '')
+        .eq('profile_id', activeProfile.id)
+        .eq('is_active', true)
+        .order('sort_order');
+      if (error) throw error;
       return (data ?? []) as MetricDef[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   // Load existing trade for edit mode

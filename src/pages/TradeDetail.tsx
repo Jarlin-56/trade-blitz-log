@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,15 +15,24 @@ import { removeStorageImages } from '@/lib/storage';
 export default function TradeDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const navigate = useNavigate();
 
   const { data: trade } = useQuery({
-    queryKey: ['trade', id],
+    queryKey: ['trade', id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trades').select('*').eq('id', id!).single();
+      if (!id || !user || !activeProfile) return null;
+      const { data, error } = await supabase
+        .from('trades')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id)
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
-    enabled: !!id && !!user,
+    enabled: !!id && !!user && !!activeProfile,
   });
 
   const { data: conditions = [] } = useQuery({
