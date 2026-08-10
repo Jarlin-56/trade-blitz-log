@@ -129,10 +129,16 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
 
   // Load existing trade for edit mode
   useEffect(() => {
-    if (!isEdit || !user) return;
+    if (!isEdit || !user || !activeProfile) return;
     (async () => {
-      const { data: trade, error } = await supabase.from('trades').select('*').eq('id', tradeId!).single();
-      if (error || !trade) { toast.error('ไม่พบไม้นี้'); navigate('/trades'); return; }
+      const { data: trade, error } = await supabase
+        .from('trades')
+        .select('*')
+        .eq('id', tradeId ?? '')
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id)
+        .maybeSingle();
+      if (error || !trade) { toast.error('ไม่พบไม้นี้ในโปรไฟล์ปัจจุบัน'); navigate('/trades'); return; }
       setAsset(trade.asset);
       setDirection(trade.direction);
       setEntryDate(toLocalInput(trade.entry_date));
@@ -146,9 +152,9 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
         setDurationMins(String(trade.duration_minutes % 60 || ''));
       }
       const [{ data: tc }, { data: tt }, { data: tmv }] = await Promise.all([
-        supabase.from('trade_conditions').select('condition_id').eq('trade_id', tradeId!),
-        supabase.from('trade_tags').select('tag_id').eq('trade_id', tradeId!),
-        supabase.from('trade_metric_values').select('metric_id, value').eq('trade_id', tradeId!),
+        supabase.from('trade_conditions').select('condition_id').eq('trade_id', tradeId ?? ''),
+        supabase.from('trade_tags').select('tag_id').eq('trade_id', tradeId ?? ''),
+        supabase.from('trade_metric_values').select('metric_id, value').eq('trade_id', tradeId ?? '').eq('user_id', user.id),
       ]);
       setSelectedConditions((tc ?? []).map((r: any) => r.condition_id));
       setSelectedTags((tt ?? []).map((r: any) => r.tag_id));
@@ -157,7 +163,7 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
       );
       setLoaded(true);
     })();
-  }, [isEdit, tradeId, user, navigate]);
+  }, [isEdit, tradeId, user, activeProfile, navigate]);
 
   const getEarnedRValue = (): number => {
     if (result === 'Loss') return -1;
@@ -169,14 +175,24 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !result || !asset) return;
-    if (result === 'Win' && (!earnedR || parseFloat(earnedR) <= 0)) {
+    if (!user || !activeProfile || !result || !asset.trim()) return;
+    if (result === 'Win' && (!earnedR || !Number.isFinite(Number(earnedR)) || Number(earnedR) <= 0)) {
       toast.error('Please enter a positive R value for wins');
       return;
     }
-    if (result === 'Missed' && (!missedR || parseFloat(missedR) <= 0)) {
+    if (result === 'Missed' && (!missedR || !Number.isFinite(Number(missedR)) || Number(missedR) <= 0)) {
       toast.error('Please enter a positive Missed R value');
       return;
+    }
+    const metricRows = [];
+    for (const metric of customMetrics) {
+      const raw = metricValues[metric.id];
+      const validation = validateMetricValue(raw, metric);
+      if (validation && !validation.ok) {
+        toast.error(validation.error);
+        return;
+      }
+      if (validation?.ok) metricRows.push({ user_id: user.id, metric_id: metric.id, value: validation.value });
     }
 
     setSubmitting(true);
@@ -208,39 +224,52 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
       let savedId = tradeId;
 
       if (isEdit) {
-        const { error } = await supabase.from('trades').update(payload as any).eq('id', tradeId!);
+        const { error } = await supabase
+          .from('trades')
+          .update(payload as any)
+          .eq('id', tradeId ?? '')
+          .eq('user_id', user.id)
+          .eq('profile_id', activeProfile.id);
         if (error) throw error;
-        await supabase.from('trade_conditions').delete().eq('trade_id', tradeId!);
-        await supabase.from('trade_tags').delete().eq('trade_id', tradeId!);
+        const { error: conditionDeleteError } = await supabase.from('trade_conditions').delete().eq('trade_id', tradeId ?? '');
+        if (conditionDeleteError) throw conditionDeleteError;
+        const { error: tagDeleteError } = await supabase.from('trade_tags').delete().eq('trade_id', tradeId ?? '');
+        if (tagDeleteError) throw tagDeleteError;
       } else {
         const { data: trade, error } = await supabase
           .from('trades')
-          .insert({ ...payload, user_id: user.id, profile_id: activeProfile?.id ?? null } as any)
+          .insert({ ...payload, user_id: user.id, profile_id: activeProfile.id } as any)
           .select()
           .single();
         if (error) throw error;
         savedId = trade.id;
       }
 
+      if (!savedId) throw new Error('ไม่พบรหัสไม้ที่บันทึก');
       if (selectedConditions.length > 0) {
-        await supabase.from('trade_conditions').insert(
-          selectedConditions.map(cid => ({ trade_id: savedId!, condition_id: cid }))
+        const { error } = await supabase.from('trade_conditions').insert(
+          selectedConditions.map(cid => ({ trade_id: savedId, condition_id: cid }))
         );
+        if (error) throw error;
       }
       if (selectedTags.length > 0) {
-        await supabase.from('trade_tags').insert(
-          selectedTags.map(tid => ({ trade_id: savedId!, tag_id: tid }))
+        const { error } = await supabase.from('trade_tags').insert(
+          selectedTags.map(tid => ({ trade_id: savedId, tag_id: tid }))
         );
+        if (error) throw error;
       }
 
       // Custom metric values — replace the full set for this trade
-      await supabase.from('trade_metric_values').delete().eq('trade_id', savedId!);
-      const metricRows = customMetrics
-        .filter(m => metricValues[m.id] !== undefined && metricValues[m.id] !== '')
-        .map(m => ({ user_id: user.id, trade_id: savedId!, metric_id: m.id, value: Number(metricValues[m.id]) }))
-        .filter(r => Number.isFinite(r.value));
+      const { error: metricDeleteError } = await supabase
+        .from('trade_metric_values')
+        .delete()
+        .eq('trade_id', savedId)
+        .eq('user_id', user.id);
+      if (metricDeleteError) throw metricDeleteError;
       if (metricRows.length > 0) {
-        const { error: mvErr } = await supabase.from('trade_metric_values').insert(metricRows);
+        const { error: mvErr } = await supabase.from('trade_metric_values').insert(
+          metricRows.map(row => ({ ...row, trade_id: savedId }))
+        );
         if (mvErr) throw mvErr;
       }
 
