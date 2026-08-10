@@ -115,9 +115,10 @@ export default function Trades() {
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trades').select('*').order('entry_date', { ascending: false });
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase.from('trades').select('*')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id).order('entry_date', { ascending: false });
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user && !!activeProfile,

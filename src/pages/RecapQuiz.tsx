@@ -58,11 +58,12 @@ export default function RecapQuiz() {
   const { data: trades = [] } = useQuery({
     queryKey: ['quiz-trades', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase
         .from('trades')
-        .select('id, asset, direction, entry_date, result, earned_r, missed_r, recap_text, image_url');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+        .select('id, asset, direction, entry_date, result, earned_r, missed_r, recap_text, image_url')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (error) throw error;
       return (data ?? []) as Trade[];
     },
     enabled: !!user && !!activeProfile,
