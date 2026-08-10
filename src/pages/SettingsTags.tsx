@@ -15,7 +15,8 @@ export default function SettingsTags() {
   const { data: tags = [] } = useQuery({
     queryKey: ['tags', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('tags').select('*').order('name');
+      const { data, error } = await supabase.from('tags').select('*').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,

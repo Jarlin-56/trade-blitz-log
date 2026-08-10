@@ -33,7 +33,8 @@ export default function OnboardingWizard() {
   const { data: conditions, isLoading } = useQuery({
     queryKey: ['conditions', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('conditions').select('*').order('name');
+      const { data, error } = await supabase.from('conditions').select('*').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,
