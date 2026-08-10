@@ -15,10 +15,12 @@ export default function Compare() {
   const { data: trades = [] } = useQuery({
     queryKey: ['trades-all-profiles', user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      if (!user) return [];
+      const { data, error } = await supabase
         .from('trades')
         .select('id, profile_id, result, earned_r, missed_r, entry_date')
-        .order('entry_date', { ascending: false });
+        .eq('user_id', user.id).order('entry_date', { ascending: false });
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,

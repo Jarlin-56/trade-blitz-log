@@ -30,50 +30,68 @@ export default function Dashboard() {
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trades').select('*').order('entry_date', { ascending: true });
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase.from('trades').select('*')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id).order('entry_date', { ascending: true });
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user && !!activeProfile,
   });
 
   const { data: tradeConditions = [] } = useQuery({
-    queryKey: ['trade_conditions_dashboard', user?.id],
+    queryKey: ['trade_conditions_dashboard', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)');
+      if (!user || !activeProfile) return [];
+      const ids = trades.map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)').in('trade_id', ids);
+      if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile && trades.length > 0,
   });
 
   const { data: tradeTags = [] } = useQuery({
-    queryKey: ['trade_tags_dashboard', user?.id],
+    queryKey: ['trade_tags_dashboard', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)');
+      if (!user || !activeProfile) return [];
+      const ids = trades.map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)').in('trade_id', ids);
+      if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile && trades.length > 0,
   });
 
   const { data: customMetrics = [] } = useQuery({
     queryKey: ['trade-metrics', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trade_metrics').select('*').order('sort_order');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!activeProfile) return [];
+      const { data, error } = await supabase.from('trade_metrics').select('*')
+        .eq('user_id', user?.id ?? '').eq('profile_id', activeProfile.id).order('sort_order');
+      if (error) throw error;
       return (data ?? []) as MetricDef[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: metricValues = [] } = useQuery({
-    queryKey: ['trade-metric-values', user?.id],
+    queryKey: ['trade-metric-values', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_metric_values').select('trade_id, metric_id, value');
+      if (!user || !activeProfile) return [];
+      const { data: profileTrades, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (tradeError) throw tradeError;
+      const ids = (profileTrades ?? []).map(t => t.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_metric_values').select('trade_id, metric_id, value')
+        .in('trade_id', ids).eq('user_id', user.id);
+      if (error) throw error;
       return (data ?? []) as MetricValueRow[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
 

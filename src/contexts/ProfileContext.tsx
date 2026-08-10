@@ -53,9 +53,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const switchProfile = async (profileId: string) => {
     if (!user) return;
-    // Deactivate all, activate chosen
-    await supabase.from('profiles').update({ is_active: false } as any).eq('user_id', user.id);
-    await supabase.from('profiles').update({ is_active: true } as any).eq('id', profileId);
+    const { data: target, error: targetError } = await supabase
+      .from('profiles').select('id').eq('id', profileId).eq('user_id', user.id).maybeSingle();
+    if (targetError) throw targetError;
+    if (!target) throw new Error('ไม่พบโปรไฟล์นี้');
+
+    const { error: deactivateError } = await supabase
+      .from('profiles').update({ is_active: false } as any).eq('user_id', user.id);
+    if (deactivateError) throw deactivateError;
+    const { error: activateError } = await supabase
+      .from('profiles').update({ is_active: true } as any).eq('id', profileId).eq('user_id', user.id);
+    if (activateError) throw activateError;
     await fetchProfiles();
   };
 

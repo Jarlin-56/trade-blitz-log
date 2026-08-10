@@ -46,12 +46,17 @@ export default function Notes() {
   const { data: notes = [], isLoading } = useQuery({
     queryKey: ['quick_notes', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('quick_notes' as any).select('*').order('created_at', { ascending: false });
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase
+        .from('quick_notes' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
       return ((data as any[]) ?? []) as Note[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const pending = notes.filter(n => !n.converted_trade_id);

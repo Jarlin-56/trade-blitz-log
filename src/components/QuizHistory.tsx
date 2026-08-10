@@ -37,11 +37,13 @@ export default function QuizHistory() {
   const { data: rows = [] } = useQuery({
     queryKey: ['quiz-cond-stats', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase
         .from('recap_quiz_condition_results')
-        .select('condition_name, guessed, actual');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+        .select('condition_name, guessed, actual')
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id);
+      if (error) throw error;
       return (data ?? []) as Row[];
     },
     enabled: !!user && !!activeProfile,
@@ -49,19 +51,21 @@ export default function QuizHistory() {
 
   const resetMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error('กรุณาเข้าสู่ระบบก่อน');
-      // ลบ condition_results ก่อน (FK reference)
-      let condQ = supabase.from('recap_quiz_condition_results').delete();
-      if (activeProfile?.id) condQ = condQ.eq('profile_id', activeProfile.id);
-      else condQ = condQ.eq('user_id', user.id);
-      const { error: condError } = await condQ;
+      if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อนรีเซ็ต');
+      // ลบ condition_results ก่อน (FK reference) โดยล็อกทั้ง user และ profile
+      const { error: condError } = await supabase
+        .from('recap_quiz_condition_results')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id);
       if (condError) throw condError;
 
-      // ลบ attempts
-      let attemptQ = supabase.from('recap_quiz_attempts').delete();
-      if (activeProfile?.id) attemptQ = attemptQ.eq('profile_id', activeProfile.id);
-      else attemptQ = attemptQ.eq('user_id', user.id);
-      const { error: attemptError } = await attemptQ;
+      // ลบ attempts เฉพาะของ profile ปัจจุบัน
+      const { error: attemptError } = await supabase
+        .from('recap_quiz_attempts')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id);
       if (attemptError) throw attemptError;
     },
     onSuccess: () => {

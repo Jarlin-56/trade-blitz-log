@@ -36,7 +36,8 @@ export default function SetupAnalyzer({ trades, tradeConditions }: Props) {
   const { data: allConditions = [] } = useQuery({
     queryKey: ['conditions', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('conditions').select('id, name').order('name');
+      const { data, error } = await supabase.from('conditions').select('id, name').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,

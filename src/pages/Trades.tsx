@@ -67,7 +67,8 @@ export default function Trades() {
   const { data: allConditions = [] } = useQuery({
     queryKey: ['conditions', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('conditions').select('id, name').order('name');
+      const { data, error } = await supabase.from('conditions').select('id, name').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,
@@ -76,7 +77,8 @@ export default function Trades() {
   const { data: allTags = [] } = useQuery({
     queryKey: ['tags', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('tags').select('id, name').order('name');
+      const { data, error } = await supabase.from('tags').select('id, name').eq('user_id', user?.id ?? '').order('name');
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user,
@@ -85,50 +87,73 @@ export default function Trades() {
   const { data: customMetrics = [] } = useQuery({
     queryKey: ['trade-metrics', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trade_metrics').select('*').order('sort_order');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!activeProfile) return [];
+      const { data, error } = await supabase.from('trade_metrics').select('*')
+        .eq('user_id', user?.id ?? '').eq('profile_id', activeProfile.id).order('sort_order');
+      if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: metricValues = [] } = useQuery({
-    queryKey: ['trade-metric-values', user?.id],
+    queryKey: ['trade-metric-values', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_metric_values').select('trade_id, metric_id, value');
+      if (!user || !activeProfile) return [];
+      const { data: profileTrades, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (tradeError) throw tradeError;
+      const ids = (profileTrades ?? []).map(t => t.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_metric_values').select('trade_id, metric_id, value').in('trade_id', ids).eq('user_id', user.id);
+      if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: trades = [] } = useQuery({
     queryKey: ['trades', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trades').select('*').order('entry_date', { ascending: false });
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase.from('trades').select('*')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id).order('entry_date', { ascending: false });
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!user && !!activeProfile,
   });
 
   const { data: tradeConditions = [] } = useQuery({
-    queryKey: ['trade-conditions-all', user?.id],
+    queryKey: ['trade-conditions-all', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)');
+      if (!user || !activeProfile) return [];
+      const { data: profileTrades, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (tradeError) throw tradeError;
+      const ids = (profileTrades ?? []).map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_conditions').select('trade_id, condition_id, conditions(name)').in('trade_id', ids);
+      if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const { data: tradeTags = [] } = useQuery({
-    queryKey: ['trade-tags-all', user?.id],
+    queryKey: ['trade-tags-all', user?.id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)');
+      if (!user || !activeProfile) return [];
+      const { data: profileTrades, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (tradeError) throw tradeError;
+      const ids = (profileTrades ?? []).map(trade => trade.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase.from('trade_tags').select('trade_id, tag_id, tags(name)').in('trade_id', ids);
+      if (error) throw error;
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const activeConditionNames = useMemo(() => {
@@ -249,9 +274,17 @@ export default function Trades() {
   };
 
   const bulkDelete = async () => {
+    if (!user || !activeProfile || selected.length === 0) return;
     setBusy(true);
-    const { data: rows } = await supabase.from('trades').select('image_url').in('id', selected);
-    const { error } = await supabase.from('trades').delete().in('id', selected);
+    const { data: rows, error: fetchError } = await supabase.from('trades').select('image_url')
+      .eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', selected);
+    if (fetchError) {
+      setBusy(false);
+      toast({ title: 'อ่านข้อมูลก่อนลบไม่สำเร็จ', description: fetchError.message, variant: 'destructive' });
+      return;
+    }
+    const { error } = await supabase.from('trades').delete()
+      .eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', selected);
     setBusy(false);
     setConfirmDelete(false);
     if (error) {
@@ -265,6 +298,7 @@ export default function Trades() {
   };
 
   const bulkAddTag = async (tagId: string, tagName: string) => {
+    if (!user || !activeProfile) return;
     setBusy(true);
     const existing = new Set(
       tradeTags.filter((tt: any) => tt.tag_id === tagId).map((tt: any) => tt.trade_id),

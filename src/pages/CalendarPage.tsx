@@ -33,12 +33,13 @@ export default function CalendarPage() {
     queryKey: ['calendar-trades', user?.id, activeProfile?.id, format(monthStart, 'yyyy-MM')],
     queryFn: async () => {
       if (!user || !activeProfile) return [];
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('trades')
         .select('id, entry_date, earned_r, result, asset, direction')
-        .eq('profile_id', activeProfile.id)
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id)
         .gte('entry_date', calStart.toISOString())
         .lte('entry_date', calEnd.toISOString());
+      if (error) throw error;
       return data || [];
     },
     enabled: !!user && !!activeProfile,
@@ -47,10 +48,11 @@ export default function CalendarPage() {
     queryKey: ['trades-count', user?.id, activeProfile?.id],
     queryFn: async () => {
       if (!activeProfile) return 0;
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from('trades')
         .select('id', { count: 'exact', head: true })
-        .eq('profile_id', activeProfile.id);
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id);
+      if (error) throw error;
       return count ?? 0;
     },
     enabled: !!user && !!activeProfile,

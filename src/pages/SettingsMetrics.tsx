@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { validateMetricDefinition } from '@/lib/metric-validation';
 
 export interface TradeMetric {
   id: string;
@@ -35,12 +36,13 @@ export default function SettingsMetrics() {
   const { data: metrics = [] } = useQuery({
     queryKey: ['trade-metrics', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trade_metrics').select('*').order('sort_order').order('created_at');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase.from('trade_metrics').select('*')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id).order('sort_order').order('created_at');
+      if (error) throw error;
       return (data ?? []) as TradeMetric[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const invalidate = () => {
@@ -50,12 +52,19 @@ export default function SettingsMetrics() {
 
   const addMutation = useMutation({
     mutationFn: async () => {
+      if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อนเพิ่มฟิลด์');
+      const validationError = validateMetricDefinition({ name, decimals, minValue, maxValue });
+      if (validationError) throw new Error(validationError);
+      const normalizedName = name.trim().toLowerCase();
+      if (metrics.some(metric => metric.name.trim().toLowerCase() === normalizedName)) {
+        throw new Error('มีชื่อฟิลด์นี้ในโปรไฟล์แล้ว');
+      }
       const { error } = await supabase.from('trade_metrics').insert({
-        user_id: user!.id,
-        profile_id: activeProfile?.id ?? null,
+        user_id: user.id,
+        profile_id: activeProfile.id,
         name: name.trim(),
         unit: unit.trim() || null,
-        decimals: Math.max(0, Math.min(6, parseInt(decimals) || 0)),
+        decimals: Number(decimals),
         min_value: minValue === '' ? null : Number(minValue),
         max_value: maxValue === '' ? null : Number(maxValue),
         sort_order: metrics.length,
@@ -72,7 +81,9 @@ export default function SettingsMetrics() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<TradeMetric> }) => {
-      const { error } = await supabase.from('trade_metrics').update(patch as any).eq('id', id);
+      if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อน');
+      const { error } = await supabase.from('trade_metrics').update(patch as any)
+        .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -81,7 +92,9 @@ export default function SettingsMetrics() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('trade_metrics').delete().eq('id', id);
+      if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อน');
+      const { error } = await supabase.from('trade_metrics').delete()
+        .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
       if (error) throw error;
     },
     onSuccess: () => { invalidate(); toast.success('ลบแล้ว'); },
@@ -89,14 +102,16 @@ export default function SettingsMetrics() {
   });
 
   const move = async (index: number, dir: -1 | 1) => {
+    if (!user || !activeProfile) return;
     const target = index + dir;
     if (target < 0 || target >= metrics.length) return;
     const a = metrics[index];
     const b = metrics[target];
-    await Promise.all([
-      supabase.from('trade_metrics').update({ sort_order: target } as any).eq('id', a.id),
-      supabase.from('trade_metrics').update({ sort_order: index } as any).eq('id', b.id),
-    ]);
+    const filters = (id: string) => supabase.from('trade_metrics').update({ sort_order: id === a.id ? target : index } as any)
+      .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
+    const results = await Promise.all([filters(a.id), filters(b.id)]);
+    const failed = results.find(result => result.error);
+    if (failed?.error) { toast.error(failed.error.message); return; }
     invalidate();
   };
 
@@ -107,7 +122,7 @@ export default function SettingsMetrics() {
       </p>
 
       <form
-        onSubmit={e => { e.preventDefault(); if (name.trim()) addMutation.mutate(); }}
+        onSubmit={e => { e.preventDefault(); addMutation.mutate(); }}
         className="space-y-3 rounded-lg border border-border p-4"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

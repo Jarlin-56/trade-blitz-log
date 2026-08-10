@@ -9,6 +9,8 @@ import { Upload, FileWarning } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseCsv } from '@/lib/csv';
 import { useQuery } from '@tanstack/react-query';
+import type { MetricDef } from '@/lib/metrics';
+import { validateMetricValue } from '@/lib/metric-validation';
 
 type ParsedTrade = {
   asset: string;
@@ -48,12 +50,13 @@ export default function ImportTradesDialog({
   const { data: customMetrics = [] } = useQuery({
     queryKey: ['trade-metrics', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trade_metrics').select('*').eq('is_active', true).order('sort_order');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
-      return data ?? [];
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase.from('trade_metrics').select('*')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id).eq('is_active', true).order('sort_order');
+      if (error) throw error;
+      return (data ?? []) as MetricDef[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const reset = () => { setRows([]); setErrors([]); };
@@ -102,23 +105,48 @@ export default function ImportTradesDialog({
       const parsedDate = dateRaw ? new Date(dateRaw) : new Date();
       if (isNaN(parsedDate.getTime())) { errs.push(`บรรทัด ${line}: วันที่อ่านไม่ออก (${dateRaw})`); return; }
 
-      const num = (i: number) => (i === -1 ? 0 : parseFloat((r[i] ?? '').replace(/[^0-9.-]/g, '')) || 0);
+      const parseNumber = (i: number) => {
+        if (i === -1 || (r[i] ?? '').trim() === '') return null;
+        const raw = (r[i] ?? '').trim();
+        const cleaned = raw.replace(/,/g, '').replace(/[^0-9.eE+-]/g, '');
+        if (!cleaned) return Number.NaN;
+        const value = Number(cleaned);
+        return Number.isFinite(value) ? value : Number.NaN;
+      };
+      const earnedRaw = parseNumber(idx.earned);
+      const missedRaw = parseNumber(idx.missed);
+      if (Number.isNaN(earnedRaw) || Number.isNaN(missedRaw)) { errs.push(`บรรทัด ${line}: ค่า R ต้องเป็นตัวเลข`); return; }
+      if (result === 'Win' && (earnedRaw == null || earnedRaw <= 0)) { errs.push(`บรรทัด ${line}: Win ต้องมี Earned R มากกว่า 0`); return; }
+      if (result === 'Missed' && (missedRaw == null || missedRaw <= 0)) { errs.push(`บรรทัด ${line}: Missed ต้องมี Missed R มากกว่า 0`); return; }
       const durRaw = idx.duration === -1 ? '' : (r[idx.duration] ?? '').trim();
+      const duration = durRaw ? Number(durRaw) : null;
+      if (duration != null && (!Number.isInteger(duration) || duration < 0)) { errs.push(`บรรทัด ${line}: Duration ต้องเป็นจำนวนนาทีที่ไม่ติดลบ`); return; }
+
+      const metrics: Record<string, number> = {};
+      for (const { id, i } of metricIdx) {
+        const metric = customMetrics.find(m => m.id === id);
+        if (!metric) continue;
+        const raw = (r[i] ?? '').trim();
+        if (!raw) continue;
+        const cleaned = raw.replace(/,/g, '').replace(/[^0-9.eE+-]/g, '');
+        const validation = validateMetricValue(cleaned, metric);
+        if (!cleaned || validation?.ok === false) {
+          errs.push(`บรรทัด ${line}: ${validation?.ok === false ? validation.error : `${metric.name} ต้องเป็นตัวเลข`}`);
+          return;
+        }
+        if (validation?.ok === true) metrics[id] = validation.value;
+      }
 
       parsed.push({
         asset,
         direction,
         result,
         entry_date: parsedDate.toISOString(),
-        earned_r: result === 'Loss' ? -1 : result === 'Win' ? num(idx.earned) : 0,
-        missed_r: result === 'Missed' ? Math.abs(num(idx.missed)) : 0,
-        duration_minutes: durRaw ? parseInt(durRaw, 10) || null : null,
+        earned_r: result === 'Loss' ? -1 : result === 'Win' ? earnedRaw ?? 0 : 0,
+        missed_r: result === 'Missed' ? Math.abs(missedRaw ?? 0) : 0,
+        duration_minutes: duration,
         recap_text: idx.recap === -1 ? null : (r[idx.recap] ?? '').trim() || null,
-        metrics: Object.fromEntries(
-          metricIdx
-            .map(({ id, i }) => [id, parseFloat((r[i] ?? '').replace(/[^0-9.-]/g, ''))] as const)
-            .filter(([, v]) => Number.isFinite(v))
-        ),
+        metrics,
       });
     });
 
@@ -128,24 +156,37 @@ export default function ImportTradesDialog({
   };
 
   const doImport = async () => {
-    if (!user || rows.length === 0) return;
+    if (!user || !activeProfile || rows.length === 0) return;
     setImporting(true);
-    const payload = rows.map(({ metrics, ...r }) => ({ ...r, user_id: user.id, profile_id: activeProfile?.id ?? null }));
-    const { data: inserted, error } = await supabase.from('trades').insert(payload as any).select('id');
-    if (!error && inserted) {
+    let insertedIds: string[] = [];
+    try {
+      const payload = rows.map(({ metrics, ...r }) => ({ ...r, user_id: user.id, profile_id: activeProfile.id }));
+      const { data: inserted, error } = await supabase.from('trades').insert(payload as any).select('id');
+      if (error) throw error;
+      if (!inserted || inserted.length !== rows.length) throw new Error('นำเข้าข้อมูลได้ไม่ครบทุกแถว');
+      insertedIds = inserted.map((trade: any) => trade.id);
+
       const mvRows = inserted.flatMap((t: any, i: number) =>
         Object.entries(rows[i]?.metrics ?? {}).map(([metric_id, value]) => ({
           user_id: user.id, trade_id: t.id, metric_id, value,
         }))
       );
-      if (mvRows.length > 0) await supabase.from('trade_metric_values').insert(mvRows);
+      if (mvRows.length > 0) {
+        const { error: metricError } = await supabase.from('trade_metric_values').insert(mvRows);
+        if (metricError) {
+          await supabase.from('trades').delete().eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', insertedIds);
+          throw new Error(`บันทึกค่าตัวเลขไม่สำเร็จ จึงยกเลิกการนำเข้าทั้งหมด: ${metricError.message}`);
+        }
+      }
+      toast.success(`นำเข้า ${rows.length} ไม้แล้ว`);
+      reset();
+      onOpenChange(false);
+      onImported();
+    } catch (error: any) {
+      toast.error(`นำเข้าไม่สำเร็จ: ${error.message}`);
+    } finally {
+      setImporting(false);
     }
-    setImporting(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`นำเข้า ${rows.length} ไม้แล้ว`);
-    reset();
-    onOpenChange(false);
-    onImported();
   };
 
   return (

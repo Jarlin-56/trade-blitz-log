@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,56 +15,86 @@ import { removeStorageImages } from '@/lib/storage';
 export default function TradeDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { activeProfile } = useProfile();
   const navigate = useNavigate();
 
   const { data: trade } = useQuery({
-    queryKey: ['trade', id],
+    queryKey: ['trade', id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trades').select('*').eq('id', id!).single();
+      if (!id || !user || !activeProfile) return null;
+      const { data, error } = await supabase
+        .from('trades')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id)
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
-    enabled: !!id && !!user,
+    enabled: !!id && !!user && !!activeProfile,
   });
 
   const { data: conditions = [] } = useQuery({
-    queryKey: ['trade-conditions', id],
+    queryKey: ['trade-conditions', id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_conditions').select('conditions(name)').eq('trade_id', id!);
+      if (!id || !user || !activeProfile) return [];
+      const { data: ownedTrade, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id).maybeSingle();
+      if (tradeError) throw tradeError;
+      if (!ownedTrade) return [];
+      const { data, error } = await supabase.from('trade_conditions').select('conditions(name)').eq('trade_id', ownedTrade.id);
+      if (error) throw error;
       return data?.map((d: any) => d.conditions?.name).filter(Boolean) ?? [];
     },
-    enabled: !!id,
+    enabled: !!id && !!user && !!activeProfile,
   });
 
   const { data: tags = [] } = useQuery({
-    queryKey: ['trade-tags', id],
+    queryKey: ['trade-tags', id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('trade_tags').select('tags(name)').eq('trade_id', id!);
+      if (!id || !user || !activeProfile) return [];
+      const { data: ownedTrade, error: tradeError } = await supabase.from('trades').select('id')
+        .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id).maybeSingle();
+      if (tradeError) throw tradeError;
+      if (!ownedTrade) return [];
+      const { data, error } = await supabase.from('trade_tags').select('tags(name)').eq('trade_id', ownedTrade.id);
+      if (error) throw error;
       return data?.map((d: any) => d.tags?.name).filter(Boolean) ?? [];
     },
-    enabled: !!id,
+    enabled: !!id && !!user && !!activeProfile,
   });
 
   const { data: metricRows = [] } = useQuery({
-    queryKey: ['trade-metric-values', 'detail', id],
+    queryKey: ['trade-metric-values', 'detail', id, activeProfile?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      if (!id || !user || !activeProfile) return [];
+      const { data, error } = await supabase
         .from('trade_metric_values')
         .select('value, trade_metrics(name, unit, decimals, sort_order)')
-        .eq('trade_id', id!);
+        .eq('trade_id', id).eq('user_id', user.id);
+      if (error) throw error;
       return (data ?? [])
         .filter((r: any) => r.value != null && r.trade_metrics)
         .sort((a: any, b: any) => (a.trade_metrics.sort_order ?? 0) - (b.trade_metrics.sort_order ?? 0));
     },
-    enabled: !!id,
+    enabled: !!id && !!user && !!activeProfile,
   });
 
   const handleDelete = async () => {
-    if (!confirm('Delete this trade?')) return;
+    if (!confirm('Delete this trade?') || !id || !user || !activeProfile) return;
     const imageUrl = (trade as any)?.image_url as string | null;
-    const { error } = await supabase.from('trades').delete().eq('id', id!);
+    const { error: imageError } = await supabase.storage.from('trade-images').remove(
+      imageUrl ? [imageUrl] : [],
+    );
+    if (imageError) {
+      toast.error(`ลบรูปไม่สำเร็จ: ${imageError.message}`);
+      return;
+    }
+    const { error } = await supabase.from('trades').delete()
+      .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
     if (error) toast.error(error.message);
     else {
-      await removeStorageImages([imageUrl]);
       toast.success('Trade deleted');
       navigate('/trades');
     }

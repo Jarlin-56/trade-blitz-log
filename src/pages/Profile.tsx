@@ -35,7 +35,7 @@ export default function Profile() {
     const { error } = await supabase
       .from('profiles')
       .update({ display_name: displayName, bio, trading_style: tradingStyle || null } as any)
-      .eq('id', activeProfile.id);
+      .eq('id', activeProfile.id).eq('user_id', user?.id ?? '');
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -52,10 +52,10 @@ export default function Profile() {
     if (!confirmed) return;
     // collect images to clean up, then delete the profile (children cascade in DB)
     const [{ data: tradeRows }, { data: noteRows }] = await Promise.all([
-      supabase.from('trades').select('image_url').eq('profile_id', activeProfile.id),
-      supabase.from('quick_notes' as any).select('image_url').eq('profile_id', activeProfile.id),
+      supabase.from('trades').select('image_url').eq('user_id', user.id).eq('profile_id', activeProfile.id),
+      supabase.from('quick_notes' as any).select('image_url').eq('user_id', user.id).eq('profile_id', activeProfile.id),
     ]);
-    await supabase.from('profiles').delete().eq('id', activeProfile.id);
+    await supabase.from('profiles').delete().eq('id', activeProfile.id).eq('user_id', user.id);
     await removeStorageImages([
       ...((tradeRows ?? []) as any[]).map(r => r.image_url),
       ...((noteRows ?? []) as any[]).map(r => r.image_url),
