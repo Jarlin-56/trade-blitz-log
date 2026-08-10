@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { validateMetricDefinition } from '@/lib/metric-validation';
 
 export interface TradeMetric {
   id: string;
@@ -50,12 +51,15 @@ export default function SettingsMetrics() {
 
   const addMutation = useMutation({
     mutationFn: async () => {
+      if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อนเพิ่มฟิลด์');
+      const validationError = validateMetricDefinition({ name, decimals, minValue, maxValue });
+      if (validationError) throw new Error(validationError);
       const { error } = await supabase.from('trade_metrics').insert({
-        user_id: user!.id,
-        profile_id: activeProfile?.id ?? null,
+        user_id: user.id,
+        profile_id: activeProfile.id,
         name: name.trim(),
         unit: unit.trim() || null,
-        decimals: Math.max(0, Math.min(6, parseInt(decimals) || 0)),
+        decimals: Number(decimals),
         min_value: minValue === '' ? null : Number(minValue),
         max_value: maxValue === '' ? null : Number(maxValue),
         sort_order: metrics.length,
@@ -107,7 +111,7 @@ export default function SettingsMetrics() {
       </p>
 
       <form
-        onSubmit={e => { e.preventDefault(); if (name.trim()) addMutation.mutate(); }}
+        onSubmit={e => { e.preventDefault(); addMutation.mutate(); }}
         className="space-y-3 rounded-lg border border-border p-4"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

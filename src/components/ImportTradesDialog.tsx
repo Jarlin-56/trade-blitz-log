@@ -9,6 +9,8 @@ import { Upload, FileWarning } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseCsv } from '@/lib/csv';
 import { useQuery } from '@tanstack/react-query';
+import type { MetricDef } from '@/lib/metrics';
+import { validateMetricValue } from '@/lib/metric-validation';
 
 type ParsedTrade = {
   asset: string;
@@ -48,12 +50,13 @@ export default function ImportTradesDialog({
   const { data: customMetrics = [] } = useQuery({
     queryKey: ['trade-metrics', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('trade_metrics').select('*').eq('is_active', true).order('sort_order');
-      if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
-      const { data } = await q;
-      return data ?? [];
+      if (!user || !activeProfile) return [];
+      const { data, error } = await supabase.from('trade_metrics').select('*')
+        .eq('user_id', user.id).eq('profile_id', activeProfile.id).eq('is_active', true).order('sort_order');
+      if (error) throw error;
+      return (data ?? []) as MetricDef[];
     },
-    enabled: !!user,
+    enabled: !!user && !!activeProfile,
   });
 
   const reset = () => { setRows([]); setErrors([]); };
