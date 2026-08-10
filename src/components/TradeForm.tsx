@@ -188,12 +188,13 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
     for (const metric of customMetrics) {
       const raw = metricValues[metric.id];
       const validation = validateMetricValue(raw, metric);
-      if (validation && !validation.ok) {
-        const message = validation.error;
-        toast.error(message);
+      if (validation?.ok === false) {
+        toast.error(validation.error);
         return;
       }
-      if (validation?.ok) metricRows.push({ user_id: user.id, metric_id: metric.id, value: validation.value });
+      if (validation?.ok === true) {
+        metricRows.push({ user_id: user.id, metric_id: metric.id, value: validation.value });
+      }
     }
 
     setSubmitting(true);
