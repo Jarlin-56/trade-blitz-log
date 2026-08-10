@@ -262,9 +262,12 @@ export default function Trades() {
   };
 
   const bulkDelete = async () => {
+    if (!user || !activeProfile || selected.length === 0) return;
     setBusy(true);
-    const { data: rows } = await supabase.from('trades').select('image_url').in('id', selected);
-    const { error } = await supabase.from('trades').delete().in('id', selected);
+    const { data: rows } = await supabase.from('trades').select('image_url')
+      .eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', selected);
+    const { error } = await supabase.from('trades').delete()
+      .eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', selected);
     setBusy(false);
     setConfirmDelete(false);
     if (error) {
@@ -278,6 +281,7 @@ export default function Trades() {
   };
 
   const bulkAddTag = async (tagId: string, tagName: string) => {
+    if (!user || !activeProfile) return;
     setBusy(true);
     const existing = new Set(
       tradeTags.filter((tt: any) => tt.tag_id === tagId).map((tt: any) => tt.trade_id),
