@@ -111,6 +111,13 @@ export default function TradeDetail() {
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
         <div className="flex gap-2">
+          <Button
+            variant="outline" size="sm"
+            onClick={() => navigate('/trades/new', { state: { duplicateFromId: id } })}
+            className="gap-1"
+          >
+            <Copy className="h-4 w-4" /> Duplicate
+          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate(`/trades/${id}/edit`)} className="gap-1">
             <Pencil className="h-4 w-4" /> Edit
           </Button>
