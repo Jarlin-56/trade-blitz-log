@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { X } from 'lucide-react';
+import { X, Wand2 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 import StorageImage from '@/components/StorageImage';
 import { getSignedUrl, uploadImage, removeStorageImages } from '@/lib/storage';
