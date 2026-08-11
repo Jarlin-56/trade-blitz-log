@@ -48,6 +48,14 @@ export default function Trades() {
   const [bulkTagOpen, setBulkTagOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [metricsFilterOpen, setMetricsFilterOpen] = useState(false);
+  const [metricFilters, setMetricFilters] = useState<Record<string, MetricFilter>>({});
+
+  const setMetricFilter = (metricId: string, patch: Partial<MetricFilter>) =>
+    setMetricFilters(prev => ({
+      ...prev,
+      [metricId]: { ...(prev[metricId] ?? { min: '', max: '', mode: 'any' }), ...patch },
+    }));
 
   const selectedConditions = useMemo(() => {
     const raw = searchParams.get('conditions');
