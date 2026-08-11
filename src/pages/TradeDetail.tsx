@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Trash2, ArrowLeft, Pencil } from 'lucide-react';
+import { Trash2, ArrowLeft, Pencil, Copy } from 'lucide-react';
 import StorageImage from '@/components/StorageImage';
 import { removeStorageImages } from '@/lib/storage';
 
