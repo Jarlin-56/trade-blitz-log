@@ -30,6 +30,8 @@ const PAGE_SIZE = 25;
 
 type SortKey = 'date-desc' | 'date-asc' | 'r-desc' | 'r-asc';
 
+type MetricFilter = { min: string; max: string; mode: 'any' | 'has' | 'none' };
+
 export default function Trades() {
   const { user } = useAuth();
   const { activeProfile } = useProfile();
