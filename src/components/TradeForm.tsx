@@ -417,8 +417,32 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   return (
     <form onSubmit={handleSubmit} className={cn('max-w-2xl mx-auto space-y-6', asWidget && 'max-w-none pb-2')}>
       {!asWidget && (
-        <h1 className="text-2xl font-bold">{isEdit ? 'Edit Trade' : 'Log Trade'}</h1>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h1 className="text-2xl font-bold">{isEdit ? 'Edit Trade' : 'Log Trade'}</h1>
+          {!isEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={applyingTemplate}
+              onClick={() => applyTemplate()}
+              className="gap-1.5 h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]"
+            >
+              <Wand2 className="h-3.5 w-3.5" /> ใช้ค่าจากไม้ล่าสุด
+            </Button>
+          )}
+        </div>
       )}
+
+      {!asWidget && !isEdit && draftRestored && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+          <p className="text-xs text-primary">กู้คืนแบบร่างที่ยังไม่ได้บันทึกแล้ว</p>
+          <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={discardDraft}>
+            ล้างแบบร่าง
+          </Button>
+        </div>
+      )}
+
 
       {asWidget && imagePreviewUrl && (
         <div className="rounded-lg overflow-hidden border border-primary/30 bg-primary/5">
