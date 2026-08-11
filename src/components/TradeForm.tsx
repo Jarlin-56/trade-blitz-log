@@ -380,6 +380,7 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
       }
 
       localStorage.setItem('lastTradingPair', asset.toUpperCase());
+      if (draftKey) localStorage.removeItem(draftKey);
       if (quickNoteId) {
         await supabase.from('quick_notes' as any).update({ converted_trade_id: savedId }).eq('id', quickNoteId);
       }
