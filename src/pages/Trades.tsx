@@ -552,10 +552,73 @@ export default function Trades() {
             </Command>
           </PopoverContent>
         </Popover>
+
+        {customMetrics.length > 0 && (
+          <Popover open={metricsFilterOpen} onOpenChange={setMetricsFilterOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className={cn(
+                'flex-1 sm:flex-none h-9 text-xs gap-1 font-normal rounded-lg border-white/10 bg-white/[0.03]',
+                activeMetricFilters.length > 0 && 'border-primary/40 text-primary',
+              )}>
+                Metrics{activeMetricFilters.length > 0 ? ` (${activeMetricFilters.length})` : ''} <ChevronsUpDown className="h-3 w-3 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-3 space-y-3" align="start">
+              {(customMetrics as any[]).map(m => {
+                const f = metricFilters[m.id] ?? { min: '', max: '', mode: 'any' as const };
+                return (
+                  <div key={m.id} className="space-y-1.5">
+                    <p className="text-xs font-medium truncate">
+                      {m.name}{m.unit ? <span className="text-muted-foreground font-normal"> ({m.unit})</span> : null}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        value={f.min} inputMode="decimal" placeholder="ต่ำสุด"
+                        onChange={e => setMetricFilter(m.id, { min: e.target.value })}
+                        disabled={f.mode === 'none'}
+                        className="h-8 text-xs rounded-lg border-white/10 bg-white/[0.03]"
+                      />
+                      <Input
+                        value={f.max} inputMode="decimal" placeholder="สูงสุด"
+                        onChange={e => setMetricFilter(m.id, { max: e.target.value })}
+                        disabled={f.mode === 'none'}
+                        className="h-8 text-xs rounded-lg border-white/10 bg-white/[0.03]"
+                      />
+                    </div>
+                    <div className="flex gap-1.5">
+                      {([
+                        { key: 'any', label: 'ทั้งหมด' },
+                        { key: 'has', label: 'มีค่า' },
+                        { key: 'none', label: 'ไม่มีค่า' },
+                      ] as const).map(opt => (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setMetricFilter(m.id, { mode: opt.key })}
+                          className={cn(
+                            'flex-1 rounded-md border border-white/10 py-1 text-[11px]',
+                            f.mode === opt.key ? 'border-primary/40 bg-primary/10 text-primary' : 'text-muted-foreground',
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {activeMetricFilters.length > 0 && (
+                <Button variant="ghost" size="sm" className="w-full h-8 text-xs" onClick={() => setMetricFilters({})}>
+                  ล้างตัวกรอง Metrics
+                </Button>
+              )}
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
 
       {/* Active filter chips */}
-      {(activeConditionNames.length > 0 || selectedTags.length > 0) && (
+      {(activeConditionNames.length > 0 || selectedTags.length > 0 || activeMetricFilters.length > 0) && (
         <div className="flex gap-1.5 flex-wrap">
           {activeConditionNames.map(c => (
             <Badge key={c} variant="outline" className="gap-1 text-xs cursor-pointer rounded-lg border-primary/20 bg-primary/5 text-primary" onClick={() => removeCondition(c)}>
@@ -567,8 +630,24 @@ export default function Trades() {
               #{t} <X className="h-3 w-3" />
             </Badge>
           ))}
+          {activeMetricFilters.map(([metricId, f]) => {
+            const m = (customMetrics as any[]).find(x => x.id === metricId);
+            if (!m) return null;
+            const label = f.mode === 'none' ? 'ไม่มีค่า'
+              : [f.min.trim() && `≥${f.min}`, f.max.trim() && `≤${f.max}`].filter(Boolean).join(' ') || 'มีค่า';
+            return (
+              <Badge
+                key={metricId} variant="outline"
+                className="gap-1 text-xs cursor-pointer rounded-lg border-primary/20 bg-primary/5 text-primary"
+                onClick={() => setMetricFilters(prev => { const n = { ...prev }; delete n[metricId]; return n; })}
+              >
+                {m.name} {label} <X className="h-3 w-3" />
+              </Badge>
+            );
+          })}
         </div>
       )}
+
 
       {/* Summary Stats */}
       {(() => {
