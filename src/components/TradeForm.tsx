@@ -60,6 +60,109 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   const [prefillImageUrl] = useState<string | null>(prefill?.image_url || null);
   const [submitting, setSubmitting] = useState(false);
   const [loaded, setLoaded] = useState(!isEdit);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [applyingTemplate, setApplyingTemplate] = useState(false);
+  const draftReady = useRef(false);
+
+  const draftKey = !isEdit && activeProfile ? `tradeDraft:${activeProfile.id}` : null;
+
+  // Fill asset / direction / conditions / tags / metrics from an existing trade
+  const applyTemplate = async (sourceId?: string) => {
+    if (!user || !activeProfile) return;
+    setApplyingTemplate(true);
+    try {
+      let query = supabase
+        .from('trades')
+        .select('id, asset, direction, recap_text')
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id);
+      query = sourceId
+        ? query.eq('id', sourceId)
+        : query.order('entry_date', { ascending: false }).limit(1);
+      const { data, error } = await query;
+      if (error) throw error;
+      const source = data?.[0];
+      if (!source) { toast.error('ยังไม่มีไม้ก่อนหน้าให้ใช้เป็นแบบร่าง'); return; }
+
+      const [{ data: tc }, { data: tt }, { data: tmv }] = await Promise.all([
+        supabase.from('trade_conditions').select('condition_id').eq('trade_id', source.id),
+        supabase.from('trade_tags').select('tag_id').eq('trade_id', source.id),
+        supabase.from('trade_metric_values').select('metric_id, value').eq('trade_id', source.id).eq('user_id', user.id),
+      ]);
+
+      setAsset(source.asset);
+      setDirection(source.direction);
+      setSelectedConditions((tc ?? []).map((r: any) => r.condition_id));
+      setSelectedTags((tt ?? []).map((r: any) => r.tag_id));
+      setMetricValues(
+        Object.fromEntries((tmv ?? []).filter((r: any) => r.value != null).map((r: any) => [r.metric_id, String(Number(r.value))]))
+      );
+      toast.success('ดึงข้อมูลจากไม้ก่อนหน้ามาแล้ว (ยังไม่บันทึกจนกว่าจะกด Save)');
+    } catch (err: any) {
+      toast.error(err.message || 'ดึงข้อมูลไม่สำเร็จ');
+    } finally {
+      setApplyingTemplate(false);
+    }
+  };
+
+  // Duplicate flow — copy setup from a chosen trade
+  useEffect(() => {
+    if (isEdit || !duplicateFromId || !user || !activeProfile) return;
+    applyTemplate(duplicateFromId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duplicateFromId, user, activeProfile, isEdit]);
+
+  // Restore autosaved draft
+  useEffect(() => {
+    if (!draftKey || draftReady.current) return;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw && !prefill && !duplicateFromId) {
+        const d = JSON.parse(raw);
+        if (d.asset) setAsset(d.asset);
+        if (d.direction) setDirection(d.direction);
+        if (d.entryDate) setEntryDate(d.entryDate);
+        if (d.result) setResult(d.result);
+        if (d.earnedR) setEarnedR(d.earnedR);
+        if (d.missedR) setMissedR(d.missedR);
+        if (Array.isArray(d.selectedConditions)) setSelectedConditions(d.selectedConditions);
+        if (Array.isArray(d.selectedTags)) setSelectedTags(d.selectedTags);
+        if (d.durationHours) setDurationHours(d.durationHours);
+        if (d.durationMins) setDurationMins(d.durationMins);
+        if (d.recap) setRecap(d.recap);
+        if (d.metricValues) setMetricValues(d.metricValues);
+        setDraftRestored(true);
+      }
+    } catch { /* ignore bad draft */ }
+    draftReady.current = true;
+  }, [draftKey, prefill, duplicateFromId]);
+
+  // Autosave draft
+  useEffect(() => {
+    if (!draftKey || !draftReady.current) return;
+    const payload = {
+      asset, direction, entryDate, result, earnedR, missedR,
+      selectedConditions, selectedTags, durationHours, durationMins, recap, metricValues,
+    };
+    const id = setTimeout(() => {
+      try { localStorage.setItem(draftKey, JSON.stringify(payload)); } catch { /* quota */ }
+    }, 400);
+    return () => clearTimeout(id);
+  }, [draftKey, asset, direction, entryDate, result, earnedR, missedR, selectedConditions, selectedTags, durationHours, durationMins, recap, metricValues]);
+
+  const discardDraft = () => {
+    if (draftKey) localStorage.removeItem(draftKey);
+    setAsset(localStorage.getItem('lastTradingPair') || 'XAUUSD');
+    setDirection('Long');
+    setEntryDate(toLocalInput(new Date().toISOString()));
+    setResult(null);
+    setEarnedR(''); setMissedR('');
+    setSelectedConditions([]); setSelectedTags([]);
+    setDurationHours(''); setDurationMins('');
+    setRecap(''); setMetricValues({});
+    setDraftRestored(false);
+  };
+
 
   // Sync screenshot / file from widget hotkey captures after mount
   useEffect(() => {
