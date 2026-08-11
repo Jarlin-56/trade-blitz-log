@@ -40,6 +40,7 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
     | { asset?: string; direction?: TradeDirection; note?: string; image_url?: string }
     | undefined;
   const quickNoteId = (location.state as any)?.quickNoteId as string | undefined;
+  const duplicateFromId = (location.state as any)?.duplicateFromId as string | undefined;
 
   const [asset, setAsset] = useState(() => prefill?.asset || localStorage.getItem('lastTradingPair') || 'XAUUSD');
   const [direction, setDirection] = useState<TradeDirection>(prefill?.direction || 'Long');
