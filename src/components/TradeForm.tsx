@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { X } from 'lucide-react';
+import { X, Wand2 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 import StorageImage from '@/components/StorageImage';
 import { getSignedUrl, uploadImage, removeStorageImages } from '@/lib/storage';
@@ -40,6 +40,7 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
     | { asset?: string; direction?: TradeDirection; note?: string; image_url?: string }
     | undefined;
   const quickNoteId = (location.state as any)?.quickNoteId as string | undefined;
+  const duplicateFromId = (location.state as any)?.duplicateFromId as string | undefined;
 
   const [asset, setAsset] = useState(() => prefill?.asset || localStorage.getItem('lastTradingPair') || 'XAUUSD');
   const [direction, setDirection] = useState<TradeDirection>(prefill?.direction || 'Long');
@@ -59,6 +60,109 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   const [prefillImageUrl] = useState<string | null>(prefill?.image_url || null);
   const [submitting, setSubmitting] = useState(false);
   const [loaded, setLoaded] = useState(!isEdit);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [applyingTemplate, setApplyingTemplate] = useState(false);
+  const draftReady = useRef(false);
+
+  const draftKey = !isEdit && activeProfile ? `tradeDraft:${activeProfile.id}` : null;
+
+  // Fill asset / direction / conditions / tags / metrics from an existing trade
+  const applyTemplate = async (sourceId?: string) => {
+    if (!user || !activeProfile) return;
+    setApplyingTemplate(true);
+    try {
+      let query = supabase
+        .from('trades')
+        .select('id, asset, direction, recap_text')
+        .eq('user_id', user.id)
+        .eq('profile_id', activeProfile.id);
+      query = sourceId
+        ? query.eq('id', sourceId)
+        : query.order('entry_date', { ascending: false }).limit(1);
+      const { data, error } = await query;
+      if (error) throw error;
+      const source = data?.[0];
+      if (!source) { toast.error('ยังไม่มีไม้ก่อนหน้าให้ใช้เป็นแบบร่าง'); return; }
+
+      const [{ data: tc }, { data: tt }, { data: tmv }] = await Promise.all([
+        supabase.from('trade_conditions').select('condition_id').eq('trade_id', source.id),
+        supabase.from('trade_tags').select('tag_id').eq('trade_id', source.id),
+        supabase.from('trade_metric_values').select('metric_id, value').eq('trade_id', source.id).eq('user_id', user.id),
+      ]);
+
+      setAsset(source.asset);
+      setDirection(source.direction);
+      setSelectedConditions((tc ?? []).map((r: any) => r.condition_id));
+      setSelectedTags((tt ?? []).map((r: any) => r.tag_id));
+      setMetricValues(
+        Object.fromEntries((tmv ?? []).filter((r: any) => r.value != null).map((r: any) => [r.metric_id, String(Number(r.value))]))
+      );
+      toast.success('ดึงข้อมูลจากไม้ก่อนหน้ามาแล้ว (ยังไม่บันทึกจนกว่าจะกด Save)');
+    } catch (err: any) {
+      toast.error(err.message || 'ดึงข้อมูลไม่สำเร็จ');
+    } finally {
+      setApplyingTemplate(false);
+    }
+  };
+
+  // Duplicate flow — copy setup from a chosen trade
+  useEffect(() => {
+    if (isEdit || !duplicateFromId || !user || !activeProfile) return;
+    applyTemplate(duplicateFromId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duplicateFromId, user, activeProfile, isEdit]);
+
+  // Restore autosaved draft
+  useEffect(() => {
+    if (!draftKey || draftReady.current) return;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw && !prefill && !duplicateFromId) {
+        const d = JSON.parse(raw);
+        if (d.asset) setAsset(d.asset);
+        if (d.direction) setDirection(d.direction);
+        if (d.entryDate) setEntryDate(d.entryDate);
+        if (d.result) setResult(d.result);
+        if (d.earnedR) setEarnedR(d.earnedR);
+        if (d.missedR) setMissedR(d.missedR);
+        if (Array.isArray(d.selectedConditions)) setSelectedConditions(d.selectedConditions);
+        if (Array.isArray(d.selectedTags)) setSelectedTags(d.selectedTags);
+        if (d.durationHours) setDurationHours(d.durationHours);
+        if (d.durationMins) setDurationMins(d.durationMins);
+        if (d.recap) setRecap(d.recap);
+        if (d.metricValues) setMetricValues(d.metricValues);
+        setDraftRestored(true);
+      }
+    } catch { /* ignore bad draft */ }
+    draftReady.current = true;
+  }, [draftKey, prefill, duplicateFromId]);
+
+  // Autosave draft
+  useEffect(() => {
+    if (!draftKey || !draftReady.current) return;
+    const payload = {
+      asset, direction, entryDate, result, earnedR, missedR,
+      selectedConditions, selectedTags, durationHours, durationMins, recap, metricValues,
+    };
+    const id = setTimeout(() => {
+      try { localStorage.setItem(draftKey, JSON.stringify(payload)); } catch { /* quota */ }
+    }, 400);
+    return () => clearTimeout(id);
+  }, [draftKey, asset, direction, entryDate, result, earnedR, missedR, selectedConditions, selectedTags, durationHours, durationMins, recap, metricValues]);
+
+  const discardDraft = () => {
+    if (draftKey) localStorage.removeItem(draftKey);
+    setAsset(localStorage.getItem('lastTradingPair') || 'XAUUSD');
+    setDirection('Long');
+    setEntryDate(toLocalInput(new Date().toISOString()));
+    setResult(null);
+    setEarnedR(''); setMissedR('');
+    setSelectedConditions([]); setSelectedTags([]);
+    setDurationHours(''); setDurationMins('');
+    setRecap(''); setMetricValues({});
+    setDraftRestored(false);
+  };
+
 
   // Sync screenshot / file from widget hotkey captures after mount
   useEffect(() => {
@@ -276,6 +380,7 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
       }
 
       localStorage.setItem('lastTradingPair', asset.toUpperCase());
+      if (draftKey) localStorage.removeItem(draftKey);
       if (quickNoteId) {
         await supabase.from('quick_notes' as any).update({ converted_trade_id: savedId }).eq('id', quickNoteId);
       }
@@ -312,8 +417,32 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   return (
     <form onSubmit={handleSubmit} className={cn('max-w-2xl mx-auto space-y-6', asWidget && 'max-w-none pb-2')}>
       {!asWidget && (
-        <h1 className="text-2xl font-bold">{isEdit ? 'Edit Trade' : 'Log Trade'}</h1>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h1 className="text-2xl font-bold">{isEdit ? 'Edit Trade' : 'Log Trade'}</h1>
+          {!isEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={applyingTemplate}
+              onClick={() => applyTemplate()}
+              className="gap-1.5 h-9 text-xs rounded-lg border-white/10 bg-white/[0.03]"
+            >
+              <Wand2 className="h-3.5 w-3.5" /> ใช้ค่าจากไม้ล่าสุด
+            </Button>
+          )}
+        </div>
       )}
+
+      {!asWidget && !isEdit && draftRestored && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+          <p className="text-xs text-primary">กู้คืนแบบร่างที่ยังไม่ได้บันทึกแล้ว</p>
+          <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={discardDraft}>
+            ล้างแบบร่าง
+          </Button>
+        </div>
+      )}
+
 
       {asWidget && imagePreviewUrl && (
         <div className="rounded-lg overflow-hidden border border-primary/30 bg-primary/5">
