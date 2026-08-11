@@ -186,6 +186,21 @@ export default function Trades() {
   const removeCondition = (name: string) => updateParam('conditions', activeConditionNames.filter(c => c !== name));
   const removeTag = (name: string) => updateParam('tags', selectedTags.filter(t => t !== name));
 
+  const metricValueMap = useMemo(() => {
+    const map = new Map<string, Map<string, number>>();
+    for (const row of metricValues as any[]) {
+      if (row.value == null) continue;
+      if (!map.has(row.trade_id)) map.set(row.trade_id, new Map());
+      map.get(row.trade_id)!.set(row.metric_id, Number(row.value));
+    }
+    return map;
+  }, [metricValues]);
+
+  const activeMetricFilters = useMemo(
+    () => Object.entries(metricFilters).filter(([, f]) => f.mode !== 'any' || f.min.trim() !== '' || f.max.trim() !== ''),
+    [metricFilters],
+  );
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     const list = trades.filter(t => {
@@ -212,6 +227,18 @@ export default function Trades() {
           .filter(Boolean);
         if (!selectedTags.every(tag => tradeTagNames.includes(tag))) return false;
       }
+      for (const [metricId, f] of activeMetricFilters) {
+        const value = metricValueMap.get(t.id)?.get(metricId);
+        const hasValue = value != null && Number.isFinite(value);
+        if (f.mode === 'none') { if (hasValue) return false; continue; }
+        if (f.mode === 'has' && !hasValue) return false;
+        const min = f.min.trim() === '' ? null : Number(f.min);
+        const max = f.max.trim() === '' ? null : Number(f.max);
+        if (min == null && max == null) continue;
+        if (!hasValue) return false;
+        if (min != null && Number.isFinite(min) && value! < min) return false;
+        if (max != null && Number.isFinite(max) && value! > max) return false;
+      }
       return true;
     });
 
@@ -224,9 +251,10 @@ export default function Trades() {
       }
     });
     return sorted;
-  }, [trades, dateRange, filterResult, search, activeConditionNames, selectedTags, tradeConditions, tradeTags, sort]);
+  }, [trades, dateRange, filterResult, search, activeConditionNames, selectedTags, tradeConditions, tradeTags, sort, activeMetricFilters, metricValueMap]);
 
-  useEffect(() => { setVisible(PAGE_SIZE); }, [search, sort, filterResult, dateRange, activeConditionNames.length, selectedTags.length]);
+  useEffect(() => { setVisible(PAGE_SIZE); }, [search, sort, filterResult, dateRange, activeConditionNames.length, selectedTags.length, activeMetricFilters.length]);
+
 
   const paged = filtered.slice(0, visible);
 
