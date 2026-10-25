@@ -260,17 +260,6 @@ The UI should look like a clean, vertical Notion-style document.
 
 3. **No Active Trades:** เนื่องจากระบบนี้ตัด Trade Status ออกไป Navigation จึงไม่ต้องมีแท็บแยกสำหรับ "Active Orders" หรือ "Pending Orders" ทุกอย่างที่อยู่ใน `/trades` คือข้อมูลที่สมบูรณ์แล้ว
 
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://trade-blitz-log.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/7f74a0c2-eb47-4ff3-bcb1-9ee865156e1e).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 

@@ -28,7 +28,6 @@ import SettingsMetrics from "./pages/SettingsMetrics";
 import CalendarPage from "./pages/CalendarPage";
 import RecapQuiz from "./pages/RecapQuiz";
 import Compare from "./pages/Compare";
-import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import SettingsWidget from "./pages/SettingsWidget";
 import SettingsAbout from "./pages/SettingsAbout";
@@ -89,7 +88,6 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             <Route
               path="/dashboard"

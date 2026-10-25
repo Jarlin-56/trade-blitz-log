@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { lovable } from '@/integrations/lovable/index';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -44,18 +43,23 @@ export default function GoogleSignInButton({
       return;
     }
 
-    // Standard web flow
-    const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: `${window.location.origin}${safeNext}`,
-    });
+    // Standard web flow directly via Supabase Auth
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}${safeNext}`,
+        },
+      });
 
-    if (result.error) {
-      toast.error(result.error.message || 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
+      if (error) {
+        toast.error(error.message || 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google');
+    } finally {
       setLoading(false);
-      return;
     }
-    if (result.redirected) return;
-    setLoading(false);
   };
 
   return (

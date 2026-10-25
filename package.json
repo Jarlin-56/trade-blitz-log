@@ -1,5 +1,6 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "trade-blitz-log",
+  "description": "Trade Log - Professional Trading Journal & Analytics",
   "private": true,
   "version": "0.1.33",
   "type": "module",
@@ -47,8 +48,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@lovable.dev/cloud-auth-js": "^1.1.2",
-    "@lovable.dev/mcp-js": "^0.26.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -119,7 +118,6 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
     "jsdom": "^20.0.3",
-    "lovable-tagger": "^1.1.13",
     "png-to-ico": "^3.0.2",
     "postcss": "^8.5.6",
     "sharp": "^0.35.3",
