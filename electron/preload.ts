@@ -19,7 +19,7 @@ const subscribe = <T>(channel: string, callback: (value: T) => void) => {
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
-if (location.pathname.endsWith('/crop.html')) {
+if (location.pathname.endsWith('/crop.html') || location.pathname.endsWith('\\crop.html') || location.href.includes('crop.html')) {
   contextBridge.exposeInMainWorld('cropAPI', {
     onScreenshotData: (callback: (dataUrl: string) => void) => subscribe('screenshot-data', callback),
     finish: (dataUrl: string) => ipcRenderer.send('crop-finished', dataUrl),

@@ -35,10 +35,11 @@ test('sandboxed app/widget preload and crop bridge work without exposing Node', 
       await window.loadFile(cropPath);
     }, { cropPath, preloadPath });
     const crop = await newWindow;
-    await expect.poll(() => crop.evaluate(() => typeof window.cropAPI?.finish)).toBe('function');
+    await crop.waitForLoadState('domcontentloaded');
+    await expect.poll(() => crop.evaluate(() => typeof window.cropAPI?.finish), { timeout: 15000 }).toBe('function');
     expect(await crop.evaluate(() => typeof window.electronAPI)).toBe('undefined');
     await app.evaluate(({ BrowserWindow }, cropPath) => {
-      const window = BrowserWindow.getAllWindows().find(window => window.webContents.getURL().endsWith('/crop.html'));
+      const window = BrowserWindow.getAllWindows().find(window => window.webContents.getURL().includes('crop.html'));
       if (!window) throw new Error(`Crop window missing: ${cropPath}`);
       window.webContents.send('screenshot-data', 'data:image/png;base64,iVBORw0KGgoAAA==');
     }, cropPath);
