@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +19,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import StorageImage from '@/components/StorageImage';
 import { uploadImage, removeStorageImages } from '@/lib/storage';
+import type { Database } from '@/integrations/supabase/types';
 
 interface Props {
   open: boolean;
@@ -50,13 +52,13 @@ export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWid
     queryKey: ['quick_notes', user?.id, activeProfile?.id],
     queryFn: async () => {
       let q = supabase
-        .from('quick_notes' as any)
+        .from('quick_notes')
         .select('*')
         .is('converted_trade_id', null)
         .order('created_at', { ascending: false });
       if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
       const { data } = await q;
-      return (data as any[]) ?? [];
+      return (data) ?? [];
     },
     enabled: !!user,
   });
@@ -73,7 +75,7 @@ export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWid
       setImageFile(initialFile);
       setTab('new');
     }
-  }, [open, initialFile]);
+  }, [open, initialFile, imageFile]);
 
   // Paste handler
   useEffect(() => {
@@ -110,13 +112,9 @@ export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWid
     try {
       let image_url: string | null = null;
       if (imageFile) {
-        const ext = (imageFile.name.split('.').pop() || 'png').toLowerCase();
-        const path = `${user.id}/quick-notes/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('trade-images').upload(path, imageFile);
-        if (upErr) throw upErr;
-        image_url = supabase.storage.from('trade-images').getPublicUrl(path).data.publicUrl;
+        image_url = await uploadImage(imageFile, user.id, 'quick-notes');
       }
-      const { error } = await supabase.from('quick_notes' as any).insert({
+      const { error } = await supabase.from('quick_notes').insert({
         user_id: user.id,
         profile_id: activeProfile?.id ?? null,
         asset: asset ? asset.toUpperCase() : null,
@@ -129,8 +127,8 @@ export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWid
       resetForm();
       qc.invalidateQueries({ queryKey: ['quick_notes'] });
       setTab('list');
-    } catch (err: any) {
-      toast.error(err.message || 'บันทึกไม่สำเร็จ');
+    } catch (err: unknown) {
+      toast.error(errorMessage(err) || 'บันทึกไม่สำเร็จ');
     } finally {
       setSaving(false);
     }
@@ -138,19 +136,19 @@ export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWid
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
-      const { data: row } = await supabase.from('quick_notes' as any).select('image_url').eq('id', id).maybeSingle();
-      const { error } = await supabase.from('quick_notes' as any).delete().eq('id', id);
+      const { data: row } = await supabase.from('quick_notes').select('image_url').eq('id', id).maybeSingle();
+      const { error } = await supabase.from('quick_notes').delete().eq('id', id);
       if (error) throw error;
-      await removeStorageImages([(row as any)?.image_url]);
+      await removeStorageImages([(row)?.image_url]);
     },
     onSuccess: () => {
       toast.success('ลบโน้ตแล้ว');
       qc.invalidateQueries({ queryKey: ['quick_notes'] });
     },
-    onError: (e: any) => toast.error(e.message || 'ลบไม่สำเร็จ'),
+    onError: (e) => toast.error(e.message || 'ลบไม่สำเร็จ'),
   });
 
-  const convertToTrade = (n: any) => {
+  const convertToTrade = (n: Database['public']['Tables']['quick_notes']['Row']) => {
     onOpenChange(false);
     navigate('/trades/new', {
       state: {
@@ -226,7 +224,7 @@ export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWid
                     </Button>
                     <Button type="button" variant="outline" size="sm" className="flex-1 gap-1.5" onClick={async () => {
                       try {
-                        const items = await (navigator.clipboard as any).read?.();
+                        const items = await (navigator.clipboard).read?.();
                         if (!items) throw new Error('เบราว์เซอร์ไม่รองรับ');
                         for (const item of items) {
                           const type = item.types.find((t: string) => t.startsWith('image/'));
@@ -313,10 +311,10 @@ export default function QuickNoteDialog({ open, onOpenChange, initialFile, asWid
         {/* Draggable Custom Titlebar */}
         <div
           className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/80 backdrop-blur"
-          style={{ WebkitAppRegion: 'drag' } as any}
+          style={{ WebkitAppRegion: 'drag' }}
         >
           <div className="font-semibold text-sm">Quick Note</div>
-          <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as any}>
+          <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' }}>
             <Button
               variant="ghost"
               size="icon"

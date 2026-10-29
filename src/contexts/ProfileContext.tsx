@@ -59,10 +59,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     if (!target) throw new Error('ไม่พบโปรไฟล์นี้');
 
     const { error: deactivateError } = await supabase
-      .from('profiles').update({ is_active: false } as any).eq('user_id', user.id);
+      .from('profiles').update({ is_active: false }).eq('user_id', user.id);
     if (deactivateError) throw deactivateError;
     const { error: activateError } = await supabase
-      .from('profiles').update({ is_active: true } as any).eq('id', profileId).eq('user_id', user.id);
+      .from('profiles').update({ is_active: true }).eq('id', profileId).eq('user_id', user.id);
     if (activateError) throw activateError;
     await fetchProfiles();
   };

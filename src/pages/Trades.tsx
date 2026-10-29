@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import type { Database } from '@/integrations/supabase/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -198,7 +199,7 @@ export default function Trades() {
 
   const metricValueMap = useMemo(() => {
     const map = new Map<string, Map<string, number>>();
-    for (const row of metricValues as any[]) {
+    for (const row of metricValues) {
       if (row.value == null) continue;
       if (!map.has(row.trade_id)) map.set(row.trade_id, new Map());
       map.get(row.trade_id)!.set(row.metric_id, Number(row.value));
@@ -225,15 +226,15 @@ export default function Trades() {
       }
       if (activeConditionNames.length > 0) {
         const tradeCondNames = tradeConditions
-          .filter((tc: any) => tc.trade_id === t.id)
-          .map((tc: any) => tc.conditions?.name)
+          .filter((tc) => tc.trade_id === t.id)
+          .map((tc) => tc.conditions?.name)
           .filter(Boolean);
         if (!activeConditionNames.every(c => tradeCondNames.includes(c))) return false;
       }
       if (selectedTags.length > 0) {
         const tradeTagNames = tradeTags
-          .filter((tt: any) => tt.trade_id === t.id)
-          .map((tt: any) => tt.tags?.name)
+          .filter((tt) => tt.trade_id === t.id)
+          .map((tt) => tt.tags?.name)
           .filter(Boolean);
         if (!selectedTags.every(tag => tradeTagNames.includes(tag))) return false;
       }
@@ -269,13 +270,13 @@ export default function Trades() {
   const paged = filtered.slice(0, visible);
 
   const getConditions = (tradeId: string) =>
-    tradeConditions.filter((tc: any) => tc.trade_id === tradeId).map((tc: any) => tc.conditions?.name).filter(Boolean);
+    tradeConditions.filter((tc) => tc.trade_id === tradeId).map((tc) => tc.conditions?.name).filter(Boolean);
 
   const getTags = (tradeId: string) =>
-    tradeTags.filter((tt: any) => tt.trade_id === tradeId).map((tt: any) => tt.tags?.name).filter(Boolean);
+    tradeTags.filter((tt) => tt.trade_id === tradeId).map((tt) => tt.tags?.name).filter(Boolean);
 
   const metricValueOf = (tradeId: string, metricId: string) => {
-    const row = metricValues.find((v: any) => v.trade_id === tradeId && v.metric_id === metricId);
+    const row = metricValues.find((v) => v.trade_id === tradeId && v.metric_id === metricId);
     return row?.value != null ? Number(row.value) : '';
   };
 
@@ -283,7 +284,7 @@ export default function Trades() {
     if (filtered.length === 0) return;
     downloadCsv(
       `trades-${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Date', 'Asset', 'Direction', 'Result', 'Earned R', 'Missed R', 'Duration (min)', 'Conditions', 'Tags', 'Recap', ...customMetrics.map((m: any) => m.unit ? `${m.name} (${m.unit})` : m.name)],
+      ['Date', 'Asset', 'Direction', 'Result', 'Earned R', 'Missed R', 'Duration (min)', 'Conditions', 'Tags', 'Recap', ...customMetrics.map((m) => m.unit ? `${m.name} (${m.unit})` : m.name)],
       filtered.map(t => [
         new Date(t.entry_date).toLocaleString(),
         t.asset,
@@ -295,7 +296,7 @@ export default function Trades() {
         getConditions(t.id).join(' | '),
         getTags(t.id).join(' | '),
         t.recap_text ?? '',
-        ...customMetrics.map((m: any) => metricValueOf(t.id, m.id)),
+        ...customMetrics.map((m) => metricValueOf(t.id, m.id)),
       ]),
     );
   };
@@ -329,7 +330,7 @@ export default function Trades() {
       toast({ title: 'ลบไม่สำเร็จ', description: error.message, variant: 'destructive' });
       return;
     }
-    await removeStorageImages((rows ?? []).map((r: any) => r.image_url));
+    await removeStorageImages((rows ?? []).map((r) => r.image_url));
     toast({ title: `ลบ ${selected.length} ไม้แล้ว` });
     exitSelectMode();
     refreshAll();
@@ -339,7 +340,7 @@ export default function Trades() {
     if (!user || !activeProfile) return;
     setBusy(true);
     const existing = new Set(
-      tradeTags.filter((tt: any) => tt.tag_id === tagId).map((tt: any) => tt.trade_id),
+      tradeTags.filter((tt) => tt.tag_id === tagId).map((tt) => tt.trade_id),
     );
     const rows = selected.filter(id => !existing.has(id)).map(id => ({ trade_id: id, tag_id: tagId }));
     if (rows.length > 0) {
@@ -373,7 +374,7 @@ export default function Trades() {
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
   };
 
-  const renderCard = (trade: any, i: number) => {
+  const renderCard = (trade: Database['public']['Tables']['trades']['Row'], i: number) => {
     const conds = getConditions(trade.id);
     const tgs = getTags(trade.id);
     const isSelected = selected.includes(trade.id);
@@ -517,7 +518,7 @@ export default function Trades() {
               <CommandList>
                 <CommandEmpty className="text-xs py-3 text-center">No conditions found</CommandEmpty>
                 <CommandGroup>
-                  {allConditions.map((c: any) => (
+                  {allConditions.map((c) => (
                     <CommandItem key={c.id} value={c.name} onSelect={() => toggleCondition(c.name)} className="text-xs">
                       <Check className={cn('mr-2 h-3 w-3', activeConditionNames.includes(c.name) ? 'opacity-100' : 'opacity-0')} />
                       {c.name}
@@ -541,7 +542,7 @@ export default function Trades() {
               <CommandList>
                 <CommandEmpty className="text-xs py-3 text-center">No tags found</CommandEmpty>
                 <CommandGroup>
-                  {allTags.map((t: any) => (
+                  {allTags.map((t) => (
                     <CommandItem key={t.id} value={t.name} onSelect={() => toggleTag(t.name)} className="text-xs">
                       <Check className={cn('mr-2 h-3 w-3', selectedTags.includes(t.name) ? 'opacity-100' : 'opacity-0')} />
                       #{t.name}
@@ -564,7 +565,7 @@ export default function Trades() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[280px] p-3 space-y-3" align="start">
-              {(customMetrics as any[]).map(m => {
+              {(customMetrics).map(m => {
                 const f = metricFilters[m.id] ?? { min: '', max: '', mode: 'any' as const };
                 return (
                   <div key={m.id} className="space-y-1.5">
@@ -631,7 +632,7 @@ export default function Trades() {
             </Badge>
           ))}
           {activeMetricFilters.map(([metricId, f]) => {
-            const m = (customMetrics as any[]).find(x => x.id === metricId);
+            const m = (customMetrics).find(x => x.id === metricId);
             if (!m) return null;
             const label = f.mode === 'none' ? 'ไม่มีค่า'
               : [f.min.trim() && `≥${f.min}`, f.max.trim() && `≤${f.max}`].filter(Boolean).join(' ') || 'มีค่า';
@@ -724,7 +725,7 @@ export default function Trades() {
                   <CommandList>
                     <CommandEmpty className="text-xs py-3 text-center">ยังไม่มี tag</CommandEmpty>
                     <CommandGroup>
-                      {allTags.map((t: any) => (
+                      {allTags.map((t) => (
                         <CommandItem key={t.id} value={t.name} onSelect={() => bulkAddTag(t.id, t.name)} className="text-xs">
                           #{t.name}
                         </CommandItem>

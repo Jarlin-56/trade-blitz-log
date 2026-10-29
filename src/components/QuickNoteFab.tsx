@@ -34,7 +34,7 @@ export default function QuickNoteFab() {
   const { data: count = 0 } = useQuery({
     queryKey: ['quick_notes_count', user?.id, activeProfile?.id],
     queryFn: async () => {
-      let q = supabase.from('quick_notes' as any).select('id', { count: 'exact', head: true }).is('converted_trade_id', null);
+      let q = supabase.from('quick_notes').select('id', { count: 'exact', head: true }).is('converted_trade_id', null);
       if (activeProfile?.id) q = q.eq('profile_id', activeProfile.id);
       const { count } = await q;
       return count ?? 0;

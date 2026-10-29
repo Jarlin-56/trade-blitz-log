@@ -28,7 +28,7 @@ export default function SettingsConditions() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['conditions'] }); setNewName(''); toast.success('Added'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e) => toast.error(e.message),
   });
 
   const deleteMutation = useMutation({
@@ -37,7 +37,7 @@ export default function SettingsConditions() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['conditions'] }); toast.success('Deleted'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e) => toast.error(e.message),
   });
 
   return (

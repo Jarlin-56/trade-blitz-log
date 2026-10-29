@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +12,7 @@ import { parseCsv } from '@/lib/csv';
 import { useQuery } from '@tanstack/react-query';
 import type { MetricDef } from '@/lib/metrics';
 import { validateMetricValue } from '@/lib/metric-validation';
+import { importTradesWithRelations } from '@/lib/trades';
 
 type ParsedTrade = {
   asset: string;
@@ -81,7 +83,7 @@ export default function ImportTradesDialog({
       return;
     }
 
-    const metricIdx = customMetrics.map((m: any) => ({
+    const metricIdx = customMetrics.map((m) => ({
       id: m.id,
       i: findIdx(headers, [m.unit ? `${m.name} (${m.unit})` : m.name, m.name]),
     })).filter(x => x.i !== -1);
@@ -158,32 +160,17 @@ export default function ImportTradesDialog({
   const doImport = async () => {
     if (!user || !activeProfile || rows.length === 0) return;
     setImporting(true);
-    let insertedIds: string[] = [];
     try {
-      const payload = rows.map(({ metrics, ...r }) => ({ ...r, user_id: user.id, profile_id: activeProfile.id }));
-      const { data: inserted, error } = await supabase.from('trades').insert(payload as any).select('id');
-      if (error) throw error;
-      if (!inserted || inserted.length !== rows.length) throw new Error('นำเข้าข้อมูลได้ไม่ครบทุกแถว');
-      insertedIds = inserted.map((trade: any) => trade.id);
-
-      const mvRows = inserted.flatMap((t: any, i: number) =>
-        Object.entries(rows[i]?.metrics ?? {}).map(([metric_id, value]) => ({
-          user_id: user.id, trade_id: t.id, metric_id, value,
-        }))
-      );
-      if (mvRows.length > 0) {
-        const { error: metricError } = await supabase.from('trade_metric_values').insert(mvRows);
-        if (metricError) {
-          await supabase.from('trades').delete().eq('user_id', user.id).eq('profile_id', activeProfile.id).in('id', insertedIds);
-          throw new Error(`บันทึกค่าตัวเลขไม่สำเร็จ จึงยกเลิกการนำเข้าทั้งหมด: ${metricError.message}`);
-        }
-      }
+      await importTradesWithRelations(activeProfile.id, rows.map(({ metrics = {}, ...trade }) => ({
+        trade,
+        metric_values: Object.entries(metrics).map(([metric_id, value]) => ({ metric_id, value })),
+      })));
       toast.success(`นำเข้า ${rows.length} ไม้แล้ว`);
       reset();
       onOpenChange(false);
       onImported();
-    } catch (error: any) {
-      toast.error(`นำเข้าไม่สำเร็จ: ${error.message}`);
+    } catch (error: unknown) {
+      toast.error(`นำเข้าไม่สำเร็จ: ${errorMessage(error)}`);
     } finally {
       setImporting(false);
     }

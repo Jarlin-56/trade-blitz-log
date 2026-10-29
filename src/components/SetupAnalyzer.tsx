@@ -52,7 +52,7 @@ export default function SetupAnalyzer({ trades, tradeConditions }: Props) {
   // Build map: trade_id -> condition names
   const tradeCondMap = useMemo(() => {
     const map = new Map<string, Set<string>>();
-    tradeConditions.forEach((tc: any) => {
+    tradeConditions.forEach((tc) => {
       const name = tc.conditions?.name;
       if (!name) return;
       if (!map.has(tc.trade_id)) map.set(tc.trade_id, new Set());

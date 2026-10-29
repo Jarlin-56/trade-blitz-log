@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +19,7 @@ import StorageImage from '@/components/StorageImage';
 import { getSignedUrl, uploadImage, removeStorageImages } from '@/lib/storage';
 import type { MetricDef } from '@/lib/metrics';
 import { validateMetricValue } from '@/lib/metric-validation';
+import { saveTradeWithRelations } from '@/lib/trades';
 
 type TradeResult = Database['public']['Enums']['trade_result'];
 type TradeDirection = Database['public']['Enums']['trade_direction'];
@@ -36,11 +38,11 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
   const location = useLocation();
   const qc = useQueryClient();
 
-  const prefill = (location.state as any)?.prefill as
+  const prefill = (location.state)?.prefill as
     | { asset?: string; direction?: TradeDirection; note?: string; image_url?: string }
     | undefined;
-  const quickNoteId = (location.state as any)?.quickNoteId as string | undefined;
-  const duplicateFromId = (location.state as any)?.duplicateFromId as string | undefined;
+  const quickNoteId = (location.state)?.quickNoteId as string | undefined;
+  const duplicateFromId = (location.state)?.duplicateFromId as string | undefined;
 
   const [asset, setAsset] = useState(() => prefill?.asset || localStorage.getItem('lastTradingPair') || 'XAUUSD');
   const [direction, setDirection] = useState<TradeDirection>(prefill?.direction || 'Long');
@@ -92,14 +94,14 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
 
       setAsset(source.asset);
       setDirection(source.direction);
-      setSelectedConditions((tc ?? []).map((r: any) => r.condition_id));
-      setSelectedTags((tt ?? []).map((r: any) => r.tag_id));
+      setSelectedConditions((tc ?? []).map((r) => r.condition_id));
+      setSelectedTags((tt ?? []).map((r) => r.tag_id));
       setMetricValues(
-        Object.fromEntries((tmv ?? []).filter((r: any) => r.value != null).map((r: any) => [r.metric_id, String(Number(r.value))]))
+        Object.fromEntries((tmv ?? []).filter((r) => r.value != null).map((r) => [r.metric_id, String(Number(r.value))]))
       );
       toast.success('ดึงข้อมูลจากไม้ก่อนหน้ามาแล้ว (ยังไม่บันทึกจนกว่าจะกด Save)');
-    } catch (err: any) {
-      toast.error(err.message || 'ดึงข้อมูลไม่สำเร็จ');
+    } catch (err: unknown) {
+      toast.error(errorMessage(err) || 'ดึงข้อมูลไม่สำเร็จ');
     } finally {
       setApplyingTemplate(false);
     }
@@ -260,10 +262,10 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
         supabase.from('trade_tags').select('tag_id').eq('trade_id', tradeId ?? ''),
         supabase.from('trade_metric_values').select('metric_id, value').eq('trade_id', tradeId ?? '').eq('user_id', user.id),
       ]);
-      setSelectedConditions((tc ?? []).map((r: any) => r.condition_id));
-      setSelectedTags((tt ?? []).map((r: any) => r.tag_id));
+      setSelectedConditions((tc ?? []).map((r) => r.condition_id));
+      setSelectedTags((tt ?? []).map((r) => r.tag_id));
       setMetricValues(
-        Object.fromEntries((tmv ?? []).filter((r: any) => r.value != null).map((r: any) => [r.metric_id, String(Number(r.value))]))
+        Object.fromEntries((tmv ?? []).filter((r) => r.value != null).map((r) => [r.metric_id, String(Number(r.value))]))
       );
       setLoaded(true);
     })();
@@ -297,19 +299,18 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
         return;
       }
       if (validation?.ok === true) {
-        metricRows.push({ user_id: user.id, metric_id: metric.id, value: validation.value });
+        metricRows.push({ metric_id: metric.id, value: validation.value });
       }
     }
 
     setSubmitting(true);
+    let uploadedImageUrl: string | null = null;
+    let committed = false;
     try {
       let imageUrl: string | null = existingImageUrl;
       if (imageFile) {
         imageUrl = await uploadImage(imageFile, user.id, 'trades');
-        // clean up the replaced image
-        if (existingImageUrl && existingImageUrl !== imageUrl) {
-          await removeStorageImages([existingImageUrl]);
-        }
+        uploadedImageUrl = imageUrl;
       }
 
       const payload = {
@@ -325,65 +326,30 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
             : null,
         recap_text: recap || null,
         image_url: imageUrl,
+        quick_note_id: quickNoteId,
       };
 
-      let savedId = tradeId;
-
-      if (isEdit) {
-        const { error } = await supabase
-          .from('trades')
-          .update(payload as any)
-          .eq('id', tradeId ?? '')
-          .eq('user_id', user.id)
-          .eq('profile_id', activeProfile.id);
-        if (error) throw error;
-        const { error: conditionDeleteError } = await supabase.from('trade_conditions').delete().eq('trade_id', tradeId ?? '');
-        if (conditionDeleteError) throw conditionDeleteError;
-        const { error: tagDeleteError } = await supabase.from('trade_tags').delete().eq('trade_id', tradeId ?? '');
-        if (tagDeleteError) throw tagDeleteError;
-      } else {
-        const { data: trade, error } = await supabase
-          .from('trades')
-          .insert({ ...payload, user_id: user.id, profile_id: activeProfile.id } as any)
-          .select()
-          .single();
-        if (error) throw error;
-        savedId = trade.id;
-      }
+      const savedId = await saveTradeWithRelations({
+        tradeId,
+        profileId: activeProfile.id,
+        trade: payload,
+        conditionIds: selectedConditions,
+        tagIds: selectedTags,
+        metricValues: metricRows,
+      });
+      committed = true;
 
       if (!savedId) throw new Error('ไม่พบรหัสไม้ที่บันทึก');
-      if (selectedConditions.length > 0) {
-        const { error } = await supabase.from('trade_conditions').insert(
-          selectedConditions.map(cid => ({ trade_id: savedId, condition_id: cid }))
-        );
-        if (error) throw error;
-      }
-      if (selectedTags.length > 0) {
-        const { error } = await supabase.from('trade_tags').insert(
-          selectedTags.map(tid => ({ trade_id: savedId, tag_id: tid }))
-        );
-        if (error) throw error;
+
+      if (existingImageUrl && uploadedImageUrl && existingImageUrl !== uploadedImageUrl) {
+        // Storage cleanup follows the successful database transaction.
+        await removeStorageImages([existingImageUrl]);
       }
 
-      // Custom metric values — replace the full set for this trade
-      const { error: metricDeleteError } = await supabase
-        .from('trade_metric_values')
-        .delete()
-        .eq('trade_id', savedId)
-        .eq('user_id', user.id);
-      if (metricDeleteError) throw metricDeleteError;
-      if (metricRows.length > 0) {
-        const { error: mvErr } = await supabase.from('trade_metric_values').insert(
-          metricRows.map(row => ({ ...row, trade_id: savedId }))
-        );
-        if (mvErr) throw mvErr;
-      }
-
-      localStorage.setItem('lastTradingPair', asset.toUpperCase());
-      if (draftKey) localStorage.removeItem(draftKey);
-      if (quickNoteId) {
-        await supabase.from('quick_notes' as any).update({ converted_trade_id: savedId }).eq('id', quickNoteId);
-      }
+      try {
+        localStorage.setItem('lastTradingPair', asset.toUpperCase());
+        if (draftKey) localStorage.removeItem(draftKey);
+      } catch { /* A local preference failure must not report a committed trade as failed. */ }
 
       qc.invalidateQueries({ queryKey: ['trades'] });
       qc.invalidateQueries({ queryKey: ['trade', tradeId] });
@@ -398,8 +364,13 @@ export default function TradeForm({ tradeId, asWidget, initialFile }: { tradeId?
         window.electronAPI?.hideWindow();      } else {
         navigate(isEdit ? `/trades/${tradeId}` : '/trades');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save trade');
+    } catch (err: unknown) {
+      if (!committed && uploadedImageUrl) {
+        // A network failure can occur after commit. Retain the object until the
+        // server state can be reconciled, rather than deleting a referenced image.
+        console.error('Trade result needs reconciliation; uploaded image retained', uploadedImageUrl);
+      }
+      toast.error(err instanceof Error ? errorMessage(err) : 'Failed to save trade');
     } finally {
       setSubmitting(false);
     }

@@ -19,16 +19,20 @@ export default function SettingsWidget() {
 
   useEffect(() => {
     if (isElectron) {
-      window.electronAPI.getConfig().then((cfg: any) => {
+      window.electronAPI.getConfig().then((cfg) => {
         if (cfg) setConfig(cfg);
       });
     }
   }, [isElectron]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isElectron) {
-      window.electronAPI.saveConfig(config);
-      toast.success('Widget settings saved successfully!');
+      try {
+        setConfig(await window.electronAPI.saveConfig(config));
+        toast.success('Widget settings saved successfully!');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Could not save widget settings');
+      }
     } else {
       toast.error('Widget settings are only available in the desktop app.');
     }

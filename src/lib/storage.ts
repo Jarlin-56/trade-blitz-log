@@ -9,7 +9,8 @@ export function toStoragePath(value: string | null | undefined): string | null {
   const marker = `/${BUCKET}/`;
   const idx = value.indexOf(marker);
   if (idx === -1) return null;
-  return decodeURIComponent(value.slice(idx + marker.length).split('?')[0]);
+  try { return decodeURIComponent(value.slice(idx + marker.length).split('?')[0]); }
+  catch { return null; }
 }
 
 const cache = new Map<string, { url: string; exp: number }>();
@@ -30,10 +31,21 @@ export async function removeStorageImages(values: (string | null | undefined)[])
   const paths = values.map(toStoragePath).filter((p): p is string => !!p);
   if (paths.length === 0) return;
   try {
-    await supabase.storage.from(BUCKET).remove(paths);
-    paths.forEach(p => cache.delete(p));
-  } catch {
-    /* ignore cleanup failures */
+    const candidates = [...new Set([...paths, ...values.filter((value): value is string => !!value), ...paths.map(path => supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl)])];
+    const [trades, notes] = await Promise.all([
+      supabase.from('trades').select('image_url').in('image_url', candidates),
+      supabase.from('quick_notes').select('image_url').in('image_url', candidates),
+    ]);
+    if (trades.error) throw trades.error;
+    if (notes.error) throw notes.error;
+    const referenced = new Set([...trades.data, ...notes.data].map(row => toStoragePath(row.image_url)));
+    const unreferenced = paths.filter(path => !referenced.has(path));
+    if (unreferenced.length === 0) return;
+    const { error } = await supabase.storage.from(BUCKET).remove(unreferenced);
+    if (error) throw error;
+    unreferenced.forEach(p => cache.delete(p));
+  } catch (error) {
+    console.error('Storage cleanup failed; objects retained for retry', { paths, error });
   }
 }
 

@@ -48,13 +48,13 @@ export default function Notes() {
     queryFn: async () => {
       if (!user || !activeProfile) return [];
       const { data, error } = await supabase
-        .from('quick_notes' as any)
+        .from('quick_notes')
         .select('*')
         .eq('user_id', user.id)
         .eq('profile_id', activeProfile.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return ((data as any[]) ?? []) as Note[];
+      return ((data) ?? []) as Note[];
     },
     enabled: !!user && !!activeProfile,
   });
@@ -65,7 +65,7 @@ export default function Notes() {
   const saveMut = useMutation({
     mutationFn: async () => {
       if (!editing) return;
-      const { error } = await supabase.from('quick_notes' as any).update({
+      const { error } = await supabase.from('quick_notes').update({
         asset: editAsset ? editAsset.toUpperCase() : null,
         direction: editDirection,
         note: editNote || null,
@@ -77,22 +77,22 @@ export default function Notes() {
       setEditing(null);
       qc.invalidateQueries({ queryKey: ['quick_notes'] });
     },
-    onError: (e: any) => toast.error(e.message || 'บันทึกไม่สำเร็จ'),
+    onError: (e) => toast.error(e.message || 'บันทึกไม่สำเร็จ'),
   });
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
-      const { data: row } = await supabase.from('quick_notes' as any).select('image_url').eq('id', id).maybeSingle();
-      const { error } = await supabase.from('quick_notes' as any).delete().eq('id', id);
+      const { data: row } = await supabase.from('quick_notes').select('image_url').eq('id', id).maybeSingle();
+      const { error } = await supabase.from('quick_notes').delete().eq('id', id);
       if (error) throw error;
-      await removeStorageImages([(row as any)?.image_url]);
+      await removeStorageImages([(row)?.image_url]);
     },
     onSuccess: () => {
       toast.success('ลบโน้ตแล้ว');
       setDeleteId(null);
       qc.invalidateQueries({ queryKey: ['quick_notes'] });
     },
-    onError: (e: any) => toast.error(e.message || 'ลบไม่สำเร็จ'),
+    onError: (e) => toast.error(e.message || 'ลบไม่สำเร็จ'),
   });
 
   const openEdit = (n: Note) => {

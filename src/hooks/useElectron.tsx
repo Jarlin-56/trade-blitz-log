@@ -12,13 +12,14 @@ export function useElectron() {
 
   useEffect(() => {
     if (!window.electronAPI) return;
-    window.electronAPI.onScreenshotCaptured((dataUrl) => {
+    const unsubscribe = window.electronAPI.onScreenshotCaptured((dataUrl) => {
       applyScreenshot(dataUrl);
     });
     // Catch screenshots sent before the listener was ready (race on first open)
     window.electronAPI.getPendingScreenshot?.().then((dataUrl) => {
       applyScreenshot(dataUrl);
     }).catch(() => {});
+    return unsubscribe;
   }, [applyScreenshot]);
 
   const togglePin = () => {
