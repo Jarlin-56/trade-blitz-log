@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 // @ts-expect-error untyped script module
-import { ensureTestGridFixture, parseHarnessArgs, verifyExecutableStagingTarget, evaluateValidationResult } from '../../scripts/interactive-capture-harness.mjs';
+import { ensureTestGridFixture, parseHarnessArgs, verifyExecutableStagingTarget, evaluateValidationResult, findScreenshotCard } from '../../scripts/interactive-capture-harness.mjs';
 // @ts-expect-error untyped script module
 import { validateStagingUiConfig, ALLOWED_STAGING_REF, FORBIDDEN_PROJECT_REFS } from '../../scripts/staging-utils.mjs';
 
@@ -184,6 +184,73 @@ describe('A11.1-R2 Interactive Capture Harness Synthetic & Decision Logic Tests'
       const res = evaluateValidationResult(report);
       expect(res.status).toBe('PASSED');
       expect(res.exitCode).toBe(0);
+    });
+
+    // Regression Test: unpinned ไม่ได้ทดสอบต้อง INCOMPLETE
+    it('returns INCOMPLETE and exitCode 2 when widget_unpinned_restore is NOT TESTED', () => {
+      const report = createBaseValidReport();
+      report.cancel_tests.widget_unpinned_restore = 'NOT TESTED';
+
+      const res = evaluateValidationResult(report);
+      expect(res.status).toBe('INCOMPLETE');
+      expect(res.exitCode).toBe(2);
+      expect(res.reasons.some((r: string) => r.includes("Cancel test 'widget_unpinned_restore' is NOT TESTED"))).toBe(true);
+    });
+
+    // Regression Test: สถานะ widget หลัง cancel ไม่ตรงเดิมต้อง FAILED
+    it('returns FAILED and exitCode 1 when widget state after cancel fails to restore original state', () => {
+      const reportPinnedMismatch = createBaseValidReport();
+      reportPinnedMismatch.cancel_tests.widget_pinned_restore = 'FAIL_STATE_MISMATCH';
+
+      const resPinned = evaluateValidationResult(reportPinnedMismatch);
+      expect(resPinned.status).toBe('FAILED');
+      expect(resPinned.exitCode).toBe(1);
+      expect(resPinned.reasons.some((r: string) => r.includes("widget_pinned_restore' failed with status: FAIL_STATE_MISMATCH"))).toBe(true);
+
+      const reportUnpinnedMismatch = createBaseValidReport();
+      reportUnpinnedMismatch.cancel_tests.widget_unpinned_restore = 'FAIL_STATE_MISMATCH';
+
+      const resUnpinned = evaluateValidationResult(reportUnpinnedMismatch);
+      expect(resUnpinned.status).toBe('FAILED');
+      expect(resUnpinned.exitCode).toBe(1);
+      expect(resUnpinned.reasons.some((r: string) => r.includes("widget_unpinned_restore' failed with status: FAIL_STATE_MISMATCH"))).toBe(true);
+    });
+  });
+
+  // Regression Test: DOM มีปุ่ม Pin/Hide อยู่ก่อนปุ่มลบภาพ
+  describe('Scoped screenshot deletion locator regression', () => {
+    it('findScreenshotCard targets scoped delete button without selecting preceding Pin or Hide buttons', () => {
+      document.body.innerHTML = `
+        <div id="widget-root">
+          <div class="widget-header flex items-center justify-between px-4 py-2 border-b">
+            <div class="title font-semibold text-sm">Log Trade</div>
+            <div class="actions flex items-center gap-1">
+              <button type="button" class="pin-btn h-7 w-7" aria-label="Pin">PinIcon</button>
+              <button type="button" class="hide-btn h-7 w-7" aria-label="Close">CloseIcon</button>
+            </div>
+          </div>
+          <div class="form-container p-4">
+            <form>
+              <div class="rounded-lg overflow-hidden border border-primary/30 bg-primary/5">
+                <div class="card-header flex items-center justify-between px-3 py-1.5 border-b border-primary/20">
+                  <span class="text-xs font-medium text-primary">Screenshot attached</span>
+                  <button type="button" class="delete-btn h-6 w-6" aria-label="Delete">X</button>
+                </div>
+                <img src="blob:http://localhost/test-uuid" alt="Screenshot" class="w-full max-h-40 object-contain" />
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+
+      const card = findScreenshotCard(document.body);
+      expect(card).not.toBeNull();
+      expect(card?.label?.textContent).toBe('Screenshot attached');
+      expect(card?.img).not.toBeNull();
+      expect(card?.deleteBtn).not.toBeNull();
+      // Must target the delete button inside the card, NOT the pin or hide button in the header
+      expect(card?.deleteBtn?.className).toContain('delete-btn');
+      expect(card?.deleteBtn?.textContent).toBe('X');
     });
   });
 });

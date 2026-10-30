@@ -71,8 +71,9 @@ node scripts/interactive-capture-harness.mjs `
 | **4** | **Round 3: Crop Box 3** | กด `Ctrl+Shift+X` ลากกรอบรอบ Box 3 ใน Grid | มี capture event ใหม่, preview แนบ, ไม่ดำ, ปิด crop window | ตอบ `y` เมื่อรูปตรง |
 | **5** | **Cancel: Escape Key** | กด `Ctrl+Shift+X` รอ crop window เปิดขึ้นมา แล้วกดปุ่ม `Escape` | สังเกต crop window เปิดแล้วปิดสนิท ไม่ค้าง | Harness ตรวจ window lifecycle |
 | **6** | **Cancel: Micro-drag** | กด `Ctrl+Shift+X` รอ crop window เปิด แล้วคลิกเมาส์ 1 ครั้ง (<10px) | สังเกต crop window เปิดแล้วปิดสนิท ไม่ค้าง | Harness ตรวจ window lifecycle |
-| **7** | **Widget Restore** | สังเกต Quick Note Widget หลัง cancel | คืนสถานะ AlwaysOnTop/Visibility ตามเดิม | Harness ตรวจอัตโนมัติ |
-| **8** | **Clipboard Paste** | Copy รูปใดก็ได้เข้า Clipboard แล้วกด `Ctrl+V` ใน Widget | Preview แสดงรูปที่ copy เข้าฟอร์ม | ตอบ `y` เมื่อรูปตรง |
+| **7** | **Cancel: Pinned Restore** | อยู่ในโหมด Pinned กด `Ctrl+Shift+X` แล้ว `Escape` | สังเกต crop เปิด/ปิด, คืนสถานะ alwaysOnTop=true, visible=true | Harness ตรวจอัตโนมัติ |
+| **8** | **Cancel: Unpinned Restore** | กดปุ่ม Pin เพื่อ Unpin กด `Ctrl+Shift+X` แล้ว `Escape` | สังเกต crop เปิด/ปิด, คืนสถานะ alwaysOnTop=false, visible=true | Harness ตรวจอัตโนมัติ |
+| **9** | **Clipboard Paste** | Copy รูปใดก็ได้เข้า Clipboard แล้วกด `Ctrl+V` ใน Widget | Preview แสดงรูปที่ copy เข้าฟอร์ม | ตอบ `y` เมื่อรูปตรง |
 
 ---
 

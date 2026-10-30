@@ -192,15 +192,47 @@ export async function inspectWidgetScreenshot(widgetPage, lastSrc = null, roundS
   }, { prevSrc: lastSrc, startTime: roundStartTime });
 }
 
+// Scoped helper to find the exact screenshot card container and delete button in DOM
+export function findScreenshotCard(root = document) {
+  const spans = Array.from(root.querySelectorAll('span, p, div'));
+  const label = spans.find(el => el.textContent && el.textContent.trim() === 'Screenshot attached');
+  if (!label) return null;
+
+  // Find the closest ancestor container that contains the screenshot preview img
+  let curr = label.parentElement;
+  while (curr && curr !== root) {
+    const img = curr.querySelector('img[alt="Screenshot"]');
+    if (img) {
+      // Find the delete button within this specific card container (adjacent to the label)
+      const deleteBtn = curr.querySelector('button');
+      return { container: curr, label, img, deleteBtn };
+    }
+    curr = curr.parentElement;
+  }
+  return null;
+}
+
 // Scoped removal helper inside Screenshot attached container
 export async function removeWidgetScreenshot(widgetPage) {
-  const container = widgetPage.locator('div:has(span:text-is("Screenshot attached"))').first();
+  // 1. Locate the exact label first
+  const label = widgetPage.locator('span:text-is("Screenshot attached")').first();
+  await label.waitFor({ state: 'visible', timeout: 5000 });
+
+  // 2. Select the closest enclosing container that holds both this label and the img preview
+  const container = label.locator('xpath=ancestor::div[.//img[@alt="Screenshot"]][1]');
+  await container.waitFor({ state: 'visible', timeout: 5000 });
+
+  // 3. Ensure preview image exists inside this specific container before deletion
+  const img = container.locator('img[alt="Screenshot"]').first();
+  await img.waitFor({ state: 'attached', timeout: 5000 });
+
+  // 4. Target the delete button within this specific container
   const deleteBtn = container.locator('button').first();
   await deleteBtn.waitFor({ state: 'visible', timeout: 5000 });
   await deleteBtn.click({ force: true });
 
-  // Assert preview image is completely removed
-  await widgetPage.locator('img[alt="Screenshot"]').waitFor({ state: 'detached', timeout: 5000 });
+  // 5. Assert that the preview image is removed/detached from DOM
+  await img.waitFor({ state: 'detached', timeout: 5000 });
 }
 
 // Deterministic decision evaluation logic
@@ -579,18 +611,140 @@ export async function runInteractiveValidation(customArgs = null) {
     }
     log(`Micro-drag Cancel Result: ${report.cancel_tests.micro_drag_cancel}`);
 
-    // Test 3: Widget pinned restore
+    // Test 3: Widget Pinned State Restore
     log('\nTest 3: Widget Pinned State Restore');
-    const isWidgetPinned = await app.evaluate(({ BrowserWindow }) => {
+    log('1. Ensure Widget is Pinned (alwaysOnTop: true)');
+    log('2. Press Ctrl+Shift+X to open crop window');
+    log('3. Press Escape to cancel');
+
+    const pinStateBefore = await app.evaluate(({ BrowserWindow }) => {
       const wins = BrowserWindow.getAllWindows();
       const widget = wins.find(w => w.webContents.getURL().includes('mode=widget'));
-      return widget ? widget.isAlwaysOnTop() : false;
+      if (!widget) return null;
+      return {
+        alwaysOnTop: widget.isAlwaysOnTop(),
+        visible: widget.isVisible()
+      };
     });
-    report.cancel_tests.widget_pinned_restore = isWidgetPinned ? 'PASSED' : 'FAIL_PINNED_MISMATCH';
+
+    if (!pinStateBefore) {
+      report.cancel_tests.widget_pinned_restore = 'FAIL_WIDGET_NOT_FOUND';
+    } else {
+      const pinStartOpened = await app.evaluate(() => global.__cropObserver?.openedCount || 0);
+      const pinStartClosed = await app.evaluate(() => global.__cropObserver?.closedCount || 0);
+      await ask('[Press Enter when ready, then press Ctrl+Shift+X followed by Escape] ');
+
+      log('Observing crop window lifecycle for Pinned cancel test...');
+      const pinWaitStart = Date.now();
+      let pinOpened = false;
+      let pinClosed = false;
+      while (Date.now() - pinWaitStart < 30000) {
+        const counts = await app.evaluate(() => ({
+          opened: global.__cropObserver?.openedCount || 0,
+          closed: global.__cropObserver?.closedCount || 0
+        }));
+        if (counts.opened > pinStartOpened) pinOpened = true;
+        if (pinOpened && counts.closed > pinStartClosed) {
+          pinClosed = true;
+          break;
+        }
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      const pinStateAfter = await app.evaluate(({ BrowserWindow }) => {
+        const wins = BrowserWindow.getAllWindows();
+        const widget = wins.find(w => w.webContents.getURL().includes('mode=widget'));
+        if (!widget) return null;
+        return {
+          alwaysOnTop: widget.isAlwaysOnTop(),
+          visible: widget.isVisible()
+        };
+      });
+
+      if (!pinOpened) {
+        report.cancel_tests.widget_pinned_restore = 'FAIL_CROP_NEVER_OPENED';
+      } else if (!pinClosed) {
+        report.cancel_tests.widget_pinned_restore = 'FAIL_WINDOW_LEAK';
+      } else if (!pinStateAfter || pinStateAfter.alwaysOnTop !== pinStateBefore.alwaysOnTop || pinStateAfter.visible !== pinStateBefore.visible) {
+        report.cancel_tests.widget_pinned_restore = 'FAIL_STATE_MISMATCH';
+      } else {
+        report.cancel_tests.widget_pinned_restore = 'PASSED';
+      }
+    }
     log(`Widget Pinned Restore Result: ${report.cancel_tests.widget_pinned_restore}`);
 
-    // Test 4: Widget unpinned restore
-    report.cancel_tests.widget_unpinned_restore = 'PASSED';
+    // Test 4: Widget Unpinned State Restore
+    log('\nTest 4: Widget Unpinned State Restore');
+    log('1. Click Pin button to Unpin Widget (alwaysOnTop: false)');
+    log('2. Press Ctrl+Shift+X to open crop window');
+    log('3. Press Escape to cancel');
+
+    const pinBtn = widgetPage.locator('button:has(svg.lucide-pin)').first();
+    if (await pinBtn.isVisible()) {
+      await pinBtn.click({ force: true });
+      await widgetPage.waitForTimeout(300);
+    }
+
+    const unpinStateBefore = await app.evaluate(({ BrowserWindow }) => {
+      const wins = BrowserWindow.getAllWindows();
+      const widget = wins.find(w => w.webContents.getURL().includes('mode=widget'));
+      if (!widget) return null;
+      return {
+        alwaysOnTop: widget.isAlwaysOnTop(),
+        visible: widget.isVisible()
+      };
+    });
+
+    if (!unpinStateBefore) {
+      report.cancel_tests.widget_unpinned_restore = 'FAIL_WIDGET_NOT_FOUND';
+    } else {
+      const unpinStartOpened = await app.evaluate(() => global.__cropObserver?.openedCount || 0);
+      const unpinStartClosed = await app.evaluate(() => global.__cropObserver?.closedCount || 0);
+      await ask('[Press Enter when ready, then press Ctrl+Shift+X followed by Escape] ');
+
+      log('Observing crop window lifecycle for Unpinned cancel test...');
+      const unpinWaitStart = Date.now();
+      let unpinOpened = false;
+      let unpinClosed = false;
+      while (Date.now() - unpinWaitStart < 30000) {
+        const counts = await app.evaluate(() => ({
+          opened: global.__cropObserver?.openedCount || 0,
+          closed: global.__cropObserver?.closedCount || 0
+        }));
+        if (counts.opened > unpinStartOpened) unpinOpened = true;
+        if (unpinOpened && counts.closed > unpinStartClosed) {
+          unpinClosed = true;
+          break;
+        }
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      const unpinStateAfter = await app.evaluate(({ BrowserWindow }) => {
+        const wins = BrowserWindow.getAllWindows();
+        const widget = wins.find(w => w.webContents.getURL().includes('mode=widget'));
+        if (!widget) return null;
+        return {
+          alwaysOnTop: widget.isAlwaysOnTop(),
+          visible: widget.isVisible()
+        };
+      });
+
+      if (!unpinOpened) {
+        report.cancel_tests.widget_unpinned_restore = 'FAIL_CROP_NEVER_OPENED';
+      } else if (!unpinClosed) {
+        report.cancel_tests.widget_unpinned_restore = 'FAIL_WINDOW_LEAK';
+      } else if (!unpinStateAfter || unpinStateAfter.alwaysOnTop !== unpinStateBefore.alwaysOnTop || unpinStateAfter.visible !== unpinStateBefore.visible) {
+        report.cancel_tests.widget_unpinned_restore = 'FAIL_STATE_MISMATCH';
+      } else {
+        report.cancel_tests.widget_unpinned_restore = 'PASSED';
+      }
+
+      // Re-pin widget back to default pinned state
+      if (await pinBtn.isVisible()) {
+        await pinBtn.click({ force: true });
+      }
+    }
+    log(`Widget Unpinned Restore Result: ${report.cancel_tests.widget_unpinned_restore}`);
 
     // Clipboard Paste Test
     log('\n================== CLIPBOARD PASTE TEST ==================');
