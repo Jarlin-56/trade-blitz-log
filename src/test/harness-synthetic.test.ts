@@ -1,17 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  ensureTestGridFixture,
-  parseHarnessArgs,
-  verifyExecutableStagingTarget,
-  evaluateValidationResult
-} from '../../scripts/interactive-capture-harness.mjs';
-import {
-  validateStagingUiConfig,
-  ALLOWED_STAGING_REF,
-  FORBIDDEN_PROJECT_REFS
-} from '../../scripts/staging-utils.mjs';
+// @ts-expect-error untyped script module
+import { ensureTestGridFixture, parseHarnessArgs, verifyExecutableStagingTarget, evaluateValidationResult } from '../../scripts/interactive-capture-harness.mjs';
+// @ts-expect-error untyped script module
+import { validateStagingUiConfig, ALLOWED_STAGING_REF, FORBIDDEN_PROJECT_REFS } from '../../scripts/staging-utils.mjs';
 
 describe('A11.1-R2 Interactive Capture Harness Synthetic & Decision Logic Tests', () => {
   it('ensureTestGridFixture generates valid calibration pattern without personal data', () => {
@@ -95,10 +88,17 @@ describe('A11.1-R2 Interactive Capture Harness Synthetic & Decision Logic Tests'
   describe('evaluateValidationResult decision logic', () => {
     const createBaseValidReport = () => ({
       rounds: [
-        { round: 1, attached: true, isAllBlack: false, cropWindowLeaked: false, operator_confirmed: true },
-        { round: 2, attached: true, isAllBlack: false, cropWindowLeaked: false, operator_confirmed: true },
-        { round: 3, attached: true, isAllBlack: false, cropWindowLeaked: false, operator_confirmed: true }
-      ],
+        { round: 1, attached: true, isAllBlack: false, cropWindowLeaked: false, operator_confirmed: true, fingerprint: '100x100:123' },
+        { round: 2, attached: true, isAllBlack: false, cropWindowLeaked: false, operator_confirmed: true, fingerprint: '100x100:456' },
+        { round: 3, attached: true, isAllBlack: false, cropWindowLeaked: false, operator_confirmed: true, fingerprint: '100x100:789' }
+      ] as Array<{
+        round: number;
+        attached: boolean;
+        isAllBlack: boolean;
+        cropWindowLeaked: boolean;
+        operator_confirmed: boolean;
+        fingerprint?: string;
+      }>,
       cancel_tests: {
         escape_cancel: 'PASSED',
         micro_drag_cancel: 'PASSED',
@@ -129,7 +129,7 @@ describe('A11.1-R2 Interactive Capture Harness Synthetic & Decision Logic Tests'
       const res = evaluateValidationResult(report);
       expect(res.status).toBe('FAILED');
       expect(res.exitCode).toBe(1);
-      expect(res.reasons.some(r => r.includes('FAIL_CROP_NEVER_OPENED'))).toBe(true);
+      expect(res.reasons.some((r: string) => r.includes('FAIL_CROP_NEVER_OPENED'))).toBe(true);
     });
 
     it('returns FAILED and exitCode 1 when operator responds n (rejects region accuracy)', () => {
@@ -140,7 +140,7 @@ describe('A11.1-R2 Interactive Capture Harness Synthetic & Decision Logic Tests'
       const res = evaluateValidationResult(report);
       expect(res.status).toBe('FAILED');
       expect(res.exitCode).toBe(1);
-      expect(res.reasons.some(r => r.includes('Round 2: operator rejected'))).toBe(true);
+      expect(res.reasons.some((r: string) => r.includes('Round 2: operator rejected'))).toBe(true);
     });
 
     it('returns FAILED and exitCode 1 when paste fails or operator rejects pasted image', () => {
@@ -165,7 +165,7 @@ describe('A11.1-R2 Interactive Capture Harness Synthetic & Decision Logic Tests'
       const res = evaluateValidationResult(reportIncomplete);
       expect(res.status).toBe('INCOMPLETE');
       expect(res.exitCode).toBe(2);
-      expect(res.reasons.some(r => r.includes("Cancel test 'micro_drag_cancel' is NOT TESTED"))).toBe(true);
+      expect(res.reasons.some((r: string) => r.includes("Cancel test 'micro_drag_cancel' is NOT TESTED"))).toBe(true);
 
       const reportMissingRounds = createBaseValidReport();
       reportMissingRounds.rounds.pop(); // only 2 rounds
