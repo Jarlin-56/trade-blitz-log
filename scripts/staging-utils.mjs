@@ -98,6 +98,57 @@ export function validateStagingTarget(config) {
 }
 
 /**
+ * Validates UI-only staging configuration (zero database credentials, zero service keys).
+ */
+export function validateStagingUiConfig(config) {
+  if (!config || typeof config !== 'object') {
+    throw new Error('UI target validation failed: Config object is missing or invalid.');
+  }
+
+  // 1. Ref check
+  if (config.project_ref !== ALLOWED_STAGING_REF) {
+    throw new Error(
+      `UI target validation failed: project_ref '${config.project_ref}' does not match allowed staging ref '${ALLOWED_STAGING_REF}'.`
+    );
+  }
+
+  // 2. Scan entire config payload for forbidden references
+  const stringified = JSON.stringify(config);
+  for (const forbidden of FORBIDDEN_PROJECT_REFS) {
+    if (stringified.includes(forbidden)) {
+      throw new Error(
+        `CRITICAL ABORT: Configuration contains forbidden reference '${forbidden}' (production/Talktext). Refusing to connect.`
+      );
+    }
+  }
+
+  // 3. Supabase origin check
+  const expectedOrigin = `https://${ALLOWED_STAGING_REF}.supabase.co`;
+  if (!config.supabase_url) {
+    throw new Error('UI target validation failed: missing supabase_url.');
+  }
+  try {
+    const parsedOrigin = new URL(config.supabase_url).origin;
+    if (parsedOrigin !== expectedOrigin) {
+      throw new Error(
+        `UI target validation failed: supabase_url origin '${parsedOrigin}' does not match expected staging origin '${expectedOrigin}'.`
+      );
+    }
+  } catch (e) {
+    if (e.message.startsWith('UI target validation failed')) throw e;
+    throw new Error(`UI target validation failed: invalid supabase_url (${e.message})`);
+  }
+
+  // 4. Strictly reject any database credentials or service role keys
+  if (config.db_password || config.service_role_key || config.db_user || config.db_host ||
+      stringified.includes('postgres:') || stringified.includes('service_role')) {
+    throw new Error('SECURITY VIOLATION: UI staging config must NOT contain database credentials or service_role keys.');
+  }
+
+  return true;
+}
+
+/**
  * Sanitizes error messages by redacting credentials, auth tokens, and sensitive strings.
  */
 export function sanitizeError(msg, secrets = []) {
