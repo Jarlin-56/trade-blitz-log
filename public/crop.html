@@ -41,14 +41,12 @@
   <div id="crop-box"></div>
   <img id="screenshot" src="" />
   <script>
-    const { ipcRenderer } = require('electron');
-
     let startX, startY, endX, endY, isDragging = false;
     const cropBox = document.getElementById('crop-box');
     const overlay = document.getElementById('overlay');
     const screenshot = document.getElementById('screenshot');
 
-    ipcRenderer.on('screenshot-data', (event, dataUrl) => {
+    window.cropAPI.onScreenshotData((dataUrl) => {
       screenshot.src = dataUrl;
     });
 
@@ -104,16 +102,16 @@
         ctx.drawImage(screenshot, sx, sy, sWidth, sHeight, 0, 0, width, height);
         const croppedDataUrl = canvas.toDataURL('image/png');
         
-        ipcRenderer.send('crop-finished', croppedDataUrl);
+        window.cropAPI.finish(croppedDataUrl);
       } else {
         // Cancelled
-        ipcRenderer.send('crop-cancelled');
+        window.cropAPI.cancel();
       }
     });
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        ipcRenderer.send('crop-cancelled');
+        window.cropAPI.cancel();
       }
     });
   </script>

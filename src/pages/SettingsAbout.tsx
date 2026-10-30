@@ -24,25 +24,26 @@ export default function SettingsAbout() {
   useEffect(() => {
     if (!isElectron) return;
 
-    window.electronAPI.onUpdateAvailable((info) => {
+    const offAvailable = window.electronAPI.onUpdateAvailable((info) => {
       setUpdate((prev) => ({ ...prev, status: 'available', newVersion: info.version }));
     });
 
-    window.electronAPI.onDownloadProgress((progress) => {
+    const offProgress = window.electronAPI.onDownloadProgress((progress) => {
       setUpdate((prev) => ({ ...prev, status: 'downloading', percent: Math.round(progress.percent) }));
     });
 
-    window.electronAPI.onUpdateDownloaded((info) => {
+    const offDownloaded = window.electronAPI.onUpdateDownloaded((info) => {
       setUpdate((prev) => ({ ...prev, status: 'ready', newVersion: info.version }));
     });
 
-    window.electronAPI.onUpdateNotAvailable(() => {
+    const offNotAvailable = window.electronAPI.onUpdateNotAvailable(() => {
       setUpdate((prev) => ({ ...prev, status: 'up-to-date' }));
     });
 
-    window.electronAPI.onUpdateError(() => {
+    const offError = window.electronAPI.onUpdateError(() => {
       setUpdate((prev) => ({ ...prev, status: 'error' }));
     });
+    return () => { offAvailable(); offProgress(); offDownloaded(); offNotAvailable(); offError(); };
   }, [isElectron]);
 
   const handleCheckUpdate = () => {

@@ -28,8 +28,8 @@ function ProfileSwitcher() {
   const createNewProfile = async () => {
     if (!user) return;
     const name = `Profile ${profiles.length + 1}`;
-    await supabase.from('profiles').update({ is_active: false } as any).eq('user_id', user.id);
-    await supabase.from('profiles').insert({ user_id: user.id, display_name: name, is_active: true } as any);
+    await supabase.from('profiles').update({ is_active: false }).eq('user_id', user.id);
+    await supabase.from('profiles').insert({ user_id: user.id, display_name: name, is_active: true });
     await refreshProfiles();
     toast({ title: 'สร้างโปรไฟล์ใหม่แล้ว', description: name });
   };

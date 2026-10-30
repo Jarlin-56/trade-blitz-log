@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
@@ -63,8 +64,8 @@ const App = () => {
           } else {
             toast.error("ไม่พบคีย์สำหรับยืนยันตัวตนในลิงก์");
           }
-        } catch (err: any) {
-          toast.error(`เกิดข้อผิดพลาดในการดึงคีย์เข้าสู่ระบบ: ${err.message}`);
+        } catch (err: unknown) {
+          toast.error(`เกิดข้อผิดพลาดในการดึงคีย์เข้าสู่ระบบ: ${errorMessage(err)}`);
         }
       });
 

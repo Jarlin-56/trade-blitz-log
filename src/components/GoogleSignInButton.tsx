@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -35,8 +36,8 @@ export default function GoogleSignInButton({
         } else {
           toast.error('ไม่ได้รับลิงก์สำหรับเข้าสู่ระบบ');
         }
-      } catch (err: any) {
-        toast.error(err.message || 'เกิดข้อผิดพลาดในการเปิดระบบล็อกอิน');
+      } catch (err: unknown) {
+        toast.error(errorMessage(err) || 'เกิดข้อผิดพลาดในการเปิดระบบล็อกอิน');
       } finally {
         setLoading(false);
       }
@@ -55,8 +56,8 @@ export default function GoogleSignInButton({
       if (error) {
         toast.error(error.message || 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
       }
-    } catch (err: any) {
-      toast.error(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google');
+    } catch (err: unknown) {
+      toast.error(errorMessage(err) || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google');
     } finally {
       setLoading(false);
     }

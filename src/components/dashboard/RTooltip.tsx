@@ -1,4 +1,6 @@
-export const RTooltipContent = ({ active, payload, label }: any) => {
+import type { TooltipProps } from 'recharts';
+
+export const RTooltipContent = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
   const value = payload[0].value as number;
   const color = value > 0 ? 'hsl(142 70% 45%)' : value < 0 ? 'hsl(0 72% 51%)' : '#fafafa';

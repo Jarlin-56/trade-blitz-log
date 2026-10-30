@@ -14,6 +14,10 @@ dist-electron
 *.local
 .env
 release/
+release-*/
+test-results/
+playwright-report/
+supabase/.temp/
 
 # Editor directories and files
 .vscode/*
@@ -25,3 +29,7 @@ release/
 *.njsproj
 *.sln
 *.sw?
+
+# Backups and snapshots
+*.dump
+*-snapshot.json

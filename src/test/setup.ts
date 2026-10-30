@@ -1,11 +1,11 @@
 import "@testing-library/jest-dom";
 
-Object.defineProperty(window, "matchMedia", {
+if (typeof window !== 'undefined') Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({
     matches: false,
     media: query,
-    onchange: null,
+    onchange: null as MediaQueryList['onchange'],
     addListener: () => {},
     removeListener: () => {},
     addEventListener: () => {},

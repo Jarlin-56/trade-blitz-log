@@ -94,9 +94,9 @@ export default function RecapQuiz() {
 
   const summary = useMemo(() => {
     const total = stats.length;
-    const dirCorrect = stats.filter((s: any) => s.direction_correct).length;
-    const enterCorrect = stats.filter((s: any) => s.enter_correct).length;
-    const totalScore = stats.reduce((s: number, a: any) => s + (a.score ?? 0), 0);
+    const dirCorrect = stats.filter((s) => s.direction_correct).length;
+    const enterCorrect = stats.filter((s) => s.enter_correct).length;
+    const totalScore = stats.reduce((s: number, a) => s + (a.score ?? 0), 0);
     return {
       total,
       dirAcc: total ? Math.round((dirCorrect / total) * 100) : 0,
@@ -136,7 +136,7 @@ export default function RecapQuiz() {
       toast.error(`โหลด condition ไม่สำเร็จ: ${condError.message}`);
       return;
     }
-    const actualConds = (condData ?? []).map((d: any) => d.conditions?.name).filter(Boolean) as string[];
+    const actualConds = (condData ?? []).map((d) => d.conditions?.name).filter(Boolean) as string[];
 
     const { data: attempt, error: attemptError } = await supabase.from('recap_quiz_attempts').insert({
       user_id: user.id,
@@ -147,7 +147,7 @@ export default function RecapQuiz() {
       direction_correct: dirCorrect,
       enter_correct: enterCorrect,
       score,
-    } as any).select('id').single();
+    }).select('id').single();
     if (attemptError || !attempt?.id) {
       toast.error(`บันทึกผล Quiz ไม่สำเร็จ: ${attemptError?.message ?? 'ไม่พบรหัสผลลัพธ์'}`);
       return;
@@ -164,7 +164,7 @@ export default function RecapQuiz() {
     }));
     if (rows.length > 0) {
       const { error: conditionResultError } = await supabase
-        .from('recap_quiz_condition_results').insert(rows as any);
+        .from('recap_quiz_condition_results').insert(rows);
       if (conditionResultError) {
         await supabase.from('recap_quiz_attempts').delete()
           .eq('id', attempt.id).eq('user_id', user.id).eq('profile_id', activeProfile.id);

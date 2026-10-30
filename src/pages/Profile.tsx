@@ -34,7 +34,7 @@ export default function Profile() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ display_name: displayName, bio, trading_style: tradingStyle || null } as any)
+      .update({ display_name: displayName, bio, trading_style: tradingStyle || null })
       .eq('id', activeProfile.id).eq('user_id', user?.id ?? '');
 
     if (error) {
@@ -53,16 +53,20 @@ export default function Profile() {
     // collect images to clean up, then delete the profile (children cascade in DB)
     const [{ data: tradeRows }, { data: noteRows }] = await Promise.all([
       supabase.from('trades').select('image_url').eq('user_id', user.id).eq('profile_id', activeProfile.id),
-      supabase.from('quick_notes' as any).select('image_url').eq('user_id', user.id).eq('profile_id', activeProfile.id),
+      supabase.from('quick_notes').select('image_url').eq('user_id', user.id).eq('profile_id', activeProfile.id),
     ]);
-    await supabase.from('profiles').delete().eq('id', activeProfile.id).eq('user_id', user.id);
+    const { error: deleteError } = await supabase.from('profiles').delete().eq('id', activeProfile.id).eq('user_id', user.id);
+    if (deleteError) {
+      toast({ title: 'ลบโปรไฟล์ไม่สำเร็จ', description: deleteError.message, variant: 'destructive' });
+      return;
+    }
     await removeStorageImages([
-      ...((tradeRows ?? []) as any[]).map(r => r.image_url),
-      ...((noteRows ?? []) as any[]).map(r => r.image_url),
+      ...((tradeRows ?? [])).map(r => r.image_url),
+      ...((noteRows ?? [])).map(r => r.image_url),
     ]);
     const remaining = profiles.filter(p => p.id !== activeProfile.id);
     if (remaining.length > 0) {
-      await supabase.from('profiles').update({ is_active: true } as any).eq('id', remaining[0].id);
+      await supabase.from('profiles').update({ is_active: true }).eq('id', remaining[0].id);
     }
     await refreshProfiles();
     toast({ title: 'ลบโปรไฟล์แล้ว' });

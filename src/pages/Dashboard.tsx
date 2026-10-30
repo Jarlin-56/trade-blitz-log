@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -134,10 +134,10 @@ export default function Dashboard() {
       const m = Math.round(mins % 60);
       return m > 0 ? `${h}h ${m}m` : `${h}h`;
     };
-    const withDuration = executedTrades.filter(t => (t as any).duration_minutes != null);
+    const withDuration = executedTrades.filter(t => (t).duration_minutes != null);
     const wins = withDuration.filter(t => t.result === 'Win');
     const losses = withDuration.filter(t => t.result === 'Loss');
-    const avg = (arr: typeof withDuration) => arr.length > 0 ? arr.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / arr.length : null;
+    const avg = (arr: typeof withDuration) => arr.length > 0 ? arr.reduce((s, t) => s + Number((t).duration_minutes), 0) / arr.length : null;
     const overall = avg(withDuration);
     const avgWin = avg(wins);
     const avgLoss = avg(losses);
@@ -173,7 +173,7 @@ export default function Dashboard() {
 
 
 
-  const buildPerf = (joins: Array<{ trade_id: string; name: string | undefined }>) => {
+  const buildPerf = useCallback((joins: Array<{ trade_id: string; name: string | undefined }>) => {
     const executedMap = new Map(executedTrades.map(t => [t.id, t]));
     const map = new Map<string, { total: number; wins: number; r: number }>();
     for (const j of joins) {
@@ -193,16 +193,16 @@ export default function Dashboard() {
         totalR: parseFloat(r.toFixed(2)),
       }))
       .sort((a, b) => b.totalR - a.totalR);
-  };
+  }, [executedTrades]);
 
   const tagPerfData = useMemo(
-    () => buildPerf(tradeTags.map(t => ({ trade_id: t.trade_id, name: (t.tags as any)?.name }))),
-    [tradeTags, executedTrades]
+    () => buildPerf(tradeTags.map(t => ({ trade_id: t.trade_id, name: (t.tags)?.name }))),
+    [tradeTags, buildPerf]
   );
 
   const conditionPerfTableData = useMemo(
-    () => buildPerf(tradeConditions.map(t => ({ trade_id: t.trade_id, name: (t.conditions as any)?.name }))),
-    [tradeConditions, executedTrades]
+    () => buildPerf(tradeConditions.map(t => ({ trade_id: t.trade_id, name: (t.conditions)?.name }))),
+    [tradeConditions, buildPerf]
   );
 
   const hourlyData = useMemo(() => {
@@ -245,7 +245,7 @@ export default function Dashboard() {
     // Map trade -> its conditions (checklist items)
     const condByTrade = new Map<string, string[]>();
     for (const tc of tradeConditions) {
-      const name = (tc.conditions as any)?.name;
+      const name = (tc.conditions)?.name;
       if (!name) continue;
       const arr = condByTrade.get(tc.trade_id) ?? [];
       arr.push(name);
@@ -447,12 +447,12 @@ export default function Dashboard() {
     }
 
     // ---- 9. Holding time win vs loss ----
-    const withDur = executedTrades.filter(t => (t as any).duration_minutes != null);
+    const withDur = executedTrades.filter(t => (t).duration_minutes != null);
     const winDur = withDur.filter(t => t.result === 'Win');
     const lossDur = withDur.filter(t => t.result === 'Loss');
     if (winDur.length >= 2 && lossDur.length >= 2) {
-      const avgWin = winDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / winDur.length;
-      const avgLoss = lossDur.reduce((s, t) => s + Number((t as any).duration_minutes), 0) / lossDur.length;
+      const avgWin = winDur.reduce((s, t) => s + Number((t).duration_minutes), 0) / winDur.length;
+      const avgLoss = lossDur.reduce((s, t) => s + Number((t).duration_minutes), 0) / lossDur.length;
       const fmt = (m: number) => (m < 60 ? `${Math.round(m)} นาที` : `${(m / 60).toFixed(1)} ชม.`);
       if (avgLoss > avgWin * 1.3) {
         out.push({
@@ -466,7 +466,7 @@ export default function Dashboard() {
   }, [executedTrades, conditionPerfTableData, dayData, tradeConditions]);
 
   const metricStats = useMemo(
-    () => computeMetricStats(customMetrics.filter(m => m.is_active !== false), metricValues, dateTrades as any),
+    () => computeMetricStats(customMetrics.filter(m => m.is_active !== false), metricValues, dateTrades),
     [customMetrics, metricValues, dateTrades]
   );
 
@@ -512,8 +512,8 @@ export default function Dashboard() {
         <>
 
           <StreakCard
-            trades={trades as any}
-            tradeConditions={tradeConditions as any}
+            trades={trades}
+            tradeConditions={tradeConditions}
             allTradeIds={trades.map(t => t.id)}
           />
 

@@ -3,13 +3,16 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { validateConfig as parseConfig, isSafeExternalUrl, isDataImage } from './security';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // The built directory structure
-process.env.DIST = path.join(__dirname, '../dist');
-process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
+const DIST = path.join(__dirname, '../dist');
+const PUBLIC = app.isPackaged ? DIST : path.join(DIST, '../public');
+process.env.DIST = DIST;
+process.env.VITE_PUBLIC = PUBLIC;
 
 let mainWindow: BrowserWindow | null;
 let quickNoteWindow: BrowserWindow | null = null;
@@ -70,6 +73,8 @@ interface WidgetConfig {
   prefillRisk: string;
 }
 
+const AUTH_ORIGIN = process.env.VITE_SUPABASE_URL;
+
 const DEFAULT_CONFIG: WidgetConfig = {
   shortcutToggle: 'CommandOrControl+Shift+Space',
   shortcutCapture: 'CommandOrControl+Shift+X',
@@ -87,20 +92,62 @@ let currentConfig = { ...DEFAULT_CONFIG };
 function loadConfig() {
   try {
     const data = fs.readFileSync(getConfigPath(), 'utf-8');
-    currentConfig = { ...DEFAULT_CONFIG, ...JSON.parse(data) };
-  } catch (e) {
+    currentConfig = validateConfig(JSON.parse(data));
+  } catch {
     currentConfig = { ...DEFAULT_CONFIG };
   }
 }
 
-function saveConfig(newConfig: Partial<WidgetConfig>) {
-  currentConfig = { ...currentConfig, ...newConfig };
-  fs.writeFileSync(getConfigPath(), JSON.stringify(currentConfig, null, 2));
-  
-  // Re-apply shortcuts
+function validateConfig(config: unknown): WidgetConfig {
+  return parseConfig(config, DEFAULT_CONFIG);
+}
+
+function applyShortcuts(config: WidgetConfig) {
   globalShortcut.unregisterAll();
-  if (currentConfig.shortcutToggle) globalShortcut.register(currentConfig.shortcutToggle, () => toggleQuickNote());
-  if (currentConfig.shortcutCapture) globalShortcut.register(currentConfig.shortcutCapture, () => captureScreen());
+  const toggleRegistered = !config.shortcutToggle || globalShortcut.register(config.shortcutToggle, toggleQuickNote);
+  const captureRegistered = !config.shortcutCapture || globalShortcut.register(config.shortcutCapture, captureScreen);
+  if (!toggleRegistered || !captureRegistered) {
+    globalShortcut.unregisterAll();
+    throw new Error('A configured keyboard shortcut is unavailable');
+  }
+}
+
+function saveConfig(newConfig: Partial<WidgetConfig>) {
+  const previous = currentConfig;
+  const candidate = validateConfig({ ...previous, ...newConfig });
+  try {
+    applyShortcuts(candidate);
+    const temporaryPath = `${getConfigPath()}.tmp`;
+    fs.writeFileSync(temporaryPath, JSON.stringify(candidate, null, 2));
+    fs.renameSync(temporaryPath, getConfigPath());
+  } catch (error) {
+    try { applyShortcuts(previous); } catch (restoreError) { console.error('Could not restore shortcuts', restoreError); }
+    throw error;
+  }
+  currentConfig = candidate;
+  return currentConfig;
+}
+
+function hardenWindow(window: BrowserWindow) {
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (isSafeExternalUrl(url, AUTH_ORIGIN)) void shell.openExternal(url).catch(console.error);
+    return { action: 'deny' };
+  });
+  window.webContents.on('will-navigate', (event) => event.preventDefault());
+  window.webContents.on('will-redirect', (event) => event.preventDefault());
+  window.webContents.on('will-attach-webview', (event) => event.preventDefault());
+  window.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
+}
+
+function trustedSender(event: Electron.IpcMainEvent | Electron.IpcMainInvokeEvent, role: 'app' | 'widget' = 'app') {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (event.senderFrame !== event.sender.mainFrame) return false;
+  if (role === 'widget') return window === quickNoteWindow;
+  return window === mainWindow || window === quickNoteWindow;
+}
+
+function requireSender(event: Electron.IpcMainInvokeEvent) {
+  if (!trustedSender(event)) throw new Error('Unauthorized IPC sender');
 }
 
 function createWindow() {
@@ -110,11 +157,13 @@ function createWindow() {
     show: true,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
     },
   });
+  hardenWindow(mainWindow);
 
   mainWindow.on('close', (event) => {
     if (!isQuitting) {
@@ -126,7 +175,7 @@ function createWindow() {
   if (VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(process.env.DIST, 'index.html'));
+    mainWindow.loadFile(path.join(DIST, 'index.html'));
   }
 
   mainWindow.webContents.on('did-finish-load', () => {
@@ -155,11 +204,13 @@ function createQuickNoteWindow() {
     alwaysOnTop: true,
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
     },
   });
+  hardenWindow(quickNoteWindow);
 
   quickNoteWindow.on('close', (event) => {
     if (!isQuitting) {
@@ -177,7 +228,7 @@ function createQuickNoteWindow() {
   if (VITE_DEV_SERVER_URL) {
     quickNoteWindow.loadURL(`${VITE_DEV_SERVER_URL}?mode=widget`);
   } else {
-    quickNoteWindow.loadFile(path.join(process.env.DIST, 'index.html'), { query: { mode: 'widget' } });
+    quickNoteWindow.loadFile(path.join(DIST, 'index.html'), { query: { mode: 'widget' } });
   }
 }
 
@@ -230,7 +281,7 @@ function deliverScreenshotToWidget(dataUrl: string) {
 
 function setupTray() {
   // Use a blank tray icon or standard icon for now (fallback to nothing if error)
-  tray = new Tray(path.join(process.env.VITE_PUBLIC, 'icon-192.png')); 
+  tray = new Tray(path.join(PUBLIC, 'icon-192.png'));
   
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Show Main App', click: () => mainWindow?.show() },
@@ -247,27 +298,33 @@ function setupTray() {
   });
 }
 
-ipcMain.on('toggle-always-on-top', (event, isPinned) => {
-  if (quickNoteWindow) {
-    quickNoteWindow.setAlwaysOnTop(isPinned, 'screen-saver');
+ipcMain.on('toggle-always-on-top', (event, isPinned: unknown) => {
+  if (trustedSender(event, 'widget') && typeof isPinned === 'boolean') {
+    quickNoteWindow?.setAlwaysOnTop(isPinned, 'screen-saver');
   }
 });
 
 ipcMain.on('hide-window', (event) => {
+  if (!trustedSender(event)) return;
   const win = BrowserWindow.fromWebContents(event.sender);
   if (win) win.hide();
 });
 
-ipcMain.on('open-external-url', (_event, url) => {
-  shell.openExternal(url).catch((err) => {
+ipcMain.on('open-external-url', (event, url: unknown) => {
+  if (!trustedSender(event)) return;
+  if (!isSafeExternalUrl(url, AUTH_ORIGIN)) return;
+  shell.openExternal(url).catch((err: Error) => {
     console.error('Failed to open external URL:', err);
   });
 });
 
-ipcMain.handle('get-config', () => currentConfig);
-ipcMain.on('save-config', (event, newConfig) => saveConfig(newConfig));
-ipcMain.on('install-update', () => autoUpdater.quitAndInstall());
-ipcMain.on('check-for-update', () => autoUpdater.checkForUpdates().catch(() => {}));
+ipcMain.handle('get-config', (event) => { requireSender(event); return currentConfig; });
+ipcMain.handle('save-config', (event, newConfig: unknown) => {
+  requireSender(event);
+  return saveConfig(parseConfig(newConfig, currentConfig));
+});
+ipcMain.on('install-update', (event) => { if (trustedSender(event)) autoUpdater.quitAndInstall(); });
+ipcMain.on('check-for-update', (event) => { if (trustedSender(event)) void autoUpdater.checkForUpdates().catch(console.error); });
 
 function setupAutoUpdater() {
   // Don't check for updates in dev mode
@@ -313,7 +370,8 @@ function setupAutoUpdater() {
   setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 30 * 60 * 1000);
 }
 
-ipcMain.on('download-update', () => {
+ipcMain.on('download-update', (event) => {
+  if (!trustedSender(event)) return;
   autoUpdater.downloadUpdate().catch(() => {});
 });
 
@@ -323,8 +381,7 @@ app.whenReady().then(() => {
   createQuickNoteWindow();
   try { setupTray(); } catch(e) { console.error('Tray icon failed', e) }
   
-  if (currentConfig.shortcutToggle) globalShortcut.register(currentConfig.shortcutToggle, () => toggleQuickNote());
-  if (currentConfig.shortcutCapture) globalShortcut.register(currentConfig.shortcutCapture, () => captureScreen());
+  try { applyShortcuts(currentConfig); } catch (error) { console.error('Keyboard shortcuts unavailable', error); }
 
   setupAutoUpdater();
 
@@ -357,10 +414,8 @@ async function captureScreen() {
     // For high DPI, scale factor might be needed
     const scaleFactor = primaryDisplay.scaleFactor;
     
-    let wasPinned = false;
     // Hide quickNoteWindow BEFORE capturing so it doesn't appear in the screenshot
     if (quickNoteWindow && quickNoteWindow.isVisible()) {
-      wasPinned = true;
       quickNoteWindow.hide();
       // Wait a moment for the OS to repaint the screen without the window
       await new Promise(resolve => setTimeout(resolve, 150));
@@ -370,7 +425,8 @@ async function captureScreen() {
       types: ['screen'], 
       thumbnailSize: { width: width * scaleFactor, height: height * scaleFactor } 
     });
-    const primarySource = sources[0]; 
+    const primarySource = sources.find(source => source.display_id === String(primaryDisplay.id)) ?? sources[0];
+    if (!primarySource) throw new Error('No screen is available for capture');
     
     const screenshotDataUrl = primarySource.thumbnail.toDataURL();
 
@@ -384,12 +440,15 @@ async function captureScreen() {
       skipTaskbar: true,
       enableLargerThanScreen: true,
       webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
+        preload: path.join(__dirname, 'preload.cjs'),
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: true,
       }
     });
+    hardenWindow(cropWindow);
 
-    cropWindow.loadFile(path.join(process.env.VITE_PUBLIC, 'crop.html'));
+    cropWindow.loadFile(path.join(PUBLIC, 'crop.html'));
     
     cropWindow.webContents.on('did-finish-load', () => {
       cropWindow?.webContents.send('screenshot-data', screenshotDataUrl);
@@ -410,7 +469,8 @@ async function captureScreen() {
   }
 }
 
-ipcMain.on('crop-finished', (_event, croppedDataUrl: string) => {
+ipcMain.on('crop-finished', (event, croppedDataUrl: unknown) => {
+  if (BrowserWindow.fromWebContents(event.sender) !== cropWindow || event.senderFrame !== event.sender.mainFrame || !isDataImage(croppedDataUrl)) return;
   if (cropWindow) {
     cropWindow.close();
     cropWindow = null;
@@ -420,16 +480,19 @@ ipcMain.on('crop-finished', (_event, croppedDataUrl: string) => {
   deliverScreenshotToWidget(croppedDataUrl);
 });
 
-ipcMain.handle('get-pending-screenshot', () => {
+ipcMain.handle('get-pending-screenshot', (event) => {
+  if (!trustedSender(event, 'widget')) throw new Error('Unauthorized IPC sender');
   const data = pendingScreenshot;
   return data;
 });
-ipcMain.on('screenshot-received', () => {
+ipcMain.on('screenshot-received', (event) => {
+  if (!trustedSender(event, 'widget')) return;
   pendingScreenshot = null;
 });
 
 
-ipcMain.on('crop-cancelled', () => {
+ipcMain.on('crop-cancelled', (event) => {
+  if (BrowserWindow.fromWebContents(event.sender) !== cropWindow || event.senderFrame !== event.sender.mainFrame) return;
   if (cropWindow) {
     cropWindow.close();
     cropWindow = null;

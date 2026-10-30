@@ -45,7 +45,7 @@ export default function TradeDetail() {
       if (!ownedTrade) return [];
       const { data, error } = await supabase.from('trade_conditions').select('conditions(name)').eq('trade_id', ownedTrade.id);
       if (error) throw error;
-      return data?.map((d: any) => d.conditions?.name).filter(Boolean) ?? [];
+      return data?.map((d) => d.conditions?.name).filter(Boolean) ?? [];
     },
     enabled: !!id && !!user && !!activeProfile,
   });
@@ -60,7 +60,7 @@ export default function TradeDetail() {
       if (!ownedTrade) return [];
       const { data, error } = await supabase.from('trade_tags').select('tags(name)').eq('trade_id', ownedTrade.id);
       if (error) throw error;
-      return data?.map((d: any) => d.tags?.name).filter(Boolean) ?? [];
+      return data?.map((d) => d.tags?.name).filter(Boolean) ?? [];
     },
     enabled: !!id && !!user && !!activeProfile,
   });
@@ -75,26 +75,20 @@ export default function TradeDetail() {
         .eq('trade_id', id).eq('user_id', user.id);
       if (error) throw error;
       return (data ?? [])
-        .filter((r: any) => r.value != null && r.trade_metrics)
-        .sort((a: any, b: any) => (a.trade_metrics.sort_order ?? 0) - (b.trade_metrics.sort_order ?? 0));
+        .filter((r) => r.value != null && r.trade_metrics)
+        .sort((a, b) => (a.trade_metrics.sort_order ?? 0) - (b.trade_metrics.sort_order ?? 0));
     },
     enabled: !!id && !!user && !!activeProfile,
   });
 
   const handleDelete = async () => {
     if (!confirm('Delete this trade?') || !id || !user || !activeProfile) return;
-    const imageUrl = (trade as any)?.image_url as string | null;
-    const { error: imageError } = await supabase.storage.from('trade-images').remove(
-      imageUrl ? [imageUrl] : [],
-    );
-    if (imageError) {
-      toast.error(`ลบรูปไม่สำเร็จ: ${imageError.message}`);
-      return;
-    }
+    const imageUrl = (trade)?.image_url as string | null;
     const { error } = await supabase.from('trades').delete()
       .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
     if (error) toast.error(error.message);
     else {
+      await removeStorageImages([imageUrl]);
       toast.success('Trade deleted');
       navigate('/trades');
     }
@@ -180,7 +174,7 @@ export default function TradeDetail() {
             <div>
               <span className="text-sm text-muted-foreground">Metrics</span>
               <div className="grid grid-cols-2 gap-2 mt-1">
-                {metricRows.map((r: any, i: number) => (
+                {metricRows.map((r, i: number) => (
                   <div key={i} className="flex items-center justify-between rounded-md bg-accent/40 px-3 py-2 text-sm">
                     <span className="truncate">{r.trade_metrics.name}</span>
                     <span className="font-mono">

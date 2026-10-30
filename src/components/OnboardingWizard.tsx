@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/errors";
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,8 +71,8 @@ export default function OnboardingWizard() {
       qc.invalidateQueries({ queryKey: ['conditions'] });
       toast.success('ตั้งค่าเริ่มต้นเรียบร้อย');
       setDismissed(true);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(errorMessage(e));
     } finally {
       setSaving(false);
     }

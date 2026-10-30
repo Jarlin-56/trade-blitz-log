@@ -1,0 +1,2623 @@
+{
+  "enums": [
+    {
+      "enum_name": "trade_direction",
+      "enum_values": [
+        "Long",
+        "Short"
+      ]
+    },
+    {
+      "enum_name": "trade_result",
+      "enum_values": [
+        "Win",
+        "Loss",
+        "Break-even",
+        "Missed",
+        "Canceled"
+      ]
+    }
+  ],
+  "grants": {
+    "tables": [
+      {
+        "grantee": "authenticated",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "conditions",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "profiles",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "quick_notes",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_attempts",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "recap_quiz_condition_results",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "tags",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_conditions",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metric_values",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_metrics",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trade_tags",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "authenticated",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "REFERENCES"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "SELECT"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "TRIGGER"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "TRUNCATE"
+      },
+      {
+        "grantee": "service_role",
+        "table_name": "trades",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      }
+    ],
+    "functions": [
+      {
+        "grantee": "PUBLIC",
+        "signature": "update_updated_at_column()",
+        "is_grantable": "NO",
+        "function_name": "update_updated_at_column",
+        "privilege_type": "EXECUTE"
+      }
+    ]
+  },
+  "tables": [
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "name",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 4
+        }
+      ],
+      "table_name": "conditions"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "display_name",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "bio",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 4
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "trading_style",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 5
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 6
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "updated_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 7
+        },
+        {
+          "udt_name": "bool",
+          "data_type": "boolean",
+          "column_name": "is_active",
+          "is_nullable": "NO",
+          "column_default": "false",
+          "ordinal_position": 8
+        }
+      ],
+      "table_name": "profiles"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "profile_id",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "asset",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 4
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "direction",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 5
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "note",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 6
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "image_url",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 7
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "converted_trade_id",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 8
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 9
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "updated_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 10
+        }
+      ],
+      "table_name": "quick_notes"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "profile_id",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "trade_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 4
+        },
+        {
+          "udt_name": "bool",
+          "data_type": "boolean",
+          "column_name": "guess_enter",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 5
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "guess_direction",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 6
+        },
+        {
+          "udt_name": "bool",
+          "data_type": "boolean",
+          "column_name": "direction_correct",
+          "is_nullable": "NO",
+          "column_default": "false",
+          "ordinal_position": 7
+        },
+        {
+          "udt_name": "bool",
+          "data_type": "boolean",
+          "column_name": "enter_correct",
+          "is_nullable": "NO",
+          "column_default": "false",
+          "ordinal_position": 8
+        },
+        {
+          "udt_name": "int4",
+          "data_type": "integer",
+          "column_name": "score",
+          "is_nullable": "NO",
+          "column_default": "0",
+          "ordinal_position": 9
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 10
+        }
+      ],
+      "table_name": "recap_quiz_attempts"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "attempt_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "profile_id",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 4
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "condition_name",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 5
+        },
+        {
+          "udt_name": "bool",
+          "data_type": "boolean",
+          "column_name": "guessed",
+          "is_nullable": "NO",
+          "column_default": "false",
+          "ordinal_position": 6
+        },
+        {
+          "udt_name": "bool",
+          "data_type": "boolean",
+          "column_name": "actual",
+          "is_nullable": "NO",
+          "column_default": "false",
+          "ordinal_position": 7
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 8
+        }
+      ],
+      "table_name": "recap_quiz_condition_results"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "name",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 4
+        }
+      ],
+      "table_name": "tags"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "trade_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "condition_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 3
+        }
+      ],
+      "table_name": "trade_conditions"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "trade_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "metric_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 4
+        },
+        {
+          "udt_name": "numeric",
+          "data_type": "numeric",
+          "column_name": "value",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 5
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 6
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "updated_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 7
+        }
+      ],
+      "table_name": "trade_metric_values"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "profile_id",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "name",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 4
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "unit",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 5
+        },
+        {
+          "udt_name": "int4",
+          "data_type": "integer",
+          "column_name": "decimals",
+          "is_nullable": "NO",
+          "column_default": "2",
+          "ordinal_position": 6
+        },
+        {
+          "udt_name": "numeric",
+          "data_type": "numeric",
+          "column_name": "min_value",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 7
+        },
+        {
+          "udt_name": "numeric",
+          "data_type": "numeric",
+          "column_name": "max_value",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 8
+        },
+        {
+          "udt_name": "int4",
+          "data_type": "integer",
+          "column_name": "sort_order",
+          "is_nullable": "NO",
+          "column_default": "0",
+          "ordinal_position": 9
+        },
+        {
+          "udt_name": "bool",
+          "data_type": "boolean",
+          "column_name": "is_active",
+          "is_nullable": "NO",
+          "column_default": "true",
+          "ordinal_position": 10
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 11
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "updated_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 12
+        }
+      ],
+      "table_name": "trade_metrics"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "trade_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "tag_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 3
+        }
+      ],
+      "table_name": "trade_tags"
+    },
+    {
+      "columns": [
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "id",
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()",
+          "ordinal_position": 1
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "user_id",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 2
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "asset",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 3
+        },
+        {
+          "udt_name": "trade_direction",
+          "data_type": "USER-DEFINED",
+          "column_name": "direction",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 4
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "entry_date",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 5
+        },
+        {
+          "udt_name": "trade_result",
+          "data_type": "USER-DEFINED",
+          "column_name": "result",
+          "is_nullable": "NO",
+          "column_default": null,
+          "ordinal_position": 6
+        },
+        {
+          "udt_name": "numeric",
+          "data_type": "numeric",
+          "column_name": "earned_r",
+          "is_nullable": "NO",
+          "column_default": "0",
+          "ordinal_position": 7
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "recap_text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 8
+        },
+        {
+          "udt_name": "text",
+          "data_type": "text",
+          "column_name": "image_url",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 9
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "created_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 10
+        },
+        {
+          "udt_name": "timestamptz",
+          "data_type": "timestamp with time zone",
+          "column_name": "updated_at",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "ordinal_position": 11
+        },
+        {
+          "udt_name": "numeric",
+          "data_type": "numeric",
+          "column_name": "missed_r",
+          "is_nullable": "NO",
+          "column_default": "0",
+          "ordinal_position": 12
+        },
+        {
+          "udt_name": "int4",
+          "data_type": "integer",
+          "column_name": "duration_minutes",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 13
+        },
+        {
+          "udt_name": "uuid",
+          "data_type": "uuid",
+          "column_name": "profile_id",
+          "is_nullable": "YES",
+          "column_default": null,
+          "ordinal_position": 14
+        }
+      ],
+      "table_name": "trades"
+    }
+  ],
+  "indexes": [
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX conditions_pkey ON public.conditions USING btree (id)",
+      "index_name": "conditions_pkey",
+      "is_primary": true,
+      "table_name": "conditions"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)",
+      "index_name": "profiles_pkey",
+      "is_primary": true,
+      "table_name": "profiles"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX quick_notes_pkey ON public.quick_notes USING btree (id)",
+      "index_name": "quick_notes_pkey",
+      "is_primary": true,
+      "table_name": "quick_notes"
+    },
+    {
+      "is_unique": false,
+      "definition": "CREATE INDEX quick_notes_user_profile_idx ON public.quick_notes USING btree (user_id, profile_id, created_at DESC)",
+      "index_name": "quick_notes_user_profile_idx",
+      "is_primary": false,
+      "table_name": "quick_notes"
+    },
+    {
+      "is_unique": false,
+      "definition": "CREATE INDEX idx_recap_quiz_user ON public.recap_quiz_attempts USING btree (user_id, profile_id)",
+      "index_name": "idx_recap_quiz_user",
+      "is_primary": false,
+      "table_name": "recap_quiz_attempts"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX recap_quiz_attempts_pkey ON public.recap_quiz_attempts USING btree (id)",
+      "index_name": "recap_quiz_attempts_pkey",
+      "is_primary": true,
+      "table_name": "recap_quiz_attempts"
+    },
+    {
+      "is_unique": false,
+      "definition": "CREATE INDEX idx_quiz_cond_results_attempt ON public.recap_quiz_condition_results USING btree (attempt_id)",
+      "index_name": "idx_quiz_cond_results_attempt",
+      "is_primary": false,
+      "table_name": "recap_quiz_condition_results"
+    },
+    {
+      "is_unique": false,
+      "definition": "CREATE INDEX idx_quiz_cond_results_profile ON public.recap_quiz_condition_results USING btree (profile_id)",
+      "index_name": "idx_quiz_cond_results_profile",
+      "is_primary": false,
+      "table_name": "recap_quiz_condition_results"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX recap_quiz_condition_results_pkey ON public.recap_quiz_condition_results USING btree (id)",
+      "index_name": "recap_quiz_condition_results_pkey",
+      "is_primary": true,
+      "table_name": "recap_quiz_condition_results"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX tags_pkey ON public.tags USING btree (id)",
+      "index_name": "tags_pkey",
+      "is_primary": true,
+      "table_name": "tags"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trade_conditions_pkey ON public.trade_conditions USING btree (id)",
+      "index_name": "trade_conditions_pkey",
+      "is_primary": true,
+      "table_name": "trade_conditions"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trade_conditions_trade_id_condition_id_key ON public.trade_conditions USING btree (trade_id, condition_id)",
+      "index_name": "trade_conditions_trade_id_condition_id_key",
+      "is_primary": false,
+      "table_name": "trade_conditions"
+    },
+    {
+      "is_unique": false,
+      "definition": "CREATE INDEX idx_trade_metric_values_metric ON public.trade_metric_values USING btree (metric_id)",
+      "index_name": "idx_trade_metric_values_metric",
+      "is_primary": false,
+      "table_name": "trade_metric_values"
+    },
+    {
+      "is_unique": false,
+      "definition": "CREATE INDEX idx_trade_metric_values_trade ON public.trade_metric_values USING btree (trade_id)",
+      "index_name": "idx_trade_metric_values_trade",
+      "is_primary": false,
+      "table_name": "trade_metric_values"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trade_metric_values_pkey ON public.trade_metric_values USING btree (id)",
+      "index_name": "trade_metric_values_pkey",
+      "is_primary": true,
+      "table_name": "trade_metric_values"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trade_metric_values_trade_id_metric_id_key ON public.trade_metric_values USING btree (trade_id, metric_id)",
+      "index_name": "trade_metric_values_trade_id_metric_id_key",
+      "is_primary": false,
+      "table_name": "trade_metric_values"
+    },
+    {
+      "is_unique": false,
+      "definition": "CREATE INDEX idx_trade_metrics_profile ON public.trade_metrics USING btree (profile_id)",
+      "index_name": "idx_trade_metrics_profile",
+      "is_primary": false,
+      "table_name": "trade_metrics"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trade_metrics_pkey ON public.trade_metrics USING btree (id)",
+      "index_name": "trade_metrics_pkey",
+      "is_primary": true,
+      "table_name": "trade_metrics"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trade_tags_pkey ON public.trade_tags USING btree (id)",
+      "index_name": "trade_tags_pkey",
+      "is_primary": true,
+      "table_name": "trade_tags"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trade_tags_trade_id_tag_id_key ON public.trade_tags USING btree (trade_id, tag_id)",
+      "index_name": "trade_tags_trade_id_tag_id_key",
+      "is_primary": false,
+      "table_name": "trade_tags"
+    },
+    {
+      "is_unique": true,
+      "definition": "CREATE UNIQUE INDEX trades_pkey ON public.trades USING btree (id)",
+      "index_name": "trades_pkey",
+      "is_primary": true,
+      "table_name": "trades"
+    }
+  ],
+  "version": "1.0",
+  "policies": [
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "conditions",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage own conditions"
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "profiles",
+      "with_check": null,
+      "policy_name": "Users can delete own profile"
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "profiles",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users can insert own profile"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "profiles",
+      "with_check": null,
+      "policy_name": "Users can update own profile"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "profiles",
+      "with_check": null,
+      "policy_name": "Users can view own profile"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "quick_notes",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage own quick notes"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "recap_quiz_attempts",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage own quiz attempts"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "recap_quiz_condition_results",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage their own quiz condition results"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "tags",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage own tags"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM trades\n  WHERE ((trades.id = trade_conditions.trade_id) AND (trades.user_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "trade_conditions",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM trades\n  WHERE ((trades.id = trade_conditions.trade_id) AND (trades.user_id = auth.uid()))))",
+      "policy_name": "Users manage own trade_conditions"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "trade_metric_values",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage own trade_metric_values"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "trade_metrics",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage own trade_metrics"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM trades\n  WHERE ((trades.id = trade_tags.trade_id) AND (trades.user_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "trade_tags",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM trades\n  WHERE ((trades.id = trade_tags.trade_id) AND (trades.user_id = auth.uid()))))",
+      "policy_name": "Users manage own trade_tags"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "trades",
+      "with_check": "(auth.uid() = user_id)",
+      "policy_name": "Users manage own trades"
+    }
+  ],
+  "triggers": [
+    {
+      "status": "O",
+      "definition": "CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "is_enabled": true,
+      "table_name": "profiles",
+      "trigger_name": "update_profiles_updated_at"
+    },
+    {
+      "status": "O",
+      "definition": "CREATE TRIGGER update_quick_notes_updated_at BEFORE UPDATE ON quick_notes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "is_enabled": true,
+      "table_name": "quick_notes",
+      "trigger_name": "update_quick_notes_updated_at"
+    },
+    {
+      "status": "O",
+      "definition": "CREATE TRIGGER update_trade_metric_values_updated_at BEFORE UPDATE ON trade_metric_values FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "is_enabled": true,
+      "table_name": "trade_metric_values",
+      "trigger_name": "update_trade_metric_values_updated_at"
+    },
+    {
+      "status": "O",
+      "definition": "CREATE TRIGGER update_trade_metrics_updated_at BEFORE UPDATE ON trade_metrics FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "is_enabled": true,
+      "table_name": "trade_metrics",
+      "trigger_name": "update_trade_metrics_updated_at"
+    },
+    {
+      "status": "O",
+      "definition": "CREATE TRIGGER update_trades_updated_at BEFORE UPDATE ON trades FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+      "is_enabled": true,
+      "table_name": "trades",
+      "trigger_name": "update_trades_updated_at"
+    }
+  ],
+  "functions": [
+    {
+      "language": "plpgsql",
+      "signature": "handle_new_user()",
+      "volatility": "VOLATILE",
+      "return_type": "trigger",
+      "search_path": "public",
+      "function_name": "handle_new_user",
+      "definition_md5": "c1eb8e577f1687c6177323d36bb07cc2",
+      "identity_arguments": "",
+      "is_security_definer": true
+    },
+    {
+      "language": "plpgsql",
+      "signature": "update_updated_at_column()",
+      "volatility": "VOLATILE",
+      "return_type": "trigger",
+      "search_path": "public",
+      "function_name": "update_updated_at_column",
+      "definition_md5": "d91f57c38409812b20360254042b0360",
+      "identity_arguments": "",
+      "is_security_definer": false
+    }
+  ],
+  "tables_rls": [
+    {
+      "rls_forced": false,
+      "table_name": "conditions",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "profiles",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "quick_notes",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "recap_quiz_attempts",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "recap_quiz_condition_results",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "tags",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "trade_conditions",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "trade_metric_values",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "trade_metrics",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "trade_tags",
+      "rls_enabled": true
+    },
+    {
+      "rls_forced": false,
+      "table_name": "trades",
+      "rls_enabled": true
+    }
+  ],
+  "captured_at": "2026-10-29T19:16:22.038",
+  "constraints": [
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "conditions",
+      "foreign_table": null,
+      "constraint_name": "conditions_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "conditions",
+      "foreign_table": null,
+      "constraint_name": "conditions_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL name",
+      "table_name": "conditions",
+      "foreign_table": null,
+      "constraint_name": "conditions_name_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "conditions",
+      "foreign_table": null,
+      "constraint_name": "conditions_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "table_name": "conditions",
+      "foreign_table": "users",
+      "constraint_name": "conditions_user_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "conditions",
+      "foreign_table": null,
+      "constraint_name": "conditions_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "profiles",
+      "foreign_table": null,
+      "constraint_name": "profiles_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "profiles",
+      "foreign_table": null,
+      "constraint_name": "profiles_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL is_active",
+      "table_name": "profiles",
+      "foreign_table": null,
+      "constraint_name": "profiles_is_active_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "profiles",
+      "foreign_table": null,
+      "constraint_name": "profiles_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "NOT NULL updated_at",
+      "table_name": "profiles",
+      "foreign_table": null,
+      "constraint_name": "profiles_updated_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "table_name": "profiles",
+      "foreign_table": "users",
+      "constraint_name": "profiles_user_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "profiles",
+      "foreign_table": null,
+      "constraint_name": "profiles_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "quick_notes",
+      "foreign_table": null,
+      "constraint_name": "quick_notes_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "CHECK (direction = ANY (ARRAY['Long'::text, 'Short'::text]))",
+      "table_name": "quick_notes",
+      "foreign_table": null,
+      "constraint_name": "quick_notes_direction_check",
+      "constraint_type": "CHECK"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "quick_notes",
+      "foreign_table": null,
+      "constraint_name": "quick_notes_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "quick_notes",
+      "foreign_table": null,
+      "constraint_name": "quick_notes_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE",
+      "table_name": "quick_notes",
+      "foreign_table": "profiles",
+      "constraint_name": "quick_notes_profile_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL updated_at",
+      "table_name": "quick_notes",
+      "foreign_table": null,
+      "constraint_name": "quick_notes_updated_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "quick_notes",
+      "foreign_table": null,
+      "constraint_name": "quick_notes_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL direction_correct",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_direction_correct_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL enter_correct",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_enter_correct_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL guess_enter",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_guess_enter_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": "profiles",
+      "constraint_name": "recap_quiz_attempts_profile_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL score",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_score_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": "trades",
+      "constraint_name": "recap_quiz_attempts_trade_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL trade_id",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_trade_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "recap_quiz_attempts",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_attempts_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL actual",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_actual_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "FOREIGN KEY (attempt_id) REFERENCES recap_quiz_attempts(id) ON DELETE CASCADE",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": "recap_quiz_attempts",
+      "constraint_name": "recap_quiz_condition_results_attempt_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL attempt_id",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_attempt_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL condition_name",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_condition_name_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL guessed",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_guessed_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": "profiles",
+      "constraint_name": "recap_quiz_condition_results_profile_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "recap_quiz_condition_results",
+      "foreign_table": null,
+      "constraint_name": "recap_quiz_condition_results_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "tags",
+      "foreign_table": null,
+      "constraint_name": "tags_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "tags",
+      "foreign_table": null,
+      "constraint_name": "tags_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL name",
+      "table_name": "tags",
+      "foreign_table": null,
+      "constraint_name": "tags_name_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "tags",
+      "foreign_table": null,
+      "constraint_name": "tags_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "table_name": "tags",
+      "foreign_table": "users",
+      "constraint_name": "tags_user_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "tags",
+      "foreign_table": null,
+      "constraint_name": "tags_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "FOREIGN KEY (condition_id) REFERENCES conditions(id) ON DELETE CASCADE",
+      "table_name": "trade_conditions",
+      "foreign_table": "conditions",
+      "constraint_name": "trade_conditions_condition_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL condition_id",
+      "table_name": "trade_conditions",
+      "foreign_table": null,
+      "constraint_name": "trade_conditions_condition_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "trade_conditions",
+      "foreign_table": null,
+      "constraint_name": "trade_conditions_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "trade_conditions",
+      "foreign_table": null,
+      "constraint_name": "trade_conditions_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "UNIQUE (trade_id, condition_id)",
+      "table_name": "trade_conditions",
+      "foreign_table": null,
+      "constraint_name": "trade_conditions_trade_id_condition_id_key",
+      "constraint_type": "UNIQUE"
+    },
+    {
+      "definition": "FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE",
+      "table_name": "trade_conditions",
+      "foreign_table": "trades",
+      "constraint_name": "trade_conditions_trade_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL trade_id",
+      "table_name": "trade_conditions",
+      "foreign_table": null,
+      "constraint_name": "trade_conditions_trade_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "FOREIGN KEY (metric_id) REFERENCES trade_metrics(id) ON DELETE CASCADE",
+      "table_name": "trade_metric_values",
+      "foreign_table": "trade_metrics",
+      "constraint_name": "trade_metric_values_metric_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL metric_id",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_metric_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE",
+      "table_name": "trade_metric_values",
+      "foreign_table": "trades",
+      "constraint_name": "trade_metric_values_trade_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "UNIQUE (trade_id, metric_id)",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_trade_id_metric_id_key",
+      "constraint_type": "UNIQUE"
+    },
+    {
+      "definition": "NOT NULL trade_id",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_trade_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL updated_at",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_updated_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "trade_metric_values",
+      "foreign_table": null,
+      "constraint_name": "trade_metric_values_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL decimals",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_decimals_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL is_active",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_is_active_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL name",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_name_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE",
+      "table_name": "trade_metrics",
+      "foreign_table": "profiles",
+      "constraint_name": "trade_metrics_profile_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL sort_order",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_sort_order_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL updated_at",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_updated_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "trade_metrics",
+      "foreign_table": null,
+      "constraint_name": "trade_metrics_user_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "trade_tags",
+      "foreign_table": null,
+      "constraint_name": "trade_tags_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "trade_tags",
+      "foreign_table": null,
+      "constraint_name": "trade_tags_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE",
+      "table_name": "trade_tags",
+      "foreign_table": "tags",
+      "constraint_name": "trade_tags_tag_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL tag_id",
+      "table_name": "trade_tags",
+      "foreign_table": null,
+      "constraint_name": "trade_tags_tag_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE",
+      "table_name": "trade_tags",
+      "foreign_table": "trades",
+      "constraint_name": "trade_tags_trade_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL trade_id",
+      "table_name": "trade_tags",
+      "foreign_table": null,
+      "constraint_name": "trade_tags_trade_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "UNIQUE (trade_id, tag_id)",
+      "table_name": "trade_tags",
+      "foreign_table": null,
+      "constraint_name": "trade_tags_trade_id_tag_id_key",
+      "constraint_type": "UNIQUE"
+    },
+    {
+      "definition": "NOT NULL asset",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_asset_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL created_at",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_created_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL direction",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_direction_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL earned_r",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_earned_r_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL entry_date",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_entry_date_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL id",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_id_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL missed_r",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_missed_r_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_pkey",
+      "constraint_type": "PRIMARY KEY"
+    },
+    {
+      "definition": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE",
+      "table_name": "trades",
+      "foreign_table": "profiles",
+      "constraint_name": "trades_profile_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL result",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_result_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "NOT NULL updated_at",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_updated_at_not_null",
+      "constraint_type": "n"
+    },
+    {
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "table_name": "trades",
+      "foreign_table": "users",
+      "constraint_name": "trades_user_id_fkey",
+      "constraint_type": "FOREIGN KEY"
+    },
+    {
+      "definition": "NOT NULL user_id",
+      "table_name": "trades",
+      "foreign_table": null,
+      "constraint_name": "trades_user_id_not_null",
+      "constraint_type": "n"
+    }
+  ],
+  "storage_bucket": {
+    "id": "trade-images",
+    "name": "trade-images",
+    "public": true,
+    "bucket_exists": true
+  },
+  "migration_ledger": {
+    "table_name": "schema_migrations",
+    "schema_name": "supabase_migrations",
+    "ledger_exists": false
+  },
+  "storage_policies": [
+    {
+      "cmd": "DELETE",
+      "qual": "((bucket_id = 'trade-images'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "objects",
+      "with_check": null,
+      "policy_name": "Users can delete own trade images"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((bucket_id = 'trade-images'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+      "roles": [
+        "authenticated"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "objects",
+      "with_check": null,
+      "policy_name": "Users can read own trade images"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "((bucket_id = 'trade-images'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+      "roles": [
+        "authenticated"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "objects",
+      "with_check": null,
+      "policy_name": "Users can update own trade images"
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "permissive": "PERMISSIVE",
+      "table_name": "objects",
+      "with_check": "((bucket_id = 'trade-images'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+      "policy_name": "Users can upload trade images"
+    }
+  ]
+}

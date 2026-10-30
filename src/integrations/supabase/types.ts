@@ -466,7 +466,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      import_trades_with_relations: {
+        Args: { p_profile_id: string; p_rows: Json }
+        Returns: string[]
+      }
+      create_trade_with_relations: {
+        Args: {
+          p_profile_id: string
+          p_trade: Json
+          p_condition_ids?: string[]
+          p_tag_ids?: string[]
+          p_metric_values?: Json
+        }
+        Returns: string
+      }
+      update_trade_with_relations: {
+        Args: {
+          p_trade_id: string
+          p_profile_id: string
+          p_trade: Json
+          p_condition_ids?: string[]
+          p_tag_ids?: string[]
+          p_metric_values?: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
       trade_direction: "Long" | "Short"

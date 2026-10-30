@@ -16,22 +16,23 @@ export default function UpdateNotification() {
   useEffect(() => {
     if (!window.electronAPI) return;
 
-    window.electronAPI.onUpdateAvailable((data) => {
+    const offAvailable = window.electronAPI.onUpdateAvailable((data) => {
       setStatus('available');
       setInfo((prev) => ({ ...prev, version: data.version }));
       setDismissed(false);
     });
 
-    window.electronAPI.onDownloadProgress((progress) => {
+    const offProgress = window.electronAPI.onDownloadProgress((progress) => {
       setStatus('downloading');
       setInfo((prev) => ({ ...prev, percent: Math.round(progress.percent) }));
     });
 
-    window.electronAPI.onUpdateDownloaded((data) => {
+    const offDownloaded = window.electronAPI.onUpdateDownloaded((data) => {
       setStatus('ready');
       setInfo((prev) => ({ ...prev, version: data.version }));
       setDismissed(false);
     });
+    return () => { offAvailable(); offProgress(); offDownloaded(); };
   }, []);
 
   if (status === 'idle' || dismissed) return null;

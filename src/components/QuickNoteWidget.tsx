@@ -43,9 +43,9 @@ export default function QuickNoteWidget() {
            <div className="flex flex-col h-screen w-screen bg-background text-foreground overflow-hidden">
               <div
                 className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/80 shrink-0"
-                style={{ WebkitAppRegion: 'drag' } as any}              >
+                style={{ WebkitAppRegion: 'drag' }}              >
                 <div className="font-semibold text-sm">Log Trade</div>
-                <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as any}>                  <Button
+                <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' }}>                  <Button
                     variant="ghost"
                     size="icon"
                     className={cn('h-7 w-7', isPinned && 'bg-accent')}

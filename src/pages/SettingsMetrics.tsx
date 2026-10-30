@@ -76,18 +76,18 @@ export default function SettingsMetrics() {
       setName(''); setUnit(''); setDecimals('2'); setMinValue(''); setMaxValue('');
       toast.success('เพิ่มฟิลด์แล้ว');
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e) => toast.error(e.message),
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<TradeMetric> }) => {
       if (!user || !activeProfile) throw new Error('กรุณาเลือกโปรไฟล์ก่อน');
-      const { error } = await supabase.from('trade_metrics').update(patch as any)
+      const { error } = await supabase.from('trade_metrics').update(patch)
         .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
       if (error) throw error;
     },
     onSuccess: invalidate,
-    onError: (e: any) => toast.error(e.message),
+    onError: (e) => toast.error(e.message),
   });
 
   const deleteMutation = useMutation({
@@ -98,7 +98,7 @@ export default function SettingsMetrics() {
       if (error) throw error;
     },
     onSuccess: () => { invalidate(); toast.success('ลบแล้ว'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e) => toast.error(e.message),
   });
 
   const move = async (index: number, dir: -1 | 1) => {
@@ -107,7 +107,7 @@ export default function SettingsMetrics() {
     if (target < 0 || target >= metrics.length) return;
     const a = metrics[index];
     const b = metrics[target];
-    const filters = (id: string) => supabase.from('trade_metrics').update({ sort_order: id === a.id ? target : index } as any)
+    const filters = (id: string) => supabase.from('trade_metrics').update({ sort_order: id === a.id ? target : index })
       .eq('id', id).eq('user_id', user.id).eq('profile_id', activeProfile.id);
     const results = await Promise.all([filters(a.id), filters(b.id)]);
     const failed = results.find(result => result.error);
